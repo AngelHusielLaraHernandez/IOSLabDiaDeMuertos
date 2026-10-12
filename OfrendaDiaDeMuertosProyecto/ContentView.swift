@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
-//  Created by Angel Lara on 12/10/26.
+//  Created by Angel Lara, Rodrigo Lugo, Adolfo Garcia, Victor JAziel on 12/10/26.
 //
 
 import SwiftUI
