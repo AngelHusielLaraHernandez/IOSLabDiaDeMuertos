@@ -88,7 +88,7 @@
 			);
 			mainGroup = 95B20507307D768000CD874F;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 100;
 			productRefGroup = 95B20511307D768100CD874F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
