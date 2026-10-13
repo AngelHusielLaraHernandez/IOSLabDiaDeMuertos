@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 100;
 	objects = {
 
 /* Begin PBXFileReference section */
@@ -21,10 +21,8 @@
 /* Begin PBXFrameworksBuildPhase section */
 		95B2050D307D768100CD874F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -58,14 +56,10 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				95B20512307D768100CD874F /* OfrendaDiaDeMuertosProyecto */,
 			);
 			name = OfrendaDiaDeMuertosProyecto;
-			packageProductDependencies = (
-			);
 			productName = OfrendaDiaDeMuertosProyecto;
 			productReference = 95B20510307D768100CD874F /* OfrendaDiaDeMuertosProyecto.app */;
 			productType = "com.apple.product-type.application";
@@ -93,7 +87,7 @@
 				Base,
 			);
 			mainGroup = 95B20507307D768000CD874F;
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 100;
 			productRefGroup = 95B20511307D768100CD874F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -106,25 +100,21 @@
 /* Begin PBXResourcesBuildPhase section */
 		95B2050E307D768100CD874F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		95B2050C307D768100CD874F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		95B2051B307D768200CD874F /* Debug */ = {
+		95B2051B307D768200CD874F /* Debug configuration for PBXProject "OfrendaDiaDeMuertosProyecto" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -177,7 +167,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -188,7 +178,7 @@
 			};
 			name = Debug;
 		};
-		95B2051C307D768200CD874F /* Release */ = {
+		95B2051C307D768200CD874F /* Release configuration for PBXProject "OfrendaDiaDeMuertosProyecto" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -235,7 +225,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -245,7 +235,7 @@
 			};
 			name = Release;
 		};
-		95B2051E307D768200CD874F /* Debug */ = {
+		95B2051E307D768200CD874F /* Debug configuration for PBXNativeTarget "OfrendaDiaDeMuertosProyecto" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -261,7 +251,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -279,7 +269,7 @@
 			};
 			name = Debug;
 		};
-		95B2051F307D768200CD874F /* Release */ = {
+		95B2051F307D768200CD874F /* Release configuration for PBXNativeTarget "OfrendaDiaDeMuertosProyecto" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -295,7 +285,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -319,19 +309,17 @@
 		95B2050B307D768100CD874F /* Build configuration list for PBXProject "OfrendaDiaDeMuertosProyecto" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				95B2051B307D768200CD874F /* Debug */,
-				95B2051C307D768200CD874F /* Release */,
+				95B2051B307D768200CD874F /* Debug configuration for PBXProject "OfrendaDiaDeMuertosProyecto" */,
+				95B2051C307D768200CD874F /* Release configuration for PBXProject "OfrendaDiaDeMuertosProyecto" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		95B2051D307D768200CD874F /* Build configuration list for PBXNativeTarget "OfrendaDiaDeMuertosProyecto" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				95B2051E307D768200CD874F /* Debug */,
-				95B2051F307D768200CD874F /* Release */,
+				95B2051E307D768200CD874F /* Debug configuration for PBXNativeTarget "OfrendaDiaDeMuertosProyecto" */,
+				95B2051F307D768200CD874F /* Release configuration for PBXNativeTarget "OfrendaDiaDeMuertosProyecto" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
