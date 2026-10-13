@@ -14,6 +14,9 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
+            VStack{
+                Text("Fofo")
+            }
             List {
                 ForEach(items) { item in
                     NavigationLink {
