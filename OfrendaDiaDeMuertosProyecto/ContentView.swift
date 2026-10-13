@@ -14,6 +14,9 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
+            VStack{
+                Text("Rdrigo")
+            }
             List {
                 ForEach(items) { item in
                     NavigationLink {
@@ -59,3 +62,4 @@ struct ContentView: View {
     ContentView()
         .modelContainer(for: Item.self, inMemory: true)
 }
+
