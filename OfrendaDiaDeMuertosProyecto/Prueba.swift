@@ -7,3 +7,4 @@
 
 import SwiftData
 
+import SwiftUI
