@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Entrada a Mictlán</title>
+<style>
+:root{--noche:#120a1f;--morado:#2a1244;--flor:#ff9d1c;--magenta:#d6247a;--hueso:#f3ead8;--piedra:#3b2a4d}
+@media (prefers-color-scheme:dark){:root{--noche:#120a1f}}
+*{box-sizing:border-box;margin:0}
+html,body{margin:0;padding:0;height:100%;background:var(--noche);color:var(--hueso);font-family:Karla,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 70%,var(--morado),var(--noche) 70%)}
+#scene{width:80vw;height:100vh;position:relative;transform-origin:50% 68%;transition:transform 3.4s cubic-bezier(.65,0,.9,.4)}
+#scene svg{width:100%;height:100%;display:block;overflow:visible}
+.doorL,.doorR{transition:transform 2.2s cubic-bezier(.6,0,.2,1)}
+.open .doorL{transform:translateX(-92px)}
+.open .doorR{transform:translateX(92px)}
+#glow{opacity:.25;transition:opacity 2s ease .3s}
+.open #glow{opacity:1}
+.cross #scene{transform:scale(7.5)}
+#hint{position:absolute;bottom:calc(8% + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:1rem;letter-spacing:.02em;transition:opacity .6s}
+#hint button{all:unset;cursor:pointer;padding:.9rem 1.6rem;border:2px solid var(--flor);border-radius:2rem;color:var(--flor);font-weight:600;animation:pulso 2.4s ease-in-out infinite}
+#hint button:focus-visible{outline:3px solid var(--hueso);outline-offset:3px}
+@keyframes pulso{50%{box-shadow:0 0 22px 2px rgba(255,157,28,.45)}}
+.started #hint{opacity:0;pointer-events:none}
+#petals{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.p{position:absolute;top:-6vh;width:10px;height:15px;border-radius:70% 0 70% 0;background:var(--flor);opacity:.85;animation:cae linear infinite}
+.p.m{background:var(--magenta)}
+@keyframes cae{to{transform:translate(var(--dx),112vh) rotate(var(--r))}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:titila 1.3s ease-in-out infinite alternate}
+@keyframes titila{from{transform:scale(1,.88)}to{transform:scale(.92,1.08)}}
+#veil{position:absolute;inset:0;background:radial-gradient(circle,#ffd27a,var(--flor) 40%,var(--morado));opacity:0;pointer-events:none;transition:opacity 1.4s ease}
+.arrived #veil{opacity:1}
+#final{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:1.1rem;padding:2rem;text-align:center;opacity:0;pointer-events:none;transition:opacity 1.6s ease .5s;background:radial-gradient(ellipse at 50% 120%,rgba(214,36,122,.35),transparent 60%)}
+.arrived #final{opacity:1;pointer-events:auto}
+.arrived #veil{opacity:0;transition:opacity 2s ease .4s}
+.arrived #scene,.arrived #petals{opacity:0;transition:opacity 1s}
+#final h1{font-family:'Rozha One',Georgia,serif;font-weight:400;font-size:clamp(2.6rem,11vw,4.4rem);line-height:1;color:var(--flor);text-shadow:0 0 30px rgba(255,157,28,.4)}
+#final p{max-width:30ch;line-height:1.5;color:var(--hueso);font-size:1.05rem}
+#final .go{all:unset;cursor:pointer;margin-top:.6rem;padding:.95rem 2rem;border-radius:2rem;background:var(--flor);color:var(--noche);font-weight:600;font-size:1.05rem}
+#final .go:focus-visible{outline:3px solid var(--hueso);outline-offset:3px}
+#final .re{all:unset;cursor:pointer;font-size:.9rem;opacity:.7;text-decoration:underline}
+@media (prefers-reduced-motion:reduce){.p,.flame,#hint button{animation:none}#scene,.doorL,.doorR{transition-duration:.01s}}
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="petals" aria-hidden="true"></div>
+  <div id="scene">
+    <svg viewBox="0 0 400 1000" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Portal de piedra con escalones, entrada a Mictlán">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="70%" r="70%">
+          <stop offset="0" stop-color="#ffe3a0"/><stop offset=".35" stop-color="#ff9d1c"/>
+          <stop offset=".75" stop-color="#d6247a"/><stop offset="1" stop-color="#2a1244"/>
+        </radialGradient>
+        <clipPath id="op"><path id="opening" d="M110 500V230H130V200H150V175H250V200H270V230H290V500Z"/></clipPath>
+      </defs>
+      <g fill="#f3ead8" opacity=".7"><circle cx="40" cy="90" r="2"/><circle cx="130" cy="200" r="1.5"/><circle cx="300" cy="120" r="2.5"/><circle cx="360" cy="260" r="1.5"/><circle cx="70" cy="340" r="1.5"/><circle cx="220" cy="60" r="1.5"/><circle cx="200" cy="250" r="2"/></g>
+      <path d="M-400 830H800V1400H-400Z" fill="#1d1230"/>
+      <g transform="translate(0 330)">
+      <!-- luz detrás de la puerta -->
+      <g clip-path="url(#op)">
+        <rect id="glow" x="100" y="160" width="200" height="340" fill="url(#g)"/>
+        <path d="M185 300H215L262 500H138Z" fill="#ff9d1c" opacity=".9"/>
+        <path d="M193 300H207L222 500H178Z" fill="#ffd27a" opacity=".8"/>
+        <g fill="#fff3cf"><circle cx="200" cy="262" r="3"/><circle cx="170" cy="285" r="2"/><circle cx="232" cy="280" r="2"/><circle cx="150" cy="330" r="2.5"/><circle cx="252" cy="326" r="2.5"/></g>
+        <!-- puertas -->
+        <g class="doorL"><rect x="100" y="165" width="100" height="340" fill="#4a3562"/><path d="M118 250V490M150 250V490M182 250V490" stroke="#2a1244" stroke-width="3"/></g>
+        <g class="doorR"><rect x="200" y="165" width="100" height="340" fill="#4a3562"/><path d="M218 250V490M250 250V490M282 250V490" stroke="#2a1244" stroke-width="3"/></g>
+      </g>
+      <!-- marco escalonado -->
+      <path d="M40 500V200H70V170H100V140H130V110H270V140H300V170H330V200H360V500H290V230H270V200H250V175H150V200H130V230H110V500Z" fill="#3b2a4d" stroke="#1a0f2b" stroke-width="3"/>
+      <path d="M52 500V210M348 500V210" stroke="#ff9d1c" stroke-width="2" stroke-dasharray="6 10" opacity=".5"/>
+      <!-- calavera en el dintel -->
+      <g transform="translate(200 142)">
+        <path d="M-20 4C-24-20-10-26 0-26S24-20 20 4L14 8V16H-14V8Z" fill="#f3ead8"/>
+        <circle cx="-8" cy="-6" r="5.5" fill="#1a0f2b"/><circle cx="8" cy="-6" r="5.5" fill="#1a0f2b"/>
+        <path d="M0 2L-3 8H3Z" fill="#1a0f2b"/>
+        <path d="M-8 10V16M0 10V16M8 10V16" stroke="#1a0f2b" stroke-width="1.5"/>
+        <circle cx="-8" cy="-6" r="2" fill="#ff9d1c"/><circle cx="8" cy="-6" r="2" fill="#ff9d1c"/>
+      </g>
+      <!-- velas -->
+      <g>
+        <rect x="14" y="440" width="14" height="50" rx="2" fill="#f3ead8"/>
+        <path class="flame" d="M21 413C12 428 14 438 21 438S30 428 21 413Z" fill="#ff9d1c"/>
+        <rect x="372" y="440" width="14" height="50" rx="2" fill="#f3ead8"/>
+        <path class="flame" d="M379 413C370 428 372 438 379 438S388 428 379 413Z" fill="#ff9d1c" style="animation-delay:-.6s"/>
+      </g>
+      <!-- cempasúchil en la base -->
+      <g fill="#ff9d1c"><circle cx="70" cy="494" r="9"/><circle cx="92" cy="498" r="7"/><circle cx="330" cy="494" r="9"/><circle cx="308" cy="498" r="7"/><circle cx="48" cy="498" r="6" fill="#d6247a"/><circle cx="352" cy="498" r="6" fill="#d6247a"/></g>
+    </g>
+    </svg>
+  </div>
+  <div id="hint"><button id="start">Cruzar el umbral</button></div>
+  <div id="veil"></div>
+  <section id="final" aria-live="polite">
+    <h1>Tu ofrenda te espera</h1>
+    <p>Personaliza el altar y lleva la cuenta de todo lo que ya tienes listo.</p>
+    <button class="go" id="enter">Entrar a mi ofrenda</button>
+    <button class="re" id="again">Volver a ver la entrada</button>
+  </section>
+</main>
+<script>
+(function(){
+  var app=document.getElementById('app'),box=document.getElementById('petals');
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // pétalos de cempasúchil
+  if(!reduce){for(var i=0;i<26;i++){var p=document.createElement('i');p.className='p'+(i%6==0?' m':'');
+    p.style.left=(Math.random()*100)+'%';p.style.animationDuration=(7+Math.random()*7)+'s';
+    p.style.animationDelay=(-Math.random()*12)+'s';p.style.setProperty('--dx',(Math.random()*120-60)+'px');
+    p.style.setProperty('--r',(300+Math.random()*500)+'deg');box.appendChild(p);}}
+  var timers=[];
+  function send(a){try{window.webkit.messageHandlers.bookAction.postMessage(a);}catch(e){}}
+  function later(f,t){timers.push(setTimeout(f,t));}
+  function run(){
+    app.classList.add('started','open');
+    later(function(){app.classList.add('cross');},reduce?50:1900);
+    later(function(){app.classList.add('arrived');},reduce?100:4700);
+  }
+  function reset(){
+    timers.forEach(clearTimeout);timers=[];
+    app.classList.remove('started','open','cross','arrived');
+  }
+  document.getElementById('start').addEventListener('click',function(){send('clicked');run();});
+  document.getElementById('again').addEventListener('click',reset);
+  document.getElementById('enter').addEventListener('click',function(){
+    // Puente con Swift: handler "bookAction", mensaje "opened"
+    send('opened');
+  });
+})();
+</script>
+</body>
+</html>
