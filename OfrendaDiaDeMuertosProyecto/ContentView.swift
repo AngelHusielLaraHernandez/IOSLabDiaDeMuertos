@@ -1,64 +1,42 @@
-//
-//  ContentView.swift
-//  OfrendaDiaDeMuertosProyecto
-//
-//  Created by Angel Lara, Rodrigo Lugo, Adolfo Garcia, Victor JAziel on 12/10/26.
-//
-
 import SwiftUI
-import SwiftData
 
+/// Pantalla provisional dedicada únicamente a revisar el modelo de Blender.
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var resetToken = 0
+    @State private var loadState: ModelLoadState = .loading
 
     var body: some View {
-        NavigationSplitView {
-            VStack{
-                Text("victor")
+        OfrendaModelView(resetToken: resetToken, onLoad: { loadState = $0 })
+            .ignoresSafeArea()
+            .overlay(alignment: .topLeading) {
+                Text("Ofrenda · 3D").font(.headline).padding(20).allowsHitTesting(false)
             }
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
+            .overlay(alignment: .topTrailing) {
+                Button { resetToken += 1 } label: {
+                    Image(systemName: "arrow.counterclockwise").font(.headline).padding(12)
+                        .background(.black.opacity(0.55), in: Circle())
+                }.padding(20).accessibilityLabel("Restablecer vista")
+            }
+            .overlay(alignment: .bottom) {
+                Text("1 dedo: girar · 2 dedos: mover\nPellizca para acercar · Doble toque: restablecer")
+                    .font(.caption).multilineTextAlignment(.center)
+                    .padding(14).background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
+                    .padding(20).allowsHitTesting(false)
+            }
+            .overlay {
+                Group {
+                if case .loading = loadState {
+                    ProgressView("Cargando ofrenda…")
+                        .padding(24).background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 20))
+                        .allowsHitTesting(false)
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+                if case .failed(let message) = loadState {
+                    ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
+                        .padding().background(.black.opacity(0.75))
                 }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+                }.allowsHitTesting(false)
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+            .foregroundStyle(.white).tint(.white).preferredColorScheme(.dark)
     }
 }
-
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
-}
+#Preview { ContentView() }
