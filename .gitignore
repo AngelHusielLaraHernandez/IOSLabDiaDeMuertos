@@ -60,3 +60,7 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Prueba: configuración de Xcode propia de cada Mac.
+# El proyecto compartido sigue como plantilla; esta copia local no viaja por Git.
+/ProyectoLocal/
