@@ -18,7 +18,7 @@ html,body{margin:0;padding:0;height:100%;background:var(--noche);color:var(--hue
 #glow{opacity:.25;transition:opacity 2s ease .3s}
 .open #glow{opacity:1}
 .cross #scene{transform:scale(7.5)}
-#hint{position:absolute;bottom:calc(8% + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:1rem;letter-spacing:.02em;transition:opacity .6s}
+#hint{position:absolute;z-index:10;bottom:calc(8% + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;font-size:1rem;letter-spacing:.02em;transition:opacity .6s}
 #hint button{all:unset;cursor:pointer;padding:.9rem 1.6rem;border:2px solid var(--flor);border-radius:2rem;color:var(--flor);font-weight:600;animation:pulso 2.4s ease-in-out infinite}
 #hint button:focus-visible{outline:3px solid var(--hueso);outline-offset:3px}
 @keyframes pulso{50%{box-shadow:0 0 22px 2px rgba(255,157,28,.45)}}
@@ -31,7 +31,7 @@ html,body{margin:0;padding:0;height:100%;background:var(--noche);color:var(--hue
 @keyframes titila{from{transform:scale(1,.88)}to{transform:scale(.92,1.08)}}
 #veil{position:absolute;inset:0;background:radial-gradient(circle,#ffd27a,var(--flor) 40%,var(--morado));opacity:0;pointer-events:none;transition:opacity 1.4s ease}
 .arrived #veil{opacity:1}
-#final{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:1.1rem;padding:2rem;text-align:center;opacity:0;pointer-events:none;transition:opacity 1.6s ease .5s;background:radial-gradient(ellipse at 50% 120%,rgba(214,36,122,.35),transparent 60%)}
+#final{position:absolute;inset:0;z-index:10;display:grid;place-content:center;justify-items:center;gap:1.1rem;padding:2rem;text-align:center;opacity:0;pointer-events:none;transition:opacity 1.6s ease .5s;background:radial-gradient(ellipse at 50% 120%,rgba(214,36,122,.35),transparent 60%)}
 .arrived #final{opacity:1;pointer-events:auto}
 .arrived #veil{opacity:0;transition:opacity 2s ease .4s}
 .arrived #scene,.arrived #petals{opacity:0;transition:opacity 1s}
@@ -41,11 +41,11 @@ html,body{margin:0;padding:0;height:100%;background:var(--noche);color:var(--hue
 #final .go:focus-visible{outline:3px solid var(--hueso);outline-offset:3px}
 #final .re{all:unset;cursor:pointer;font-size:.9rem;opacity:.7;text-decoration:underline}
 @media (prefers-reduced-motion:reduce){.p,.flame,#hint button{animation:none}#scene,.doorL,.doorR{transition-duration:.01s}}
-#titulo{--u:min(12vw,8vh);position:absolute;top:7vh;left:0;right:0;z-index:5;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.3);color:var(--flor);filter:drop-shadow(0 0 14px rgba(255,157,28,.45));pointer-events:none;animation:entra 1.8s ease both;transition:opacity 1.2s ease}
+#titulo{--u:min(14vw,12vh);position:absolute;top:15vh;left:0;right:0;z-index:1;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.3);color:var(--flor);pointer-events:none;animation:entra 1.8s ease backwards;transition:opacity 1.2s ease,visibility 0s 1.2s}
 #titulo .w{display:flex;align-items:flex-end;gap:calc(var(--u)*.14)}
 #titulo .gl{display:block;flex:none;fill:currentColor;overflow:visible}
 @keyframes entra{from{opacity:0;transform:translateY(-12px)}}
-.cross #titulo,.arrived #titulo{opacity:0}
+.cross #titulo,.arrived #titulo{opacity:0;visibility:hidden}
 </style>
 </head>
 <body>
