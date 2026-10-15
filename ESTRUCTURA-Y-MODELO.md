@@ -15,8 +15,12 @@ Un dedo gira; pellizcar acerca o aleja; dos dedos desplazan. Doble toque o el bo
 
 ## Modelo
 
-Fuente: `Downloads/blender final/Ofrenda_morado_y_flores.blend`, guardada el 13 de octubre de 2026. Se conservan las posiciones y orientaciones de la escena final; no se guarda ningún cambio en el Blender original.
+Fuente actual: `Downloads/blender final/Ofrenda_actualizada.blend`, integrada el 14 de octubre de 2026. El archivo de trabajo anterior se conserva en la misma carpeta.
 
-Se exportan 119 objetos de malla sin el fondo de estudio, las cámaras ni las luces de Blender. El USDZ incluye sus texturas con un máximo de 1024 px; el papel picado usa recorte alfa y material visible por ambas caras en RealityKit. La luz principal, el relleno y las luces cálidas de velas se configuran en el visor.
+El USDZ contiene 131 objetos de malla, incluida la pared `fondo__001`. Se añaden las cañas, los tejocotes con sus hojas, el tamal con un plato propio y el vaso de tequila. Las UV del plato se conservan; su textura tiene hasta 2048 px de lado largo y un reflejo moderado. El atlas completo de las veladoras se hornea a 2048 px; las demás imágenes se limitan principalmente a 1024 px.
 
-La configuración del proyecto y la rama actual `angel` se conservan. No se hacen commits ni push. Los archivos `Item.swift` y `Prueba.swift`, existentes antes de esta integración, permanecen sin cambios.
+Los tintes del papel picado se hornean a imágenes y sus materiales se muestran por ambas caras en RealityKit. Las luces y la cámara se configuran en el visor; la pared no se incluye al calcular el centro y el encuadre del altar.
+
+La guía completa está en `output/pdf/Guia_Blender_a_Xcode.pdf` y en `Downloads/blender final`. El script reproducible está en `Downloads/blender final/Herramientas/Preparar_y_exportar_Xcode.py`.
+
+La configuración del proyecto y la rama `angel` se conservan. No se hacen commits ni push. Los archivos reservados de las vistas siguen vacíos.

@@ -103,7 +103,7 @@ struct OfrendaModelView: UIViewRepresentable {
                 do {
                     let entity = try await Entity(contentsOf: url)
                     try Task.checkCancellation()
-                    let bounds = entity.visualBounds(relativeTo: nil)
+                    let bounds = self.contentBounds(of: entity)
                     let longest = max(bounds.extents.x, bounds.extents.y, bounds.extents.z)
                     guard longest.isFinite, longest > 0 else { throw ModelError.emptyGeometry }
                     let scale: Float = 2.65 / longest
@@ -132,7 +132,7 @@ struct OfrendaModelView: UIViewRepresentable {
                         pbr.opacityThreshold = 0.5
                     }
                     if fullPath.contains("flores__") { pbr.faceCulling = .none }
-                    if fullPath.contains("Llama___Compartida") {
+                    if fullPath.contains("llama__") || fullPath.contains("Llama___Compartida") {
                         pbr.emissiveColor = .init(color: UIColor(red: 1, green: 0.45, blue: 0.08, alpha: 1))
                         pbr.emissiveIntensity = 2.5
                     }
@@ -145,7 +145,7 @@ struct OfrendaModelView: UIViewRepresentable {
         private func addCandleLights(in entity: Entity) {
             // Tres grupos de luz cálida acompañan las doce llamas sin saturar
             // el límite de luces dinámicas del motor en teléfonos.
-            for name in ["velas__002", "velas__008", "velas__018"] {
+            for name in ["llama__01", "llama__04", "llama__09"] {
                 guard let flame = entity.findEntity(named: name) else { continue }
                 let light = PointLight()
                 light.light.color = UIColor(red: 1, green: 0.55, blue: 0.18, alpha: 1)
@@ -156,13 +156,33 @@ struct OfrendaModelView: UIViewRepresentable {
             }
         }
 
+        /// La pared se conserva en el modelo, pero no reduce el tamaño del altar
+        /// al calcular su centro y el encuadre inicial.
+        private func contentBounds(of root: Entity) -> BoundingBox {
+            var minimum = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+            var maximum = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+            var found = false
+            func include(_ entity: Entity) {
+                guard !entity.name.hasPrefix("fondo__") else { return }
+                if entity is ModelEntity {
+                    let bounds = entity.visualBounds(relativeTo: root)
+                    minimum = simd_min(minimum, bounds.min)
+                    maximum = simd_max(maximum, bounds.max)
+                    found = true
+                }
+                for child in entity.children { include(child) }
+            }
+            include(root)
+            return found ? BoundingBox(min: minimum, max: maximum) : root.visualBounds(relativeTo: nil)
+        }
+
         func resize() {
             guard let view, view.bounds.size != previousSize else { return }
             previousSize = view.bounds.size
             updateCamera()
         }
         func reset() {
-            yaw = 0; pitch = 0; zoomFactor = 1; offset = .zero
+            yaw = -0.12; pitch = 0.12; zoomFactor = 1; offset = .zero
             updateCamera()
         }
         private func updateCamera() {
