@@ -1,7 +1,24 @@
 import SwiftUI
 
-/// Pantalla provisional dedicada únicamente a revisar el modelo de Blender.
+/// Intento ver animación html
 struct ContentView: View {
+    @State private var showSplash = true
+
+    var body: some View {
+        ZStack {
+            OfrendaScreen()
+
+            if showSplash {
+                SplashScreenView(showSplash: $showSplash)
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+        }
+    }
+}
+
+/// Lo de blender
+struct OfrendaScreen: View {
     @State private var resetToken = 0
     @State private var loadState: ModelLoadState = .loading
 
@@ -25,18 +42,19 @@ struct ContentView: View {
             }
             .overlay {
                 Group {
-                if case .loading = loadState {
-                    ProgressView("Cargando ofrenda…")
-                        .padding(24).background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 20))
-                        .allowsHitTesting(false)
-                }
-                if case .failed(let message) = loadState {
-                    ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
-                        .padding().background(.black.opacity(0.75))
-                }
+                    if case .loading = loadState {
+                        ProgressView("Cargando ofrenda…")
+                            .padding(24).background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 20))
+                            .allowsHitTesting(false)
+                    }
+                    if case .failed(let message) = loadState {
+                        ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
+                            .padding().background(.black.opacity(0.75))
+                    }
                 }.allowsHitTesting(false)
             }
             .foregroundStyle(.white).tint(.white).preferredColorScheme(.dark)
     }
 }
+
 #Preview { ContentView() }
