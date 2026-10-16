@@ -6,7 +6,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            OfrendaScreen()
+            OfrendaExplorarView()
 
             if showSplash {
                 SplashScreenView(showSplash: $showSplash)

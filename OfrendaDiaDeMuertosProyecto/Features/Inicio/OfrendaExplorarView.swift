@@ -6,25 +6,9 @@
 //
 
 import SwiftUI
+import SceneKit
 
-
-struct ViewMictlan: View {
-    @State private var showSplash = true
-
-    var body: some View {
-        ZStack {
-            OfrendaExplorarView()
-
-            if showSplash {
-                SplashScreenView(showSplash: $showSplash)
-                    .transition(.opacity)
-                    .zIndex(1)
-            }
-        }
-    }
-}
-
-// MARK: - Modelo de Datos para los Elementos de la Ofrenda
+// MARK: - Modelo de Datos con Anclaje 3D
 struct ElementoOfrenda: Identifiable {
     let id = UUID()
     let nombre: String
@@ -32,88 +16,92 @@ struct ElementoOfrenda: Identifiable {
     let tituloHistoria: String
     let descripcionHistoria: String
     let significado: String
-    // Posición relativa (x, y) dentro del contenedor del altar
-    let offset: CGSize
+    /// Coordenadas normalizadas respecto a la caja delimitadora (Bounding Box) del altar 3D
+    let anclaNormalizada: SIMD3<Float>
 }
 
 struct OfrendaExplorarView: View {
-    // Control de progreso y selección de tarjetas (Sheets)
+    // Estados de la interfaz y progreso
     @State private var elementoSeleccionado: ElementoOfrenda? = nil
-    @State private var elementosVisitados: Set<String> = ["Flores"] // Inicia con 1 elemento en la barra como en el boceto
+    @State private var elementosVisitados: Set<String> = ["Flores"]
     @State private var tabSeleccionado: Int = 0
     
-    // Paleta de colores extraída del diseño de Figma
-    let colorFondo = Color(red: 0.11, green: 0.05, blue: 0.18)       // #1C0D2E aprox.
-    let colorTarjeta = Color(red: 0.21, green: 0.13, blue: 0.30)     // #35214C aprox.
+    // Estados del visor 3D (usa el ModelLoadState que ya existe en tu proyecto)
+    @State private var resetToken: Int = 0
+    @State private var loadState: ModelLoadState = .loading
+    @State private var posiciones2D: [String: CGPoint] = [:]
+    
+    // Paleta de colores del diseño en Figma
+    let colorFondo = Color(red: 0.11, green: 0.05, blue: 0.18)       // #1C0D2E (Morado oscuro)
+    let colorTarjeta = Color(red: 0.21, green: 0.13, blue: 0.30)     // #35214C
     let colorAcento = Color(red: 0.96, green: 0.65, blue: 0.25)      // #F5A640 (Dorado/Cempasúchil)
     let colorTextoSecundario = Color(red: 0.78, green: 0.75, blue: 0.84)
     
-    // Los 8 botones principales concentrados alrededor del altar
+    // Los 8 botones calibrados con la distribución de tu modelo 3D de Blender
     let elementos: [ElementoOfrenda] = [
         ElementoOfrenda(
             nombre: "Flores", icono: "🌼",
             tituloHistoria: "Un camino de pétalos",
             descripcionHistoria: "En muchas ofrendas, los pétalos y arcos de cempasúchil trazan un sendero de bienvenida hasta el altar.",
             significado: "Su color intenso y su aroma ayudan a guiar a las ánimas hacia la ofrenda.",
-            offset: CGSize(width: -95, height: -115)
+            anclaNormalizada: SIMD3<Float>(-0.28, 0.52, 0.05)
         ),
         ElementoOfrenda(
             nombre: "Retrato", icono: "🖼️",
             tituloHistoria: "Una sonrisa conocida",
             descripcionHistoria: "La fotografía en lo alto del altar dedica la ofrenda a la persona que recordamos.",
             significado: "Mantiene presente su rostro e identidad en la memoria familiar.",
-            offset: CGSize(width: 85, height: -85)
+            anclaNormalizada: SIMD3<Float>(0.06, 0.56, 0.0)
         ),
         ElementoOfrenda(
             nombre: "Velas", icono: "🕯️",
             tituloHistoria: "Una luz para volver",
             descripcionHistoria: "La flama ilumina el camino de regreso a casa durante la noche.",
             significado: "Simboliza la luz, la fe y la esperanza para guiar a los seres queridos.",
-            offset: CGSize(width: -110, height: -35)
+            anclaNormalizada: SIMD3<Float>(-0.22, 0.38, 0.12)
         ),
         ElementoOfrenda(
             nombre: "Papel", icono: "🎊",
             tituloHistoria: "El aire entre los colores",
             descripcionHistoria: "El papel picado se mueve con la brisa, anunciando el paso de las ánimas.",
             significado: "Representa el elemento aire y la alegría festiva de la tradición.",
-            offset: CGSize(width: 90, height: -5)
+            anclaNormalizada: SIMD3<Float>(0.25, 0.78, 0.0)
         ),
         ElementoOfrenda(
             nombre: "Agua y sal", icono: "🥛",
             tituloHistoria: "Después del viaje",
             descripcionHistoria: "Un vaso de agua fresca espera a las ánimas tras su largo recorrido.",
             significado: "El agua mitiga la sed del camino y la sal actúa como elemento de purificación.",
-            offset: CGSize(width: -90, height: 45)
+            anclaNormalizada: SIMD3<Float>(-0.32, 0.24, 0.22)
         ),
         ElementoOfrenda(
             nombre: "Calaveritas", icono: "💀",
             tituloHistoria: "Recordar con una sonrisa",
             descripcionHistoria: "Pueden ser dulces de azúcar o versos llenos de ingenio y cariño.",
             significado: "Nos invitan a mirar la muerte con humor, afecto y cercanía.",
-            offset: CGSize(width: 95, height: 105)
+            anclaNormalizada: SIMD3<Float>(0.24, 0.38, 0.15)
         ),
         ElementoOfrenda(
             nombre: "Pan", icono: "🍞",
             tituloHistoria: "El aroma de la cocina",
             descripcionHistoria: "El pan de muerto se comparte como símbolo de fraternidad y cariño.",
             significado: "Su forma circular representa el ciclo de la vida y sus relieves los huesos.",
-            offset: CGSize(width: -30, height: 125)
+            anclaNormalizada: SIMD3<Float>(0.0, 0.22, 0.28)
         ),
         ElementoOfrenda(
             nombre: "Comida", icono: "🍲",
             tituloHistoria: "Su platillo favorito",
             descripcionHistoria: "Los guisos, tamales o frutas que más disfrutaba en vida llenan la mesa.",
             significado: "Agasaja a nuestros seres queridos con los aromas de casa.",
-            offset: CGSize(width: -95, height: 140)
+            anclaNormalizada: SIMD3<Float>(-0.18, 0.20, 0.28)
         )
     ]
 
     var body: some View {
         ZStack {
-            // Fondo general
             colorFondo.ignoresSafeArea()
             
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 
                 // MARK: 1. Encabezado y Progreso
                 VStack(alignment: .leading, spacing: 6) {
@@ -123,16 +111,14 @@ struct OfrendaExplorarView: View {
                         .foregroundColor(colorAcento)
                     
                     Text("Cada objeto,\nuna historia.")
-                        .font(.system(size: 32, weight: .bold, design: .default))
+                        .font(.system(size: 30, weight: .bold))
                         .foregroundColor(.white)
                         .lineSpacing(2)
                     
                     Text("Toca un objeto: historia y significado.")
                         .font(.subheadline)
                         .foregroundColor(colorTextoSecundario)
-                        .padding(.top, 2)
                     
-                    // Indicador de progreso
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Ocho elementos · Explora a tu ritmo")
                             .font(.caption.weight(.semibold))
@@ -152,55 +138,97 @@ struct OfrendaExplorarView: View {
                         }
                         .frame(height: 6)
                     }
-                    .padding(.top, 6)
+                    .padding(.top, 4)
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 8)
+                .padding(.top, 6)
                 
-                Spacer(minLength: 0)
-                
-                // MARK: 2. Zona Central: Altar + 8 Botones Principales
+                // MARK: 2. Zona Central: Modelo 3D Interactivo + Botones que siguen al modelo
                 ZStack {
-                    // Ilustración base de la ofrenda (Puedes reemplazar AltarIlustracionView por tu Image("altar_vector"))
-                    AltarIlustracionView()
+                    OfrendaInteractive3DView(
+                        elementos: elementos,
+                        resetToken: resetToken,
+                        posicionesEnPantalla: $posiciones2D,
+                        onLoad: { loadState = $0 }
+                    )
                     
-                    // Botones flotantes distribuidos sobre la ofrenda
                     ForEach(elementos) { elemento in
-                        Button {
-                            elementosVisitados.insert(elemento.nombre)
-                            elementoSeleccionado = elemento
-                        } label: {
-                            Text(elemento.nombre)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(colorAcento)
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 11)
-                                .background(
-                                    Capsule()
-                                        .fill(colorTarjeta.opacity(0.92))
-                                        .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 4)
-                                )
-                                .overlay(
-                                    Capsule()
-                                        .stroke(
-                                            elementosVisitados.contains(elemento.nombre) ? colorAcento.opacity(0.5) : Color.white.opacity(0.08),
-                                            lineWidth: 1
-                                        )
-                                )
+                        if let punto = posiciones2D[elemento.nombre] {
+                            Button {
+                                elementosVisitados.insert(elemento.nombre)
+                                elementoSeleccionado = elemento
+                            } label: {
+                                Text(elemento.nombre)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(colorAcento)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(colorTarjeta.opacity(0.92))
+                                            .shadow(color: .black.opacity(0.4), radius: 5, x: 0, y: 3)
+                                    )
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(
+                                                elementosVisitados.contains(elemento.nombre) ? colorAcento.opacity(0.6) : Color.white.opacity(0.12),
+                                                lineWidth: 1
+                                            )
+                                    )
+                            }
+                            .position(x: punto.x, y: punto.y)
                         }
-                        .offset(elemento.offset)
                     }
+                    
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button {
+                                resetToken += 1
+                            } label: {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(colorTarjeta.opacity(0.85), in: Circle())
+                                    .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                            }
+                            .accessibilityLabel("Restablecer vista 3D")
+                        }
+                        Spacer()
+                        Text("1 dedo: girar · 2 dedos: mover · Pellizca: acercar")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(colorTextoSecundario.opacity(0.85))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(colorFondo.opacity(0.75), in: Capsule())
+                            .allowsHitTesting(false)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    
+                    Group {
+                        if case .loading = loadState {
+                            ProgressView("Cargando ofrenda…")
+                                .padding(20)
+                                .background(colorTarjeta.opacity(0.9), in: RoundedRectangle(cornerRadius: 16))
+                        }
+                        if case .failed(let message) = loadState {
+                            ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
+                                .padding()
+                                .background(colorFondo.opacity(0.9), in: RoundedRectangle(cornerRadius: 16))
+                        }
+                    }
+                    .allowsHitTesting(false)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 330)
-                
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
                 
                 // MARK: 3. Tarjeta "Personalización Opcional"
                 Button {
-                    // Acción para navegar a la vista "17 · Crear · Elegir elemento" o "Mi ofrenda"
                     tabSeleccionado = 2
                 } label: {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("PERSONALIZACIÓN OPCIONAL")
                             .font(.system(size: 11, weight: .bold))
                             .tracking(0.6)
@@ -220,7 +248,7 @@ struct OfrendaExplorarView: View {
                         .padding(.top, 2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(18)
+                    .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .fill(colorTarjeta.opacity(0.75))
@@ -232,7 +260,7 @@ struct OfrendaExplorarView: View {
                 }
                 .padding(.horizontal, 24)
                 
-                // MARK: 4. Barra de Navegación Inferior (Custom Tab Bar)
+                // MARK: 4. Barra de Navegación Inferior
                 HStack {
                     TabBarItem(icono: "house", titulo: "Ofrenda", activo: tabSeleccionado == 0, colorAcento: colorAcento) {
                         tabSeleccionado = 0
@@ -251,16 +279,14 @@ struct OfrendaExplorarView: View {
                 .background(
                     Capsule()
                         .fill(colorTarjeta.opacity(0.85))
-                        .overlay(
-                            Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1)
-                        )
+                        .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
                 )
                 .padding(.horizontal, 24)
                 .padding(.bottom, 6)
             }
         }
-        // Modal (Sheet) que muestra la tarjeta de Historia / Significado / Indagar al tocar un botón
-        .sheet(item: $elementoSeleccionado) { elemento in
+        .preferredColorScheme(.dark)
+        .sheet(item: $elementoSeleccionado) { (elemento: ElementoOfrenda) in
             TarjetaDetalleElementoView(
                 elemento: elemento,
                 colorFondo: colorFondo,
@@ -269,74 +295,6 @@ struct OfrendaExplorarView: View {
             )
             .presentationDetents([.fraction(0.68), .large])
             .presentationDragIndicator(.visible)
-        }
-    }
-}
-
-// MARK: - Subvista: Ilustración Vectorial del Altar (Placeholder Nativo)
-struct AltarIlustracionView: View {
-    var body: some View {
-        ZStack {
-            // Papel picado superior
-            HStack(spacing: 10) {
-                ForEach(0..<5) { index in
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(index % 2 == 0 ? Color.orange : Color.purple.opacity(0.8))
-                        .frame(width: 42, height: 34)
-                }
-            }
-            .offset(y: -125)
-            
-            // Niveles piramidales del altar
-            VStack(spacing: 0) {
-                // Retrato central
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(red: 0.95, green: 0.82, blue: 0.55))
-                    .frame(width: 58, height: 68)
-                    .overlay(
-                        VStack(spacing: 4) {
-                            Circle().fill(Color.brown).frame(width: 22, height: 22)
-                            RoundedRectangle(cornerRadius: 8).fill(Color.purple).frame(width: 34, height: 18)
-                        }
-                    )
-                    .padding(.bottom, 4)
-                
-                // Nivel 1 (Superior)
-                Rectangle()
-                    .fill(Color(red: 0.44, green: 0.26, blue: 0.76))
-                    .frame(width: 90, height: 42)
-                
-                // Nivel 2 (Medio)
-                Rectangle()
-                    .fill(Color(red: 0.36, green: 0.20, blue: 0.64))
-                    .frame(width: 170, height: 48)
-                
-                // Nivel 3 (Base)
-                Rectangle()
-                    .fill(Color(red: 0.28, green: 0.16, blue: 0.50))
-                    .frame(width: 240, height: 45)
-            }
-            .offset(y: 15)
-            
-            // Velas laterales
-            HStack(spacing: 115) {
-                VelaVectorView()
-                VelaVectorView()
-            }
-            .offset(y: -10)
-        }
-    }
-}
-
-struct VelaVectorView: View {
-    var body: some View {
-        VStack(spacing: 2) {
-            Image(systemName: "flame.fill")
-                .foregroundColor(.yellow)
-                .font(.system(size: 18))
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color.white)
-                .frame(width: 14, height: 42)
         }
     }
 }
@@ -370,7 +328,7 @@ struct TarjetaDetalleElementoView: View {
     let colorAcento: Color
     
     @Environment(\.dismiss) var dismiss
-    @State private var seccionActiva: Int = 0 // 0: Historia, 1: Significado, 2: Indagar
+    @State private var seccionActiva: Int = 0
     let secciones = ["Historia", "Significado", "Indagar"]
     
     var body: some View {
@@ -378,7 +336,6 @@ struct TarjetaDetalleElementoView: View {
             colorFondo.ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 18) {
-                // Cabecera de la tarjeta
                 HStack(spacing: 12) {
                     Text(elemento.icono)
                         .font(.title2)
@@ -405,7 +362,6 @@ struct TarjetaDetalleElementoView: View {
                     }
                 }
                 
-                // Selector de pestañas (Historia | Significado | Indagar)
                 HStack(spacing: 8) {
                     ForEach(0..<secciones.count, id: \.self) { idx in
                         Button {
@@ -426,7 +382,6 @@ struct TarjetaDetalleElementoView: View {
                     }
                 }
                 
-                // Contenido dinámico según la pestaña
                 VStack(alignment: .leading, spacing: 12) {
                     if seccionActiva == 0 {
                         Text(elemento.tituloHistoria)
@@ -458,7 +413,6 @@ struct TarjetaDetalleElementoView: View {
                 
                 Spacer()
                 
-                // Botón inferior de retorno
                 Button {
                     dismiss()
                 } label: {
@@ -478,9 +432,4 @@ struct TarjetaDetalleElementoView: View {
     }
 }
 
-#Preview {
-    ViewMictlan()
-}
-
-
-
+#Preview { OfrendaExplorarView() }
