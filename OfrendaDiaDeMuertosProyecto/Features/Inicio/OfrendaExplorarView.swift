@@ -103,175 +103,220 @@ struct OfrendaExplorarView: View {
             
             VStack(alignment: .leading, spacing: 12) {
                 
-                // MARK: 1. Encabezado y Progreso
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("LA OFRENDA DE ELENA")
-                        .font(.caption.weight(.bold))
-                        .tracking(0.8)
-                        .foregroundColor(colorAcento)
+                // MARK: - Contenido dinámico según la pestaña seleccionada
+                if tabSeleccionado == 0 {
                     
-                    Text("Cada objeto,\nuna historia.")
-                        .font(.system(size: 30, weight: .bold))
-                        .foregroundColor(.white)
-                        .lineSpacing(2)
-                    
-                    Text("Toca un objeto: historia y significado.")
-                        .font(.subheadline)
-                        .foregroundColor(colorTextoSecundario)
-                    
+                    // MARK: 1. Encabezado y Progreso
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Ocho elementos · Explora a tu ritmo")
-                            .font(.caption.weight(.semibold))
+                        Text("LA OFRENDA DE ELENA")
+                            .font(.caption.weight(.bold))
+                            .tracking(0.8)
                             .foregroundColor(colorAcento)
                         
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                Capsule()
-                                    .fill(colorTarjeta)
-                                    .frame(height: 6)
-                                
-                                Capsule()
-                                    .fill(colorAcento)
-                                    .frame(width: max(24, geo.size.width * (CGFloat(elementosVisitados.count) / 8.0)), height: 6)
-                                    .animation(.spring(), value: elementosVisitados.count)
+                        Text("Cada objeto,\nuna historia.")
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundColor(.white)
+                            .lineSpacing(2)
+                        
+                        Text("Toca un objeto: historia y significado.")
+                            .font(.subheadline)
+                            .foregroundColor(colorTextoSecundario)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Ocho elementos · Explora a tu ritmo")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(colorAcento)
+                            
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Capsule()
+                                        .fill(colorTarjeta)
+                                        .frame(height: 6)
+                                    
+                                    Capsule()
+                                        .fill(colorAcento)
+                                        .frame(width: max(24, geo.size.width * (CGFloat(elementosVisitados.count) / 8.0)), height: 6)
+                                        .animation(.spring(), value: elementosVisitados.count)
+                                }
+                            }
+                            .frame(height: 6)
+                        }
+                        .padding(.top, 4)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 6)
+                    
+                    // MARK: 2. Zona Central: Modelo 3D Interactivo + Botones que siguen al modelo
+                    ZStack {
+                        OfrendaInteractive3DView(
+                            elementos: elementos,
+                            resetToken: resetToken,
+                            posicionesEnPantalla: $posiciones2D,
+                            onLoad: { loadState = $0 }
+                        )
+                        
+                        ForEach(elementos) { elemento in
+                            if let punto = posiciones2D[elemento.nombre] {
+                                Button {
+                                    elementosVisitados.insert(elemento.nombre)
+                                    elementoSeleccionado = elemento
+                                } label: {
+                                    Text(elemento.nombre)
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(colorAcento)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule()
+                                                .fill(colorTarjeta.opacity(0.92))
+                                                .shadow(color: .black.opacity(0.4), radius: 5, x: 0, y: 3)
+                                        )
+                                        .overlay(
+                                            Capsule()
+                                                .stroke(
+                                                    elementosVisitados.contains(elemento.nombre) ? colorAcento.opacity(0.6) : Color.white.opacity(0.12),
+                                                    lineWidth: 1
+                                                )
+                                        )
+                                }
+                                .position(x: punto.x, y: punto.y)
                             }
                         }
-                        .frame(height: 6)
-                    }
-                    .padding(.top, 4)
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 6)
-                
-                // MARK: 2. Zona Central: Modelo 3D Interactivo + Botones que siguen al modelo
-                ZStack {
-                    OfrendaInteractive3DView(
-                        elementos: elementos,
-                        resetToken: resetToken,
-                        posicionesEnPantalla: $posiciones2D,
-                        onLoad: { loadState = $0 }
-                    )
-                    
-                    ForEach(elementos) { elemento in
-                        if let punto = posiciones2D[elemento.nombre] {
-                            Button {
-                                elementosVisitados.insert(elemento.nombre)
-                                elementoSeleccionado = elemento
-                            } label: {
-                                Text(elemento.nombre)
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(colorAcento)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 8)
-                                    .background(
-                                        Capsule()
-                                            .fill(colorTarjeta.opacity(0.92))
-                                            .shadow(color: .black.opacity(0.4), radius: 5, x: 0, y: 3)
-                                    )
-                                    .overlay(
-                                        Capsule()
-                                            .stroke(
-                                                elementosVisitados.contains(elemento.nombre) ? colorAcento.opacity(0.6) : Color.white.opacity(0.12),
-                                                lineWidth: 1
-                                            )
-                                    )
+                        
+                        VStack {
+                            HStack {
+                                Spacer()
+                                Button {
+                                    resetToken += 1
+                                } label: {
+                                    Image(systemName: "arrow.counterclockwise")
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundColor(.white)
+                                        .padding(10)
+                                        .background(colorTarjeta.opacity(0.85), in: Circle())
+                                        .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                                }
+                                .accessibilityLabel("Restablecer vista 3D")
                             }
-                            .position(x: punto.x, y: punto.y)
-                        }
-                    }
-                    
-                    VStack {
-                        HStack {
                             Spacer()
-                            Button {
-                                resetToken += 1
-                            } label: {
-                                Image(systemName: "arrow.counterclockwise")
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundColor(.white)
-                                    .padding(10)
-                                    .background(colorTarjeta.opacity(0.85), in: Circle())
-                                    .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                            Text("1 dedo: girar · 2 dedos: mover · Pellizca: acercar")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(colorTextoSecundario.opacity(0.85))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 5)
+                                .background(colorFondo.opacity(0.75), in: Capsule())
+                                .allowsHitTesting(false)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        
+                        Group {
+                            if case .loading = loadState {
+                                ProgressView("Cargando ofrenda…")
+                                    .padding(20)
+                                    .background(colorTarjeta.opacity(0.9), in: RoundedRectangle(cornerRadius: 16))
                             }
-                            .accessibilityLabel("Restablecer vista 3D")
+                            if case .failed(let message) = loadState {
+                                ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
+                                    .padding()
+                                    .background(colorFondo.opacity(0.9), in: RoundedRectangle(cornerRadius: 16))
+                            }
                         }
-                        Spacer()
-                        Text("1 dedo: girar · 2 dedos: mover · Pellizca: acercar")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(colorTextoSecundario.opacity(0.85))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 5)
-                            .background(colorFondo.opacity(0.75), in: Capsule())
-                            .allowsHitTesting(false)
+                        .allowsHitTesting(false)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
                     
-                    Group {
-                        if case .loading = loadState {
-                            ProgressView("Cargando ofrenda…")
-                                .padding(20)
-                                .background(colorTarjeta.opacity(0.9), in: RoundedRectangle(cornerRadius: 16))
+                    // MARK: 3. Tarjeta "Personalización Opcional"
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            tabSeleccionado = 2
                         }
-                        if case .failed(let message) = loadState {
-                            ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
-                                .padding()
-                                .background(colorFondo.opacity(0.9), in: RoundedRectangle(cornerRadius: 16))
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("PERSONALIZACIÓN OPCIONAL")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(0.6)
+                                .foregroundColor(colorAcento)
+                            
+                            Text("Hazla personal, si quieres")
+                                .font(.title3.weight(.bold))
+                                .foregroundColor(.white)
+                            
+                            HStack(spacing: 6) {
+                                Text("Crear una ofrenda para alguien")
+                                    .font(.subheadline.weight(.semibold))
+                                Image(systemName: "arrow.right")
+                                    .font(.subheadline.weight(.bold))
+                            }
+                            .foregroundColor(colorAcento)
+                            .padding(.top, 2)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(colorTarjeta.opacity(0.75))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                                )
+                        )
                     }
-                    .allowsHitTesting(false)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-                
-                // MARK: 3. Tarjeta "Personalización Opcional"
-                Button {
-                    tabSeleccionado = 2
-                } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("PERSONALIZACIÓN OPCIONAL")
-                            .font(.system(size: 11, weight: .bold))
-                            .tracking(0.6)
+                    .padding(.horizontal, 24)
+                    
+                } else if tabSeleccionado == 1 {
+                    
+                    // MARK: Vista de la Pestaña "Historias"
+                    HistoriasView(
+                        elementos: elementos,
+                        elementosVisitados: $elementosVisitados,
+                        elementoSeleccionado: $elementoSeleccionado
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                } else {
+                    
+                    // MARK: Espacio reservado para la Pestaña "Mi ofrenda" (Tab 2)
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("SUS GUSTOS, SU HISTORIA")
+                            .font(.caption.weight(.bold))
+                            .tracking(0.8)
                             .foregroundColor(colorAcento)
                         
-                        Text("Hazla personal, si quieres")
-                            .font(.title3.weight(.bold))
+                        Text("Mi ofrenda para Elena.")
+                            .font(.system(size: 30, weight: .bold))
                             .foregroundColor(.white)
                         
-                        HStack(spacing: 6) {
-                            Text("Crear una ofrenda para alguien")
-                                .font(.subheadline.weight(.semibold))
-                            Image(systemName: "arrow.right")
-                                .font(.subheadline.weight(.bold))
-                        }
-                        .foregroundColor(colorAcento)
-                        .padding(.top, 2)
+                        Text("Próximamente: personalización de retrato, gustos y calaverita literaria.")
+                            .font(.subheadline)
+                            .foregroundColor(colorTextoSecundario)
+                        
+                        Spacer()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(colorTarjeta.opacity(0.75))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                            )
-                    )
+                    .padding(.horizontal, 24)
+                    .padding(.top, 6)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
-                .padding(.horizontal, 24)
                 
-                // MARK: 4. Barra de Navegación Inferior
+                // MARK: 4. Barra de Navegación Inferior (Siempre visible)
                 HStack {
                     TabBarItem(icono: "house", titulo: "Ofrenda", activo: tabSeleccionado == 0, colorAcento: colorAcento) {
-                        tabSeleccionado = 0
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            tabSeleccionado = 0
+                        }
                     }
                     Spacer()
                     TabBarItem(icono: "doc.text", titulo: "Historias", activo: tabSeleccionado == 1, colorAcento: colorAcento) {
-                        tabSeleccionado = 1
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            tabSeleccionado = 1
+                        }
                     }
                     Spacer()
                     TabBarItem(icono: "heart", titulo: "Mi ofrenda", activo: tabSeleccionado == 2, colorAcento: colorAcento) {
-                        tabSeleccionado = 2
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            tabSeleccionado = 2
+                        }
                     }
                 }
                 .padding(.horizontal, 36)
@@ -291,9 +336,10 @@ struct OfrendaExplorarView: View {
                 elemento: elemento,
                 colorFondo: colorFondo,
                 colorTarjeta: colorTarjeta,
-                colorAcento: colorAcento
+                colorAcento: colorAcento,
+                textoBotonCerrar: tabSeleccionado == 1 ? "Volver a historias" : "Volver a la ofrenda"
             )
-            .presentationDetents([.fraction(0.68), .large])
+            .presentationDetents([.fraction(0.72), .large])
             .presentationDragIndicator(.visible)
         }
     }
@@ -320,116 +366,6 @@ struct TabBarItem: View {
     }
 }
 
-// MARK: - Subvista: Tarjeta Modal (Historia / Significado / Indagar)
-struct TarjetaDetalleElementoView: View {
-    let elemento: ElementoOfrenda
-    let colorFondo: Color
-    let colorTarjeta: Color
-    let colorAcento: Color
-    
-    @Environment(\.dismiss) var dismiss
-    @State private var seccionActiva: Int = 0
-    let secciones = ["Historia", "Significado", "Indagar"]
-    
-    var body: some View {
-        ZStack {
-            colorFondo.ignoresSafeArea()
-            
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 12) {
-                    Text(elemento.icono)
-                        .font(.title2)
-                        .padding(10)
-                        .background(Circle().fill(colorTarjeta))
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("EN EL ALTAR")
-                            .font(.caption2.weight(.bold))
-                            .foregroundColor(colorAcento)
-                        Text(elemento.nombre)
-                            .font(.title3.weight(.bold))
-                            .foregroundColor(.white)
-                    }
-                    Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundColor(.white.opacity(0.7))
-                            .padding(8)
-                            .background(Circle().fill(colorTarjeta))
-                    }
-                }
-                
-                HStack(spacing: 8) {
-                    ForEach(0..<secciones.count, id: \.self) { idx in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                seccionActiva = idx
-                            }
-                        } label: {
-                            Text(secciones[idx])
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundColor(seccionActiva == idx ? .black : .white.opacity(0.8))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(
-                                    Capsule()
-                                        .fill(seccionActiva == idx ? colorAcento : colorTarjeta)
-                                )
-                        }
-                    }
-                }
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    if seccionActiva == 0 {
-                        Text(elemento.tituloHistoria)
-                            .font(.title3.weight(.bold))
-                            .foregroundColor(.white)
-                        Text(elemento.descripcionHistoria)
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.85))
-                            .lineSpacing(4)
-                    } else if seccionActiva == 1 {
-                        Text("¿Por qué está aquí?")
-                            .font(.title3.weight(.bold))
-                            .foregroundColor(.white)
-                        Text(elemento.significado)
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.85))
-                            .lineSpacing(4)
-                    } else {
-                        Text("Su camino hasta el altar")
-                            .font(.title3.weight(.bold))
-                            .foregroundColor(.white)
-                        Text("Antecedentes y registros documentados sobre el uso de \(elemento.nombre.lowercased()) en las distintas regiones y familias.")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.85))
-                            .lineSpacing(4)
-                    }
-                }
-                .padding(.top, 4)
-                
-                Spacer()
-                
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Volver a la ofrenda")
-                        .font(.headline.weight(.bold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(colorAcento)
-                        )
-                }
-            }
-            .padding(24)
-        }
-    }
+#Preview {
+    OfrendaExplorarView()
 }
-
-#Preview { OfrendaExplorarView() }
