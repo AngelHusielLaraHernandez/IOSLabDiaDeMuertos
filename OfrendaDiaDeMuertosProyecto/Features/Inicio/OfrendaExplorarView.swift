@@ -25,18 +25,21 @@ struct OfrendaExplorarView: View {
     @State private var elementoSeleccionado: ElementoOfrenda? = nil
     @State private var elementosVisitados: Set<String> = ["Flores"]
     @State private var tabSeleccionado: Int = 0
-    
+
     // Estados del visor 3D (usa el ModelLoadState que ya existe en tu proyecto)
     @State private var resetToken: Int = 0
     @State private var loadState: ModelLoadState = .loading
     @State private var posiciones2D: [String: CGPoint] = [:]
-    
+
+    // MARK: - Estado del flujo de personalización (tab 2)
+    @State private var personalizacion = PersonalizacionOfrenda()
+
     // Paleta de colores del diseño en Figma
     let colorFondo = Color(red: 0.11, green: 0.05, blue: 0.18)       // #1C0D2E (Morado oscuro)
     let colorTarjeta = Color(red: 0.21, green: 0.13, blue: 0.30)     // #35214C
     let colorAcento = Color(red: 0.96, green: 0.65, blue: 0.25)      // #F5A640 (Dorado/Cempasúchil)
     let colorTextoSecundario = Color(red: 0.78, green: 0.75, blue: 0.84)
-    
+
     // Los 8 botones calibrados con la distribución de tu modelo 3D de Blender
     let elementos: [ElementoOfrenda] = [
         ElementoOfrenda(
@@ -100,39 +103,39 @@ struct OfrendaExplorarView: View {
     var body: some View {
         ZStack {
             colorFondo.ignoresSafeArea()
-            
+
             VStack(alignment: .leading, spacing: 12) {
-                
+
                 // MARK: - Contenido dinámico según la pestaña seleccionada
                 if tabSeleccionado == 0 {
-                    
+
                     // MARK: 1. Encabezado y Progreso
                     VStack(alignment: .leading, spacing: 6) {
                         Text("LA OFRENDA DE ELENA")
                             .font(.caption.weight(.bold))
                             .tracking(0.8)
                             .foregroundColor(colorAcento)
-                        
+
                         Text("Cada objeto,\nuna historia.")
                             .font(.system(size: 30, weight: .bold))
                             .foregroundColor(.white)
                             .lineSpacing(2)
-                        
+
                         Text("Toca un objeto: historia y significado.")
                             .font(.subheadline)
                             .foregroundColor(colorTextoSecundario)
-                        
+
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Ocho elementos · Explora a tu ritmo")
                                 .font(.caption.weight(.semibold))
                                 .foregroundColor(colorAcento)
-                            
+
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
                                     Capsule()
                                         .fill(colorTarjeta)
                                         .frame(height: 6)
-                                    
+
                                     Capsule()
                                         .fill(colorAcento)
                                         .frame(width: max(24, geo.size.width * (CGFloat(elementosVisitados.count) / 8.0)), height: 6)
@@ -145,7 +148,7 @@ struct OfrendaExplorarView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 6)
-                    
+
                     // MARK: 2. Zona Central: Modelo 3D Interactivo + Botones que siguen al modelo
                     ZStack {
                         OfrendaInteractive3DView(
@@ -154,7 +157,7 @@ struct OfrendaExplorarView: View {
                             posicionesEnPantalla: $posiciones2D,
                             onLoad: { loadState = $0 }
                         )
-                        
+
                         ForEach(elementos) { elemento in
                             if let punto = posiciones2D[elemento.nombre] {
                                 Button {
@@ -182,7 +185,7 @@ struct OfrendaExplorarView: View {
                                 .position(x: punto.x, y: punto.y)
                             }
                         }
-                        
+
                         VStack {
                             HStack {
                                 Spacer()
@@ -209,7 +212,7 @@ struct OfrendaExplorarView: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        
+
                         Group {
                             if case .loading = loadState {
                                 ProgressView("Cargando ofrenda…")
@@ -226,7 +229,7 @@ struct OfrendaExplorarView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
-                    
+
                     // MARK: 3. Tarjeta "Personalización Opcional"
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
@@ -238,11 +241,11 @@ struct OfrendaExplorarView: View {
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(0.6)
                                 .foregroundColor(colorAcento)
-                            
+
                             Text("Hazla personal, si quieres")
                                 .font(.title3.weight(.bold))
                                 .foregroundColor(.white)
-                            
+
                             HStack(spacing: 6) {
                                 Text("Crear una ofrenda para alguien")
                                     .font(.subheadline.weight(.semibold))
@@ -264,41 +267,31 @@ struct OfrendaExplorarView: View {
                         )
                     }
                     .padding(.horizontal, 24)
-                    
+
                 } else if tabSeleccionado == 1 {
-                    
-                    // MARK: Vista de la Pestaña "Historias"
+
+                    // MARK: - Vista de la Pestaña "Historias"
                     HistoriasView(
                         elementos: elementos,
                         elementosVisitados: $elementosVisitados,
                         elementoSeleccionado: $elementoSeleccionado
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
+
                 } else {
-                    
-                    // MARK: Espacio reservado para la Pestaña "Mi ofrenda" (Tab 2)
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("SUS GUSTOS, SU HISTORIA")
-                            .font(.caption.weight(.bold))
-                            .tracking(0.8)
-                            .foregroundColor(colorAcento)
-                        
-                        Text("Mi ofrenda para Elena.")
-                            .font(.system(size: 30, weight: .bold))
-                            .foregroundColor(.white)
-                        
-                        Text("Próximamente: personalización de retrato, gustos y calaverita literaria.")
-                            .font(.subheadline)
-                            .foregroundColor(colorTextoSecundario)
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 6)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+                    // MARK: - TAB 2 · Flujo de personalización completo
+                    OfrendaPersonalizadaFlowView(
+                        personalizacion: $personalizacion,
+                        onSalir: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                tabSeleccionado = 0
+                            }
+                        }
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                
+
                 // MARK: 4. Barra de Navegación Inferior (Siempre visible)
                 HStack {
                     TabBarItem(icono: "house", titulo: "Ofrenda", activo: tabSeleccionado == 0, colorAcento: colorAcento) {
@@ -352,7 +345,7 @@ struct TabBarItem: View {
     let activo: Bool
     let colorAcento: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {

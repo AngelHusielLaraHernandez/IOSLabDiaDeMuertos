@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 /// Intento ver animación html
 struct ContentView: View {
@@ -21,9 +22,13 @@ struct ContentView: View {
 struct OfrendaScreen: View {
     @State private var resetToken = 0
     @State private var loadState: ModelLoadState = .loading
+    @State private var photo: UIImage?
+    @State private var pickerItem: PhotosPickerItem?
 
     var body: some View {
-        OfrendaModelView(resetToken: resetToken, onLoad: { loadState = $0 })
+        OfrendaModelView(resetToken: resetToken,
+                         photo: $photo,
+                         onLoad: { loadState = $0 })
             .ignoresSafeArea()
             .overlay(alignment: .topLeading) {
                 Text("Ofrenda · 3D").font(.headline).padding(20).allowsHitTesting(false)
@@ -35,10 +40,23 @@ struct OfrendaScreen: View {
                 }.padding(20).accessibilityLabel("Restablecer vista")
             }
             .overlay(alignment: .bottom) {
-                Text("1 dedo: girar · 2 dedos: mover\nPellizca para acercar · Doble toque: restablecer")
-                    .font(.caption).multilineTextAlignment(.center)
-                    .padding(14).background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
-                    .padding(20).allowsHitTesting(false)
+                VStack(spacing: 10) {
+                    PhotosPicker(selection: $pickerItem,
+                                 matching: .images,
+                                 photoLibrary: .shared()) {
+                        Label(photo == nil ? "Elegir foto" : "Cambiar foto",
+                              systemImage: "photo.on.rectangle")
+                            .font(.headline)
+                            .padding(.horizontal, 20).padding(.vertical, 12)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+
+                    Text("1 dedo: girar · 2 dedos: mover\nPellizca para acercar · Doble toque: restablecer")
+                        .font(.caption).multilineTextAlignment(.center)
+                        .padding(14).background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
+                        .allowsHitTesting(false)
+                }
+                .padding(20)
             }
             .overlay {
                 Group {
@@ -48,12 +66,21 @@ struct OfrendaScreen: View {
                             .allowsHitTesting(false)
                     }
                     if case .failed(let message) = loadState {
-                        ContentUnavailableView("No se pudo abrir el modelo", systemImage: "cube", description: Text(message))
+                        ContentUnavailableView("No se pudo abrir el modelo",
+                                               systemImage: "cube",
+                                               description: Text(message))
                             .padding().background(.black.opacity(0.75))
                     }
                 }.allowsHitTesting(false)
             }
             .foregroundStyle(.white).tint(.white).preferredColorScheme(.dark)
+            .onChange(of: pickerItem) { _, newItem in
+                Task {
+                    guard let data = try? await newItem?.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else { return }
+                    await MainActor.run { photo = image }
+                }
+            }
     }
 }
 
