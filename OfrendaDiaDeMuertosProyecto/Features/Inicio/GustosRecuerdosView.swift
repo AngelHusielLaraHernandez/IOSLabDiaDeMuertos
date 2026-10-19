@@ -2,6 +2,8 @@
 //  GustosRecuerdosView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
+//  Created by Victor Flores on 16/10/26.
+//
 
 import SwiftUI
 
@@ -32,12 +34,12 @@ struct GustosRecuerdosView: View {
                         .foregroundColor(colorAcento)
                     Text("¿Qué le gustaba?")
                         .font(.system(size: 34, weight: .bold)).foregroundColor(.white)
-                    Text("Piensa en sus sabores, canciones y momentos favoritos.")
+                    Text("Piensa en sus sabores, pasatiempos y momentos favoritos.")
                         .font(.subheadline).foregroundColor(colorTextoSec)
                 }
                 .padding(.horizontal, 24)
 
-                // Comida favorita (Obligatorio)
+                // Comida favorita (Obligatorio para continuar)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SU COMIDA FAVORITA")
                         .font(.caption.weight(.bold)).tracking(0.6)
@@ -50,12 +52,12 @@ struct GustosRecuerdosView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
                 .padding(.horizontal, 24)
 
-                // ÚNICO APARTADO DE MÚSICA / CANCIÓN FAVORITA (Opcional)
+                // Música o canción favorita (Opcional)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SU MÚSICA O CANCIÓN FAVORITA (OPCIONAL)")
                         .font(.caption.weight(.bold)).tracking(0.6)
                         .foregroundColor(colorAcento)
-                    TextField("Por ejemplo, Cielito Lindo o Mariachi", text: $personalizacion.musicaFavorita)
+                    TextField("Por ejemplo, Cielito Lindo", text: $personalizacion.musicaFavorita)
                         .font(.title3).foregroundColor(.white)
                         .textInputAutocapitalization(.sentences)
                 }
@@ -63,7 +65,7 @@ struct GustosRecuerdosView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
                 .padding(.horizontal, 24)
 
-                // Pasatiempos (Sin duplicar la opción de música)
+                // Pasatiempos
                 VStack(alignment: .leading, spacing: 12) {
                     Text("PASATIEMPOS Y AFICIONES")
                         .font(.caption.weight(.bold)).tracking(0.6)

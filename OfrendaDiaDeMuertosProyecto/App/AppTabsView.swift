@@ -35,7 +35,10 @@ struct AppTabsView: View {
                 )
             }
             Tab("Historias", systemImage: "text.book.closed", value: .historias) {
-                AppTheme.background.ignoresSafeArea()
+                HistoriasView(
+                    elementos: elementos,
+                    elementoSeleccionado: $elementoSeleccionado
+                )
             }
             Tab("Mi ofrenda", systemImage: "heart", value: .miOfrenda) {
                 OfrendaPersonalizadaFlowView(personalizacion: $personalizacion, fotosMarcos: fotosMarcos, isActive: tab == .miOfrenda && scenePhase == .active) {
