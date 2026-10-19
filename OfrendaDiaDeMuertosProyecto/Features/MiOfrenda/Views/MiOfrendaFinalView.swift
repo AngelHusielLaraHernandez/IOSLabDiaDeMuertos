@@ -26,6 +26,24 @@ struct MiOfrendaFinalView: View {
     private let colorAcento = AppTheme.accent
     private let colorTextoSec = AppTheme.secondaryText
 
+    private var descripcionSubtitulo: String {
+        var partes: [String] = []
+        if !personalizacion.comidaFavorita.isEmpty {
+            partes.append(personalizacion.comidaFavorita.lowercased())
+        }
+        if !personalizacion.musicaFavorita.isEmpty {
+            partes.append(personalizacion.musicaFavorita.lowercased())
+        }
+        
+        if partes.isEmpty {
+            return "Sus flores y recuerdos."
+        } else if partes.count == 1 {
+            return "Sus flores y \(partes[0])."
+        } else {
+            return "Sus flores, \(partes[0]) y \(partes[1])."
+        }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -74,7 +92,7 @@ struct MiOfrendaFinalView: View {
                             Text(personalizacion.nombre.uppercased())
                                 .font(.caption.weight(.bold)).tracking(0.8)
                                 .foregroundColor(colorAcento)
-                            Text("Sus flores y \(personalizacion.comidaFavorita.isEmpty ? "recuerdos" : personalizacion.comidaFavorita.lowercased()).")
+                            Text(descripcionSubtitulo)
                                 .font(.title3.weight(.bold))
                             Text("Su retrato: \(personalizacion.marcoRetrato.titulo.lowercased()).")
                                 .font(.caption)
@@ -89,7 +107,6 @@ struct MiOfrendaFinalView: View {
                 .ofrendaSurface()
                 .padding(.horizontal, 24)
 
-
                 // Lo que le gustaba
                 HStack {
                     Text("LO QUE LE GUSTABA")
@@ -101,23 +118,37 @@ struct MiOfrendaFinalView: View {
                 }
                 .padding(.horizontal, 24)
 
-                HStack(spacing: 12) {
-                    MiniTarjeta(titulo: "COMIDA",
-                                valor: personalizacion.comidaFavorita.isEmpty ? "—" : personalizacion.comidaFavorita,
-                                icono: "🍲",
-                                colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                // Cuadrícula / Fila con las mini tarjetas integrando MÚSICA
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    MiniTarjeta(
+                        titulo: "COMIDA",
+                        valor: personalizacion.comidaFavorita.isEmpty ? "—" : personalizacion.comidaFavorita,
+                        icono: "🍲",
+                        colorTarjeta: colorTarjeta, colorAcento: colorAcento
+                    )
 
-                    MiniTarjeta(titulo: "AFICIÓN",
-                                valor: personalizacion.aficiones.sorted().first ?? "—",
-                                icono: personalizacion.aficiones.sorted().first.map { n in
-                                    Aficion.todas.first { $0.nombre == n }?.icono ?? "✨"
-                                } ?? "✨",
-                                colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                    MiniTarjeta(
+                        titulo: "MÚSICA",
+                        valor: personalizacion.musicaFavorita.isEmpty ? "—" : personalizacion.musicaFavorita,
+                        icono: "🎵",
+                        colorTarjeta: colorTarjeta, colorAcento: colorAcento
+                    )
 
-                    MiniTarjeta(titulo: "RECUERDO",
-                                valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido,
-                                icono: "📸",
-                                colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                    MiniTarjeta(
+                        titulo: "AFICIÓN",
+                        valor: personalizacion.aficiones.sorted().first ?? "—",
+                        icono: personalizacion.aficiones.sorted().first.map { n in
+                            Aficion.todas.first { $0.nombre == n }?.icono ?? "✨"
+                        } ?? "✨",
+                        colorTarjeta: colorTarjeta, colorAcento: colorAcento
+                    )
+
+                    MiniTarjeta(
+                        titulo: "RECUERDO",
+                        valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido,
+                        icono: "📸",
+                        colorTarjeta: colorTarjeta, colorAcento: colorAcento
+                    )
                 }
                 .padding(.horizontal, 24)
 
@@ -168,8 +199,6 @@ struct MiOfrendaFinalView: View {
             Button("Entendido", role: .cancel) { errorFoto = nil }
         } message: { Text(errorFoto ?? "") }
     }
-
-
 }
 
 private struct MiniTarjeta: View {
