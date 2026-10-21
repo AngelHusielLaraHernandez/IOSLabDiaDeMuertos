@@ -12,7 +12,7 @@ struct FrutasView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: .frutas, subtituloCabecera: "En el altar",
+            icono: "🍊", subtituloCabecera: "En el altar",
             nombreElemento: "Frutas",
             tituloHistoria: "Los frutos de la temporada",
             parrafoHistoria1: "Naranjas, mandarinas, guayabas y tejocotes acercan al altar los colores y aromas del campo.",

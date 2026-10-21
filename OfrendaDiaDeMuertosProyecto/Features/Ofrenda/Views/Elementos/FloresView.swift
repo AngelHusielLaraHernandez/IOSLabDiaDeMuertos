@@ -12,7 +12,7 @@ struct FloresView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: .flores,
+            icono: "🌼",
             subtituloCabecera: "En el altar",
             nombreElemento: "Cempasúchil",
             tituloHistoria: "Un camino de pétalos",

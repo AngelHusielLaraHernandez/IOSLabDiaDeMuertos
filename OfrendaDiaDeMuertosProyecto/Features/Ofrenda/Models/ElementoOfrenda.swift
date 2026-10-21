@@ -11,7 +11,7 @@ import simd
 struct ElementoOfrenda: Identifiable {
     var id: String { nombre }
     let nombre: String
-    let icono: IlustracionOfrenda
+    let icono: String
     let tituloHistoria: String
     let descripcionHistoria: String
     let significado: String

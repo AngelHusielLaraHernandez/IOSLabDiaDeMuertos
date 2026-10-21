@@ -1,6 +1,6 @@
 # Ofrenda Día de Muertos · Guía completa del proyecto
 
-> Documentación de la estructura y del código revisados el **21 de octubre de 2026**. Actualmente tenemos **68 archivos Swift** dentro de la carpeta de la aplicación.
+> Documentación de la estructura y del código revisados el **20 de octubre de 2026**. Actualmente tenemos **65 archivos Swift** dentro de la carpeta de la aplicación.
 
 Te explico cómo quedó organizado el proyecto, esto porque ya se movieron varios archivos y también se separaron responsabilidades que antes estaban juntas. La idea de este README es que cualquiera del equipo pueda abrirlo, entender cómo funciona la aplicación y saber dónde hacer un cambio sin tener que revisar todo desde cero.
 
@@ -140,9 +140,7 @@ OfrendaDiaDeMuertosProyecto/
 │   │   ├── DesignSystem/
 │   │   │   ├── AppTheme.swift
 │   │   │   ├── GlassControls.swift
-│   │   │   ├── ElementSheetControls.swift
-│   │   │   ├── IlustracionOfrenda.swift
-│   │   │   └── IlustracionOfrendaView.swift
+│   │   │   └── ElementSheetControls.swift
 │   │   ├── Images/
 │   │   │   ├── PhotoCropGeometry.swift
 │   │   │   └── PhotoProcessor.swift
@@ -182,7 +180,6 @@ OfrendaDiaDeMuertosProyecto/
 │   │   │   │   └── OfrendaPhotoFrames.swift
 │   │   │   └── Views/
 │   │   │       ├── OfrendaView.swift
-│   │   │       ├── RecorridoOfrendaView.swift
 │   │   │       ├── Components/
 │   │   │       │   ├── MarcoPhotoControls.swift
 │   │   │       │   └── OfrendaPinLayout.swift
@@ -231,8 +228,7 @@ OfrendaDiaDeMuertosProyecto/
 │   │   │   ├── RetratoIzquierdo.png
 │   │   │   └── RetratoDerecho.png
 │   │   └── Web/
-│   │       ├── mictlan-entrada.html
-│   │       └── ofrenda-ilustraciones.html
+│   │       └── mictlan-entrada.html
 │   └── Assets.xcassets/
 │       ├── Contents.json
 │       ├── AccentColor.colorset/
@@ -825,7 +821,7 @@ Cuando se cierra la hoja, se limpia la solicitud. Esa actualización llega al re
 
 Si la pestaña deja de estar activa, se limpian el viewport y la solicitud y se prepara otra vez el estado de carga. Los botones permanecen deshabilitados durante la carga o mientras se está completando una selección.
 
-El encabezado usa el nombre capturado en Mi ofrenda cuando existe y conserva La ofrenda de Elena como ejemplo cuando está vacío. La fila de progreso ahora es un botón con flecha hacia abajo: abre `RecorridoOfrendaView` con las categorías visibles y sus visitas. Mientras esa hoja está abierta se retira el ancla del altar, sin destruir su modelo. Al elegir una fila, primero se cierra la lista y después se solicita el enfoque 3D de ese elemento.
+El encabezado actual dice **“La ofrenda de Elena”**. Es un texto del recorrido general; no está conectado al nombre capturado en Mi ofrenda.
 
 ### 24. OfrendaPinLayout.swift
 
@@ -1200,7 +1196,7 @@ Las cuatro `MiniTarjeta` se acomodan en una cuadrícula de dos columnas y muestr
 
 `formatearCalaverita` interpreta únicamente formato Markdown en línea y conserva los saltos de verso. Resalta los datos en naranja, negritas y cursivas, y les asigna el enlace interno `cempasuchil://flores`. El manejador `openURL` intercepta ese enlace para mostrar pétalos, sin abrir otra aplicación.
 
-`PetalosCempasuchilView` usa 20 pétalos dibujados con formas nativas y gradiente naranja, sin el glifo de una flor. Conserva sus identidades en `@State`, con tamaños, posiciones, retrasos y duraciones variados. Su tarea de cierre se cancela al retirar la vista y espera a que termine el pétalo más lento. Con Reducir movimiento utiliza una aparición breve sin caída ni giro. La capa permite que los toques sigan llegando a los controles inferiores.
+`PetalosCempasuchilView` usa 20 elementos con identidades conservadas en `@State`, tamaños, posiciones, retrasos y duraciones variados. Su tarea de cierre se cancela al retirar la vista y espera a que termine el pétalo más lento. Con Reducir movimiento utiliza una aparición breve sin caída ni giro. La capa permite que los toques sigan llegando a los controles inferiores.
 
 El resultado y el altar principal muestran las mismas fotos. Ya no existe un montaje independiente del retrato con `foto.usdz`. Los fallos de textura se comunican a la interfaz; el resumen conserva `ModelLoadState` y muestra «Cargando modelo 3D…» mientras prepara el altar. También retira su ancla al abrir el editor de marcos.
 
@@ -1661,7 +1657,7 @@ Esta sección nos ayuda a diferenciar lo que funciona de lo que todavía tendrí
 - La calaverita personalizada combina estrofas locales al azar; puede repetirse una combinación y no utiliza generación remota.
 - La página HTML es local; no existe una descarga de contenido cultural ni un backend conectado.
 - Las referencias nuevas incluyen URL; parte del contenido anterior solo conserva referencias escritas. Conviene revisar la bibliografía completa antes de una entrega académica.
-- El nombre personalizado aparece también en el encabezado del altar durante la sesión; el perfil sigue sin guardarse entre arranques.
+- La ofrenda general conserva un título con Elena. El nombre personalizado pertenece al recorrido de Mi ofrenda y no reemplaza automáticamente ese título.
 - Los anclajes dependen de coordenadas o nombres de entidades declarados en el catálogo y de la distribución del recurso actual.
 - El visor es 3D en pantalla, sin seguimiento de superficies físicas mediante realidad aumentada.
 - El recurso 3D sigue siendo considerable en geometría y texturas. Las optimizaciones del visor no equivalen a una nueva optimización de la malla.
@@ -1800,9 +1796,9 @@ La misma integración se utiliza en la pantalla principal y en la propuesta. Si 
 
 **Archivo:** [Features/Ofrenda/Views/Marcos/MarcosFotosView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Marcos/MarcosFotosView.swift)
 
-Es la hoja con las opciones de fotografía. Su selector muestra un retrato centrado o dos retratos lado a lado. Si entramos desde un marco 3D, empieza seleccionando ese retrato, pero permite cambiar al otro sin cerrar la hoja. Si el marco inicial está oculto, selecciona el principal que sigue visible.
+Es la hoja con las opciones de fotografía. El acceso general Fotos muestra la configuración de cantidad y las fotos de los marcos visibles. Un botón de marco lleva a ese retrato; si se cambia la disposición para ocultarlo, se muestran las opciones del que quedó visible.
 
-El retrato seleccionado lleva borde naranja y un check. Debajo del selector aparece Editando: Marco 1 o Marco 2, con su posición izquierda o derecha. La tarjeta inferior contiene únicamente las acciones de ese marco: elegir fotografía, ajustar encuadre y, si es personalizada, restablecerla. No duplicamos las fotos en otra lista de tarjetas. La selección capturada al abrir PhotosPicker o AjusteFotoView conserva el destino aunque termine de cargar más tarde.
+Cada tarjeta contiene la imagen vigente, indica si es de ejemplo y permite elegir una foto o ajustar el encuadre. Cuando hay una imagen personalizada ofrece Restablecer foto, que recupera el retrato predeterminado.
 
 Utiliza `PhotosPicker`, decodificación asíncrona con `PhotoProcessor` y una sheet de `AjusteFotoView` con proporción 15:17. Confirmar solicita el guardado en el almacén compartido; cancelar conserva la foto anterior.
 
@@ -1948,9 +1944,7 @@ Concentra los ajustes de materiales que antes estaban dentro del coordinador del
 
 **Archivo:** [Features/Ofrenda/Views/Marcos/ConfiguracionMarcosView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Marcos/ConfiguracionMarcosView.swift)
 
-Es el selector visual compartido entre Fotos y Personalizar retrato. Recibe el almacén y el binding `marcoElegido`. Ofrece Un marco y Dos marcos arriba, y muestra las fotografías con proporción 15:17 debajo. Tocar un retrato selecciona su edición; no abre la fototeca automáticamente. Se resaltan borde y check, y la etiqueta inferior confirma qué marco estamos editando.
-
-Al pasar a Un marco conserva la fotografía seleccionada y la muestra centrada. Usar la fotografía del otro marco permite escoger cuál conservar sin borrar la otra. Al pasar a Dos marcos reaparecen ambas fotos. Usa `FotosMarcosStore.configurar`, espera a que el guardado tenga éxito antes de actualizar la selección de un marco único y bloquea cambios simultáneos mientras guarda. La propiedad `numero` de `MarcoOfrenda` aporta Marco 1 y Marco 2; las identidades internas y los nombres de las mallas no cambian.
+Es el selector compartido entre Fotos y Personalizar retrato. Ofrece Un marco y Dos marcos. Al elegir uno permite indicar qué fotografía conservar visible. Usa `FotosMarcosStore.configurar`, muestra el guardado pendiente e impide cambios simultáneos durante esa operación.
 
 `MarcoOfrenda.swift` ahora incluye `CantidadMarcos` y `ConfiguracionMarcos`. La configuración contiene cantidad y principal; `visibles` calcula cuáles deben aparecer. `FotosMarcosStore` guarda estos valores de forma atómica en `Application Support/FotosMarcos/configuracion.json`, junto a los JPEG ya existentes. Ocultar un marco no elimina su archivo.
 
@@ -2092,32 +2086,3 @@ El flujo presenta este editor como un paso, de modo que la vista previa del resu
 Se comprobaron las **8,192 combinaciones** posibles de los 13 grupos sobre el USDZ real: nombres existentes, cobertura completa de los objetos decorativos, ausencia de grupos solapados, propagación a las llamas, conservación de la base y del prototipo. Las pruebas de persistencia incluyen cambios rápidos, otra instancia que vuelve a leer el archivo, selección vacía, Mostrar todos, identificadores desconocidos, archivo dañado y fallo de escritura.
 
 La comprobación visual en simulador revisa los cambios inmediatos de flores, velas y retratos, su reflejo en la pantalla principal y la recuperación de la selección al reabrir. Las compilaciones de simulador y destino genérico iPhone se ejecutan sin firma. La medición de FPS y memoria gráfica en teléfonos físicos continúa siendo una comprobación aparte.
-
-
-### 66. IlustracionOfrenda.swift
-
-**Archivo:** [Core/DesignSystem/IlustracionOfrenda.swift](OfrendaDiaDeMuertosProyecto/Core/DesignSystem/IlustracionOfrenda.swift)
-
-Define las 19 identidades de las ilustraciones propias. Las 13 categorías de la ofrenda tienen un dibujo distinto; música, lectura, costura, café, recuerdos y fuentes completan las otras tarjetas. `ElementoOfrenda.icono`, `Aficion.icono`, los grupos de personalización y los encabezados usan este enum. Ya no se guardan emojis como iconos de la interfaz.
-
-### 67. IlustracionOfrendaView.swift
-
-**Archivo:** [Core/DesignSystem/IlustracionOfrendaView.swift](OfrendaDiaDeMuertosProyecto/Core/DesignSystem/IlustracionOfrendaView.swift)
-
-`IlustracionOfrendaView` reserva el espacio de cada dibujo y publica su ancla y una identidad estable. `ilustracionesOfrenda(activa:)` reúne esas anclas en una sola capa transparente de WebKit por pantalla activa; no crea una WKWebView por tarjeta. Los títulos, botones, listas y etiquetas de accesibilidad siguen siendo SwiftUI. La capa decorativa no intercepta los toques, el giro del modelo ni el desplazamiento.
-
-`recortaIlustraciones()` se aplica al ScrollView que contiene los dibujos. Publica su viewport sin perder las anclas de los hijos; la capa calcula la intersección con ese viewport y envía el recorte de cada icono al HTML. Así un dibujo parcialmente visible no se coloca encima del pie ni de los botones de otra sección. Los dibujos fuera del área se excluyen de la capa y de sus animaciones.
-
-El coordinador carga `ofrenda-ilustraciones.html` desde el bundle con un almacén web no persistente. Envía posiciones solo cuando cambian, conserva los nodos SVG y añade una revisión para descartar actualizaciones antiguas. Al salir de la pestaña, entrar en segundo plano o dejar de tener dibujos visibles se retira la capa. Reducir movimiento desactiva la animación y conserva el dibujo. Si WebKit termina su proceso, intenta recuperar la página local una sola vez.
-
-**Recurso:** [Resources/Web/ofrenda-ilustraciones.html](OfrendaDiaDeMuertosProyecto/Resources/Web/ofrenda-ilustraciones.html)
-
-Contiene los 19 símbolos SVG dibujados para la aplicación: cempasúchil, retrato, vela, papel picado, agua, calaverita decorada, pan, comida, caña, frutas, copal, cigarro, tequila y las ilustraciones de gustos. Usa la paleta naranja, crema, morado y turquesa. CSS anima la llama, las hojas, el agua, el humo, el vapor y los destellos con movimientos suaves. `setIcons` reutiliza los nodos, actualiza posiciones y recortes, y retira los que ya no se necesitan. `setActive`, la visibilidad del documento y Reducir movimiento detienen las animaciones. No descarga imágenes, fuentes, scripts ni otros recursos de la red.
-
-### 68. RecorridoOfrendaView.swift
-
-**Archivo:** [Features/Ofrenda/Views/RecorridoOfrendaView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/RecorridoOfrendaView.swift)
-
-Es la hoja que abre la flecha junto a 0 de 13 elementos. Presenta Por descubrir con círculos vacíos y Ya explorados con checks. Esos checks reflejan las historias que realmente se abrieron; no son interruptores para completar el recorrido manualmente. `AppTabsView` registra también las historias abiertas desde Historias, y el progreso del altar cuenta únicamente las categorías visibles.
-
-La lista recibe el catálogo visible, el conjunto de visitados, el número de categorías ocultas y si el modelo está listo para enfocar. Al tocar una fila guarda la selección, cierra la hoja y solicita el mismo mini zoom y la tarjeta que usaríamos desde el altar. El contenido se desplaza, admite los tamaños medio y grande de la sheet y usa las ilustraciones HTML compartidas. Si no hay categorías visibles, explica cómo activarlas; las historias de los elementos ocultos permanecen disponibles en Historias.
