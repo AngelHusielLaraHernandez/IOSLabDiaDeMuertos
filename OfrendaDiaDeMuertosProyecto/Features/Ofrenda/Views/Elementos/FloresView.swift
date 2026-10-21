@@ -14,6 +14,7 @@ struct FloresView: View {
         PlantillaTarjetaElementoView(
             icono: .flores,
             subtituloCabecera: "En el altar",
+
             nombreElemento: "Cempasúchil",
             tituloHistoria: "Un camino de pétalos",
             parrafoHistoria1: "En muchas ofrendas, los pétalos y racimos de cempasúchil trazan un sendero de bienvenida desde la entrada hasta el altar.",
