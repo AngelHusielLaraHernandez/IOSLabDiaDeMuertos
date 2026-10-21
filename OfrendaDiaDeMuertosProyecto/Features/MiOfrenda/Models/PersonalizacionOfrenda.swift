@@ -41,5 +41,6 @@ enum PasoPersonalizacion {
     case ajusteFoto    // pantalla 3
     case gustos        // pantallas 5 y 6
     case sugerencias   // pantalla 7
+    case elementos     // selección real de los objetos del modelo
     case resultado     // pantalla 8
 }

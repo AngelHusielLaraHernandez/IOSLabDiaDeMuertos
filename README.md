@@ -1,6 +1,6 @@
 # Ofrenda Día de Muertos · Guía completa del proyecto
 
-> Documentación de la estructura y del código revisados el **18 de octubre de 2026**. Actualmente tenemos **61 archivos Swift** dentro de la carpeta de la aplicación.
+> Documentación de la estructura y del código revisados el **20 de octubre de 2026**. Actualmente tenemos **65 archivos Swift** dentro de la carpeta de la aplicación.
 
 Te explico cómo quedó organizado el proyecto, esto porque ya se movieron varios archivos y también se separaron responsabilidades que antes estaban juntas. La idea de este README es que cualquiera del equipo pueda abrirlo, entender cómo funciona la aplicación y saber dónde hacer un cambio sin tener que revisar todo desde cero.
 
@@ -55,7 +55,7 @@ Cada uno tiene su tarjeta. En doce casos usamos las secciones **Historia, Signif
 
 La personalización es opcional para recorrer la aplicación. Si decidimos entrar a ese flujo, la interfaz permite conservar la foto de ejemplo y pide nombre para continuar desde el retrato, y una comida favorita para pasar de gustos a sugerencias. Las aficiones y el recuerdo compartido complementan esa información.
 
-Los gustos se utilizan para mostrar sugerencias escritas y completar una plantilla de calaverita literaria. Actualmente esas sugerencias no agregan por sí mismas nuevas mallas al altar. Las fotografías sí se actualizan dentro de los dos marcos del altar y se comparten con la propuesta de Mi ofrenda.
+Los gustos se utilizan para mostrar sugerencias escritas y completar una plantilla de calaverita literaria. Actualmente esas sugerencias no agregan por sí mismas nuevas mallas al altar. Las fotografías sí se actualizan dentro de los marcos del altar. Ahora también podemos elegir cuáles de los 13 tipos de elementos existentes se ven en 3D. La selección se comparte entre el editor, la propuesta y la pantalla principal, y se conserva en el teléfono. Los gustos escritos no crean modelos nuevos automáticamente.
 
 En la ofrenda principal también tenemos el botón Fotos y selección directa de los marcos visibles. Podemos mostrar uno o dos; al conservar uno, se centra y se oculta el otro, sin borrar su fotografía. Cada uno admite una foto con encuadre propio; sus copias se guardan localmente y se recuperan al abrir de nuevo la app.
 
@@ -174,6 +174,7 @@ OfrendaDiaDeMuertosProyecto/
 │   │   │   │   ├── OfrendaInteractive3DView.swift
 │   │   │   │   ├── OfrendaMaterials.swift
 │   │   │   │   ├── OfrendaElementSelection.swift
+│   │   │   │   ├── OfrendaElementVisibility.swift
 │   │   │   │   ├── Elemento3DView.swift
 │   │   │   │   ├── OfrendaModelView.swift
 │   │   │   │   └── OfrendaPhotoFrames.swift
@@ -206,12 +207,15 @@ OfrendaDiaDeMuertosProyecto/
 │   │   │           └── TequilaView.swift
 │   │   └── MiOfrenda/
 │   │       ├── Models/
+│   │       │   ├── ConfiguracionElementosOfrenda.swift
 │   │       │   └── PersonalizacionOfrenda.swift
 │   │       ├── Services/
+│   │       │   ├── ElementosOfrendaStore.swift
 │   │       │   └── CalaveritaGenerator.swift
 │   │       └── Views/
 │   │           ├── OfrendaPersonalizadaFlowView.swift
 │   │           ├── PersonalizarRetratoView.swift
+│   │           ├── PersonalizarElementosView.swift
 │   │           ├── AjusteFotoView.swift
 │   │           ├── GustosRecuerdosView.swift
 │   │           ├── SugerenciasOfrendaView.swift
@@ -290,7 +294,7 @@ La vista previa del Canvas abre `AppTabsView` directamente. Esto nos permite tra
 | Elementos visitados | `AppTabsView.swift` | Progreso del altar y marcas en Historias. |
 | Fotos de los marcos principales | `FotosMarcosStore`, conservado por `AppTabsView.swift` | Editor, visor interactivo y archivos locales. |
 | Perfil personalizado | `AppTabsView.swift` | Todo el flujo de Mi ofrenda. |
-| Paso de personalización | `OfrendaPersonalizadaFlowView.swift` | Retrato, ajuste, gustos, sugerencias y resultado. |
+| Paso de personalización | `OfrendaPersonalizadaFlowView.swift` | Retrato, ajuste, gustos, sugerencias, elementos y resultado. |
 | Coordenadas de las etiquetas | `OfrendaView.swift` mediante `OfrendaViewportState` | Distribución de botones en 2D. |
 | Giro, zoom y cámara | Coordinadores de los visores 3D | RealityKit y reconocimiento de gestos. |
 | Sección de una tarjeta | La plantilla o `CalaveritasView.swift` | Selector de Historia, Significado, Indagar, etc. |
@@ -360,9 +364,11 @@ Ese es el Canvas que debemos abrir para revisar la interfaz con el modelo real. 
 
 Es el punto donde se unen Ofrenda, Historias y Mi ofrenda. El enum privado `AppTab` identifica las tres pestañas sin depender del texto que ve el usuario.
 
-La vista conserva `tab`, `elementoSeleccionado`, `elementosVisitados`, `personalizacion` y el almacén observable `fotosMarcos`. Además obtiene los elementos de `OfrendaCatalog.elementos`.
+La vista conserva `tab`, `elementoSeleccionado`, `elementosVisitados`, `personalizacion` y los almacenes observables `fotosMarcos` y `elementosStore`. Además obtiene los elementos de `OfrendaCatalog.elementos`.
 
-El conjunto de visitados alimenta el progreso del altar. Historias conserva su TabItem pero su contenido se retiró temporalmente; no utiliza bindings ni presenta una lista.
+`elementosStore` carga la selección persistida y se comparte con ambos recorridos. Si se oculta un elemento que estuviera seleccionado, cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El nombre del perfil también se pasa al encabezado principal mientras vive ese perfil.
+
+El conjunto de visitados alimenta el progreso del altar; solo se cuentan las categorías que siguen visibles. Historias conserva su TabItem pero su contenido se retiró temporalmente; no utiliza bindings ni presenta una lista.
 
 El `TabView` es nativo. La hoja de detalle también se presenta aquí mediante `.sheet(item:)`. Las tarjetas del altar usan alturas de 82 % y pantalla completa para dejar espacio al ejemplar 3D sobre el contenido. Conservan el texto Volver a la ofrenda.
 
@@ -675,11 +681,12 @@ Estamos mostrando una escena 3D dentro de la pantalla. El flujo actual no coloca
 | `onSeleccionarMarco` | Abre la edición desde un toque en su superficie. |
 | `onErrorFoto` | Comunica fallos al preparar una textura de foto. |
 | `configuracionMarcos` | Cantidad de marcos y fotografía principal que quedan visibles. |
+| `seleccionElementos` | Configuración compartida que activa o desactiva las piezas, sus luces y sus referencias. |
 | `isObscured` | Retira el altar de escena cuando otra hoja cubre su visor. |
-| `renderSession` | Presta la misma ARView a la inspección del objeto. |
+| `renderSession` | Conserva el mismo visor y altar entre Ofrenda, el editor de elementos y el resultado; también presta el visor al detalle. |
 | `ocultarParedDeFondo` | Decide si se desactiva la geometría con prefijo `fondo__`; comienza en `true`. |
 
-La propiedad que oculta la pared se conserva dentro del coordinador al crearlo. Si queremos cambiar esa decisión durante una ejecución, hay que considerar también la actualización o recreación del coordinador.
+La propiedad que oculta la pared se conserva dentro del renderer al crearlo. Si queremos cambiar esa decisión durante una ejecución, hay que considerar también la actualización o recreación de la sesión.
 
 #### Cómo construye la escena
 
@@ -689,15 +696,19 @@ Después carga un clon de `Ofrenda`. Calcula sus límites, omite la pared para e
 
 Si el tamaño calculado no es válido o no hay geometría aprovechable, informa un fallo en lugar de aplicar una escala inválida.
 
-Tras montar el modelo prepara materiales, agrega las luces de velas que correspondan, crea los anclajes y restablece el encuadre. Entonces comunica `.ready`.
+Tras montar el modelo prepara materiales y calcula las luces de velas con la geometría completa. Indexa los grupos de `OfrendaElementVisibility`, aplica la selección y desactiva las luces cuando Velas está oculto. Configura los marcos respetando tanto su cantidad como la visibilidad de Retrato, crea los anclajes de las categorías visibles y restablece el encuadre. Entonces prepara el aviso `.ready`. Lo entrega fuera de la actualización de SwiftUI cuando el visor tiene ventana, dimensiones válidas y el altar está en escena.
 
-#### Qué conserva el Coordinator
+#### Cómo se reparten Coordinator y Renderer
+
+`Coordinator` es el puente de cada montaje SwiftUI. Conserva la identidad de su montaje y la sesión, y solo permite actualizar el renderer si todavía es el propietario activo. `Renderer` conserva la escena durante toda la sesión.
 
 Entre sus propiedades están el pivote, la cámara, los nodos de anclaje, `yaw`, `pitch`, `zoomFactor`, `offset` y el tamaño del altar.
 
 Además conserva la tarea de carga, la tarea corta de animación, el último viewport publicado y la publicación pendiente. `previousFraming` guarda el zoom y el objetivo de cámara que había antes de abrir un detalle.
 
-El coordinador mantiene una referencia débil a la `ARView`. Su raíz UIKit es `OfrendaRenderHost`, para que el visor pueda trasladarse a la cabecera de la tarjeta sin mover la raíz que controla SwiftUI. `OfrendaRenderSession` conserva el visor y una referencia débil al altar ya cargado. Al desmontar limpia sus callbacks, cancela trabajo pendiente, desregistra la sesión y retira los hijos del pivote.
+El renderer mantiene referencias débiles a la `ARView` y a la sesión. Su raíz UIKit es `OfrendaRenderHost`, para que el visor pueda trasladarse entre las pantallas y la cabecera de la tarjeta sin mover la raíz que controla SwiftUI. `OfrendaRenderSession` conserva tanto el visor como el renderer.
+
+Al desmontar la pantalla activa se retira el ancla del altar, se cancelan el enfoque y las publicaciones pendientes, y se limpian sus callbacks. Se conserva el modelo preparado para el siguiente montaje. Al volver, `bind(to:newOwner:)` recibe los callbacks y el binding nuevos, aplica la selección y las fotos vigentes, recalcula las referencias y restablece el encuadre para el tamaño del nuevo contenedor. Un desmontaje antiguo no puede vaciar una pantalla que ya tomó el visor. Un visor independiente sin sesión compartida sí libera la escena al desmontarse.
 
 #### Métodos que debemos ubicar
 
@@ -708,7 +719,10 @@ El coordinador mantiene una referencia débil a la `ARView`. Su raíz UIKit es `
 | `OfrendaMaterials.prepare` | Revisa los prefijos de la jerarquía para papel, flores, llamas y pared, tanto en el altar como en el objeto aislado. |
 | `addCandleLights(in:)` | Crea luces cálidas sobre llamas determinadas en dispositivo. |
 | `contentBounds(of:)` | Calcula los límites del contenido sin usar la pared para ajustar la cámara. |
-| `resize()` | Recalcula el encuadre cuando realmente cambió el tamaño de la vista. |
+| `resize()` | Recalcula el encuadre cuando cambió el tamaño y entrega el estado de carga cuando el visor ya está montado. |
+| `bind(to:newOwner:)` | Conecta la pantalla vigente al renderer existente; al cambiar de propietario reconstruye referencias y encuadre, sin cargar otro modelo. |
+| `suspend()` | Retira el altar y limpia callbacks del propietario que sale, conservando los recursos para volver. |
+| `notifyLoadState()` | Publica carga o fallo y espera a que exista ventana, tamaño y altar visible antes de comunicar que está listo. |
 | `reset()` | Cancela el enfoque y recupera giro, zoom, desplazamiento y objetivo iniciales. |
 | `focus(on:)` | Calcula el pequeño acercamiento y el punto que debe quedar visible sobre la hoja. |
 | `restoreFraming()` | Regresa al zoom y objetivo previos al cerrar la tarjeta. |
@@ -718,6 +732,7 @@ El coordinador mantiene una referencia débil a la `ARView`. Su raíz UIKit es `
 | `updateCamera()` | Aplica orientación, desplazamiento y posición de cámara; actualiza las proyecciones. |
 | `rotate`, `move` y `zoom` | Procesan los gestos y aplican sus límites. |
 | `setObscured(_:)` y `applyVisibility()` | Retiran solo el ancla del altar, cancelan enfoques y publicaciones pendientes, y restauran la misma ancla al volver. La inspección conserva su ancla independiente en el mismo visor. |
+| `setSeleccion(_:)` | Aplica únicamente cambios de visibilidad sobre las entidades cargadas, actualiza marcos, luces y anclajes, y conserva la cámara. No recarga el USDZ. |
 | `setFotos(_:)` y `selectFrame(_:)` | Actualizan las fotos y atienden los toques sobre los marcos. |
 
 La distancia utiliza la tangente del medio campo de visión, las dimensiones normalizadas del modelo y el aspect ratio de la vista. Se conserva un margen de encuadre de 1.18 y se considera la profundidad del altar.
@@ -1046,7 +1061,7 @@ Define `PersonalizacionOfrenda` con fotografía, nombre, comida favorita, conjun
 
 `estaCompleta` comprueba foto y nombre. Las vistas también tienen sus validaciones; el flujo puede conservar una foto de ejemplo y pide un nombre para continuar, además de comida en el paso de gustos.
 
-El archivo también contiene `Aficion`, con las seis opciones Jardinería, Música, Cocina, Lectura, Costura y Café, y `PasoPersonalizacion` con retrato, ajusteFoto, gustos, sugerencias y resultado.
+El archivo también contiene `Aficion`, con las seis opciones Jardinería, Música, Cocina, Lectura, Costura y Café, y `PasoPersonalizacion` con retrato, ajusteFoto, gustos, sugerencias, elementos y resultado.
 
 El perfil completo todavía vive en memoria. La persistencia de fotos de los marcos es una responsabilidad de `FotosMarcosStore`.
 
@@ -1077,7 +1092,7 @@ Este servicio no modifica la foto ni el modelo 3D. Su responsabilidad termina al
 
 **Archivo:** [Features/MiOfrenda/Views/OfrendaPersonalizadaFlowView.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Views/OfrendaPersonalizadaFlowView.swift)
 
-Controla los pasos del perfil y recibe el mismo `FotosMarcosStore` que utiliza la pantalla principal. Conserva el paso actual, el regreso del editor, la selección de PhotosUI y una imagen temporal para ajustar.
+Controla los pasos del perfil y recibe los mismos `FotosMarcosStore` y `ElementosOfrendaStore` que utiliza la pantalla principal. Conserva el paso actual, el regreso del editor, la selección de PhotosUI y una imagen temporal para ajustar.
 
 `abrirPicker()` recuerda el paso y el `marcoRetrato` elegido. Así, al confirmar una foto sabe exactamente qué marco debe actualizar.
 
@@ -1085,7 +1100,7 @@ La selección se decodifica mediante `PhotoProcessor` antes del ajuste. `AjusteF
 
 `sincronizarRetrato()` mantiene la foto del perfil conectada al marco seleccionado. Se ejecuta al cargar, cambiar de marco o recibir otro UUID de foto en ese marco, incluyendo cambios hechos desde la pantalla principal.
 
-Las dos fotos se conservan por separado y la vista previa recibe el mismo almacén. Los gustos siguen sirviendo para sugerencias y versos; no agregan por sí mismos nuevas mallas.
+Las dos fotos se conservan por separado y la vista previa recibe el mismo almacén. Los gustos siguen sirviendo para sugerencias y versos; no agregan por sí mismos nuevas mallas. `editarElementos(regreso:siguiente:)` recuerda el origen del editor y a dónde continuar: puede abrirse desde Retrato sin llenar el perfil, desde Sugerencias antes del resultado o desde el resultado para ajustar la propuesta. Solo el paso visible monta su visor; el editor no se abre encima de otro visor en una hoja.
 
 La carga inicial del selector en este flujo conserva su salida silenciosa si falla la lectura de datos. El editor específico de los marcos tiene sus propios avisos de selección.
 
@@ -1093,7 +1108,7 @@ La carga inicial del selector en este flujo conserva su salida silenciosa si fal
 
 **Archivo:** [Features/MiOfrenda/Views/PersonalizarRetratoView.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Views/PersonalizarRetratoView.swift)
 
-Es el primer paso de Mi ofrenda. Recibe el perfil, el almacén de fotos y callbacks para elegir imagen, continuar o volver.
+Es el primer paso de Mi ofrenda. Recibe el perfil, el almacén de fotos y callbacks para elegir imagen, editar los elementos del modelo, continuar o volver. «Elegir elementos del modelo 3D» abre el editor sin exigir nombre ni comida; al terminar vuelve a este paso.
 
 Un selector permite decidir si el retrato de la persona corresponde al marco izquierdo o al derecho. La imagen mostrada viene de ese marco y conserva la proporción de su hueco interior.
 
@@ -1160,13 +1175,13 @@ Los casos particulares de esas funciones cubren las seis aficiones del catálogo
 
 En este mismo archivo está `TarjetaSugerencia`, una vista privada que acomoda icono, título y explicación sobre una superficie morada. La reutilizamos para mantener el mismo diseño entre recomendaciones.
 
-El botón Ver mi propuesta abre el resultado. Las tarjetas no tienen un estado de aceptación individual y no agregan entidades al modelo. Son una orientación didáctica sobre qué podríamos colocar en una ofrenda física o representar en una versión futura del altar.
+El botón «Elegir elementos del modelo» abre el paso de selección 3D antes de mostrar el resultado. Las sugerencias escritas siguen siendo orientación; la presencia real de las piezas se controla en el editor con sus selectores. No se genera una malla nueva a partir de una comida o afición escrita.
 
 ### 44. MiOfrendaFinalView.swift
 
 **Archivo:** [Features/MiOfrenda/Views/MiOfrendaFinalView.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Views/MiOfrendaFinalView.swift)
 
-Reúne el resultado personalizado. Recibe el perfil, `FotosMarcosStore`, la actividad de la pestaña y los callbacks para editar gustos, cambiar la foto del perfil o regresar.
+Reúne el resultado personalizado. Recibe el perfil, `FotosMarcosStore`, `ElementosOfrendaStore`, la actividad de la pestaña y los callbacks para editar gustos, elementos, fotos o regresar. El mismo `seleccionElementos` pasa a `OfrendaModelView`, junto con la disposición de marcos. El resumen indica cuántos tipos están visibles y avisa cuando los retratos están ocultos; «Editar elementos de la ofrenda» permite volver al editor.
 
 La tarjeta principal contiene el altar real a todo el ancho, con 300 puntos de alto. `OfrendaModelView` recibe las dos fotos del almacén. Los botones junto a los marcos permiten editar el retrato correspondiente desde la propuesta.
 
@@ -1364,12 +1379,12 @@ Algunas combinaciones de nodos de Blender no tienen una representación equivale
 - La entrada y las pestañas se montan por etapas. El USDZ se precarga de forma asíncrona durante la puerta; la escena gráfica del altar se monta al terminar el recorrido, usando el mismo recurso compartido.
 - Los visores dependen de la actividad de la pestaña y de la escena de la aplicación.
 - `OfrendaAssets` comparte cargas pendientes y mantiene una caché limitada de recursos.
-- El detalle y el altar principal comparten una sola `ARView`. Al entrar al detalle se traslada el visor al contenedor de la tarjeta, se retira el ancla del altar y se monta únicamente el ejemplar.
+- La pantalla principal, el editor de elementos, el resultado y el detalle comparten una sola `ARView`. El altar preparado se conserva entre pantallas; cambiar de pestaña no vuelve a clonar ni preparar el USDZ. Al entrar al detalle se traslada el visor al contenedor de la tarjeta, se retira el ancla del altar y se monta únicamente el ejemplar.
 - La pieza se clona desde el altar que ya tenemos cargado; comparte sus recursos de malla y textura, aunque la caché del prototipo haya sido desalojada. No se conserva un segundo clon completo del altar para el detalle.
 - Las hojas de edición de fotos también retiran el altar mientras lo cubren.
 - El reloj del detalle se limita a 30 actualizaciones por segundo y se detiene al pausar el giro, con Reducir movimiento, al salir de la ventana o en segundo plano.
 - Mostramos «Cargando modelo 3D…» durante la preparación del altar y de la pieza. Las cargas de RealityKit son asíncronas; el disco de fotos ya se atiende desde un actor. Las entidades y vistas siguen coordinadas en MainActor, sin trasladarlas a hilos arbitrarios.
-- Al desmontar una vista se cancelan sus tareas y se retiran anclas y gestos.
+- Al desmontar el altar activo se retira su ancla y se cancelan el enfoque y las publicaciones, conservando sus recursos en la sesión. Al desmontar la inspección se cancelan sus tareas, se retiran su ancla y sus gestos, y se devuelve el visor al altar.
 - La proyección de etiquetas se actualiza cuando cambia la cámara, el tamaño o una animación breve; no tiene una suscripción permanente a cada fotograma.
 - Los cambios de posiciones se redondean y se publican solo cuando corresponde actualizar el estado.
 - Se desactivan motion blur, profundidad de campo y grano de cámara.
@@ -1575,7 +1590,7 @@ Si usamos el proyecto local, cambiamos el argumento de `-project` por `ProyectoL
 | Fotografía | Elegir, ajustar, confirmar y cancelar conservan el comportamiento esperado. |
 | Resultado | La foto aparece en su superficie 3D y los datos se muestran en el resumen. |
 | Poema | Los versos utilizan los datos actuales cuando pulsamos generar. |
-| Cambio de pestaña | Los visores se retiran y vuelven a montar cuando corresponde. |
+| Cambio de pestaña | El mismo visor se traslada entre contenedores y se restaura el altar preparado con la selección vigente. |
 | Segundo plano | El regreso no deja tareas anteriores modificando una escena retirada. |
 
 También conviene probar un viewport pequeño en horizontal, no únicamente el teléfono vertical grande. La distribución de etiquetas depende del área real disponible.
@@ -1602,7 +1617,7 @@ La creación de este README es un cambio de documentación. No agrega funciones 
 | La entrada queda vacía | Que `mictlan-entrada.html` exista en los recursos del bundle y que su nombre coincida con el que busca `MictlanAnimationView`. |
 | La entrada no pasa a las pestañas | El mensaje automático `bookAction/opened`, la finalización de la precarga y que la aplicación esté activa. Ya no existe un botón final. |
 | El altar no carga | El estado de error de `OfrendaView`, la presencia de `Ofrenda.usdz` y su apertura correcta como recurso 3D. |
-| El visor del resultado falla sin explicar el motivo | El callback de carga de `MiOfrendaFinalView` actualmente no presenta ese error en pantalla. |
+| El visor del resultado falla sin explicar el motivo | El estado `loadState` que recibe MiOfrendaFinalView y el recurso disponible en el bundle. |
 | El modelo aparece de espaldas o mal orientado | La orientación de exportación y el pivote; la política de cámara no corrige una exportación invertida. |
 | Falta la pared en el altar principal | El valor de `ocultarParedDeFondo` y las entidades con prefijo `fondo__`. |
 | El papel se ve como una lámina opaca | Canal alfa de la textura, material exportado, nombre de entidad y preparación en el visor. |
@@ -1640,7 +1655,7 @@ Esta sección nos ayuda a diferenciar lo que funciona de lo que todavía tendrí
 - El visor es 3D en pantalla, sin seguimiento de superficies físicas mediante realidad aumentada.
 - El recurso 3D sigue siendo considerable en geometría y texturas. Las optimizaciones del visor no equivalen a una nueva optimización de la malla.
 - La selección de fotografía de Mi ofrenda todavía no muestra un mensaje específico cuando falla su carga. El editor de los marcos principales sí presenta errores.
-- El resultado personalizado conserva una closure vacía para el estado general de carga; sus errores de textura sí pueden mostrarse.
+- El resultado personalizado muestra carga y error del modelo, y comunica también errores de textura.
 - La suite de pruebas auxiliares no forma parte del repositorio.
 - Falta completar la validación en los dispositivos físicos y en cada versión de Xcode del equipo.
 
@@ -1956,15 +1971,18 @@ La animación utiliza `CADisplayLink` a un máximo solicitado de 30 actualizacio
 
 **Archivo:** [Features/Ofrenda/ThreeD/OfrendaRenderSession.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/ThreeD/OfrendaRenderSession.swift)
 
-Es la sesión compartida entre Ofrenda y la cabecera de sus tarjetas. `AppTabsView` conserva una instancia y se la entrega a ambos recorridos. Guarda la `ARView`, referencias débiles a los contenedores y al altar cargado, y el estado anterior de los gestos del altar.
+Es la sesión compartida entre Ofrenda, Personalizar elementos, el resultado de Mi ofrenda y la cabecera de sus tarjetas. `AppTabsView` conserva una instancia y se la entrega a todos esos recorridos. Guarda la `ARView`, el renderer con el altar preparado, referencias débiles a los contenedores y al altar cargado, y el estado anterior de los gestos del altar.
+
+Antes cada regreso construía un motor gráfico y preparaba otro clon, aunque el USDZ ya estuviera en caché. Eso podía dejar las etiquetas listas mientras el modelo todavía no se dibujaba. Ahora el cambio de pantalla reutiliza la misma escena preparada. Solo hay un propietario activo, identificado con un UUID; una actualización o desmontaje atrasado de otra pantalla no puede modificarlo.
 
 | Método | Responsabilidad |
 | --- | --- |
-| `register` | Registra el visor del altar y la función que actualiza su visibilidad. |
+| `mount(owner:host:makeRenderer:)` | Crea el visor y renderer la primera vez; después los reutiliza y traslada el visor al contenedor vigente. |
+| `owns(_:)` | Comprueba que una actualización pertenece a la pantalla que tiene el visor. |
 | `borrow(into:)` | Marca la inspección activa, retira el altar mediante su coordinador, desactiva sus gestos y traslada el visor al contenedor pequeño. Rechaza otro préstamo simultáneo. |
 | `cloneElement(nombres:)` | Pide a `OfrendaAssets` una copia parcial desde el altar existente. Así no necesita leer otra vez el USDZ después de vaciar la caché. |
 | `giveBack(from:)` | Restaura los gestos, devuelve el visor al contenedor principal y solicita recalcular la visibilidad. |
-| `unregister` | Libera referencias y callbacks cuando se desmonta el visor principal. |
+| `unmount(owner:host:discard:)` | Suspende el altar únicamente si sale el propietario actual. Conserva sus recursos en la sesión compartida; libera los de un visor independiente. |
 
 `OfrendaRenderHost` es un contenedor UIKit con callbacks de layout y entrada o salida de ventana. `install` mueve la vista gráfica y ajusta su frame y máscara de tamaño al nuevo contenedor. La raíz de cada `UIViewRepresentable` permanece en su lugar; únicamente se traslada su subvista de RealityKit.
 
@@ -1986,3 +2004,78 @@ JavaScript espera el `transitionend` del `transform` de `scene`, filtrando tanto
 Si el documento está oculto cuando termina, se guarda el aviso pendiente y se envía al volver visible. `pagehide` cancela los temporizadores. El coordinador Swift conserva además su propia protección contra mensajes duplicados. El usuario no tiene que pulsar otra vez al llegar al final.
 
 La precarga usa la API asíncrona de RealityKit y la caché limitada que ya existía. Compartimos la carga pendiente con cualquier consumidor; no iniciamos otra lectura para el mismo nombre. Esta precarga prepara el recurso, no promete que los shaders y las fotografías personalizadas ya hayan terminado de aparecer: el visor conserva su indicador de carga durante su montaje final.
+
+
+## 28. Elegir los objetos que aparecen en la ofrenda
+
+Ya podemos modificar la ofrenda 3D desde **Mi ofrenda → Elegir elementos del modelo 3D**. No hace falta llenar nombre y gustos para utilizar este editor. En el recorrido completo también aparece después de las sugerencias; desde el resultado se vuelve con **Editar elementos de la ofrenda**.
+
+Los cambios se ven en el momento y se guardan automáticamente. Volver o pulsar Listo conserva la selección. Listo espera a que termine la escritura pendiente. Mostrar todos recupera los objetos del diseño completo; el botón de restablecer cámara cambia únicamente el encuadre. La mesa y sus tres niveles permanecen como base, incluso si desactivamos todos los grupos.
+
+### 62. ConfiguracionElementosOfrenda.swift
+
+**Archivo:** [Features/MiOfrenda/Models/ConfiguracionElementosOfrenda.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Models/ConfiguracionElementosOfrenda.swift)
+
+Contiene `GrupoElementoOfrenda` y `ConfiguracionElementosOfrenda`. El enum ofrece identidades estables, nombre, icono, descripción y entidades del USDZ para cada selector. `para(elemento:)` conecta los nombres didácticos del catálogo con el grupo del modelo. El texto visible puede cambiar sin cambiar el identificador guardado.
+
+La configuración guarda un conjunto de identificadores ocultos. La selección predeterminada no oculta nada. `muestra`, `muestra(elemento:)`, `visibles` y `establecer` permiten consultar o modificar la selección. Los identificadores desconocidos de otra versión se conservan, pero no afectan los 13 grupos conocidos ni impiden decodificar el archivo.
+
+| Grupo | Piezas completas que controla |
+| --- | --- |
+| Flores | `flores__001…030`, incluidos ramos, hojas y macetas. |
+| Retrato | `retrato__001…002`; la configuración de marcos conserva cuál de ellos mostrar. |
+| Velas | `velas__001…012` y sus llamas hijas; el coordinador controla también las luces. |
+| Papel picado | `papel__001…030`. |
+| Agua y vasos | `bebidas__001…005`: jarra, vasos y contenido del modelo actual. |
+| Calaveritas | `calaveras__001…004`. |
+| Pan de muerto | `pan__001…005` y `plato__001`. |
+| Comida | `comida__001,002,007,008,009,016,017,018` y `plato__002`: mole, tazones y tamales. |
+| Caña de azúcar | `comida__012…013`. |
+| Frutas | `comida__003,004,005,006,010,011,014,015`: naranjas y tejocotes. |
+| Incienso y copal | `copal__001…004`, soportes y recipientes. |
+| Cigarro | `recuerdos__001…002`. |
+| Tequila | `bebidas__006`. |
+
+El mapa comprende **115 entidades decorativas distintas** del USDZ actual. Las 12 llamas están dentro de las velas. Los grupos no se solapan. Los nombres se contrastaron con la jerarquía real y con el informe de exportación de Blender; si sustituimos el modelo hay que actualizar este mapa. El vaso actual usa el contenido que ya venía en el recurso: el selector no crea una nueva malla de agua o sal.
+
+### 63. ElementosOfrendaStore.swift
+
+**Archivo:** [Features/MiOfrenda/Services/ElementosOfrendaStore.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Services/ElementosOfrendaStore.swift)
+
+Es el almacén observable de la selección. `AppTabsView` conserva la instancia compartida, carga los datos una vez y la entrega al flujo. `cargar()` recupera la configuración; mientras termina el editor deshabilita sus selectores. Si el archivo no existe, parte del altar completo. Si está dañado informa el error y conserva ese archivo hasta que el usuario guarde otro cambio.
+
+`establecer` cambia la configuración en memoria de inmediato. `mostrarTodos` recupera la selección predeterminada. La tarea de escritura codifica una instantánea pequeña y la entrega a `ArchivoElementosOfrenda`, que realiza el acceso al disco fuera del actor de interfaz. Se escribe atómicamente en:
+
+```text
+Application Support/OfrendaPersonalizada/elementos.json
+```
+
+Cada cambio tiene una revisión. El actor serializa las escrituras y rechaza una revisión antigua que llegue tarde, para que cambios rápidos no restauren una selección anterior. La interfaz conoce `cargando`, `guardando` y `mensajeError`. `reintentarGuardado` permite intentar de nuevo después de un fallo; `esperarGuardado` espera la última tarea. El inicializador admite una URL alternativa para comprobar persistencia sin tocar las preferencias reales.
+
+La selección de objetos se guarda independientemente de las fotos y de la disposición de marcos. Esta adición no convierte los textos del perfil o los versos en datos persistentes: conservan el comportamiento que ya tenían.
+
+### 64. OfrendaElementVisibility.swift
+
+**Archivo:** [Features/Ofrenda/ThreeD/OfrendaElementVisibility.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/ThreeD/OfrendaElementVisibility.swift)
+
+Es el índice de entidades de cada clon de la ofrenda. `attach(to:)` busca las piezas una sola vez y recuerda su estado inicial. `apply` activa o desactiva las entidades con `isEnabled`, sin reconstruir mallas, texturas ni el archivo USDZ. `dispose` libera sus referencias cuando se descarta el renderer. El prototipo de la caché no cambia; cada clon aplica la misma configuración compartida.
+
+`OfrendaInteractive3DView.setSeleccion` actualiza el índice, los marcos, las luces de velas y las referencias del altar. Conserva cámara y escala. Los anclajes se crean únicamente para categorías visibles; las proyecciones de fotografías se vacían al ocultar Retrato. `OfrendaPhotoFrames.configurar(_:mostrarRetratos:)` combina la selección general con la elección de uno o dos marcos. Ocultar el grupo no borra sus fotografías; al mostrarlo recupera su disposición.
+
+El progreso de la pantalla principal cuenta las visitas que corresponden a categorías visibles. Las visitas anteriores se conservan, por lo que al volver a mostrar una categoría recupera su marca. Si no hay grupos visibles, la pantalla indica que se pueden añadir desde Mi ofrenda.
+
+### 65. PersonalizarElementosView.swift
+
+**Archivo:** [Features/MiOfrenda/Views/PersonalizarElementosView.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Views/PersonalizarElementosView.swift)
+
+Es el editor de los objetos. Mantiene la vista previa 3D encima de los selectores en vertical; en horizontal o con texto de accesibilidad usa desplazamiento del contenido completo. Tiene los mismos gestos y límites de cámara del altar. Cada fila explica qué incluye su grupo y usa el estilo de cristal del proyecto. El contador comunica cuántos tipos siguen visibles.
+
+Reutiliza `OfrendaModelView` con controles de foto desactivados: la edición de imágenes continúa en su pantalla habitual. La vista previa usa `ModelLoadState`, muestra Cargando modelo 3D durante la preparación y comunica los errores de modelo o foto. Solo se monta cuando su pestaña y la escena de la app están activas. Recibe la sesión de `AppTabsView` a través del flujo. Al entrar recupera el visor y el altar preparados; al regresar a la pantalla principal se devuelve esa misma instancia con la selección guardada. Cambiar un selector reutiliza la escena; no crea un visor por objeto ni vuelve a leer el USDZ.
+
+El flujo presenta este editor como un paso, de modo que la vista previa del resultado no queda dibujándose detrás. Se mantienen la retirada del altar al abrir sus tarjetas y el visor compartido del detalle. Ocultar entidades reduce su dibujo, aunque los recursos del modelo siguen preparados para poder recuperarlas rápidamente.
+
+### Comprobaciones de esta integración
+
+Se comprobaron las **8,192 combinaciones** posibles de los 13 grupos sobre el USDZ real: nombres existentes, cobertura completa de los objetos decorativos, ausencia de grupos solapados, propagación a las llamas, conservación de la base y del prototipo. Las pruebas de persistencia incluyen cambios rápidos, otra instancia que vuelve a leer el archivo, selección vacía, Mostrar todos, identificadores desconocidos, archivo dañado y fallo de escritura.
+
+La comprobación visual en simulador revisa los cambios inmediatos de flores, velas y retratos, su reflejo en la pantalla principal y la recuperación de la selección al reabrir. Las compilaciones de simulador y destino genérico iPhone se ejecutan sin firma. La medición de FPS y memoria gráfica en teléfonos físicos continúa siendo una comprobación aparte.

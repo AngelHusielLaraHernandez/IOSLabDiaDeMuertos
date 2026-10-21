@@ -82,12 +82,12 @@ struct SugerenciasOfrendaView: View {
                     .padding(.horizontal, 24)
                 }
 
-                Text("Suma su retrato y dale tu propio significado.")
+                Text("En el siguiente paso eliges qué objetos disponibles se verán en el modelo 3D.")
                     .font(.subheadline).foregroundColor(colorTextoSec)
                     .padding(.horizontal, 24)
 
                 Button { onContinuar() } label: {
-                    Text("Ver mi propuesta")
+                    Text("Elegir elementos del modelo")
                         .font(.headline).foregroundColor(.black)
                         .frame(maxWidth: .infinity).padding(.vertical, 8)
 

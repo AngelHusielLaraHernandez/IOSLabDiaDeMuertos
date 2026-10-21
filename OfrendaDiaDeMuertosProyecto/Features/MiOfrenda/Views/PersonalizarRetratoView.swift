@@ -11,6 +11,7 @@ struct PersonalizarRetratoView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
     let fotosMarcos: FotosMarcosStore
     let onElegirFoto: () -> Void
+    let onEditarElementos: () -> Void
     let onContinuar: () -> Void
     let onVolver: () -> Void
     private var fotoActual: UIImage? { fotosMarcos.fotos[personalizacion.marcoRetrato]?.imagen }
@@ -28,6 +29,12 @@ struct PersonalizarRetratoView: View {
                     Text(tieneFoto && tieneNombre ? "Recordemos a \(personalizacion.nombre)." : "¿A quién quieres recordar?")
                         .font(.largeTitle.bold())
                 }
+                .padding(.horizontal, 24)
+                Button(action: onEditarElementos) {
+                    Label("Elegir elementos del modelo 3D", systemImage: "cube.transparent")
+                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                }
+                .ofrendaSecondaryAction()
                 .padding(.horizontal, 24)
                 ConfiguracionMarcosView(store: fotosMarcos, marcoSugerido: personalizacion.marcoRetrato)
                     .padding(.horizontal, 24)

@@ -10,10 +10,14 @@ import PhotosUI
 
 struct OfrendaPersonalizadaFlowView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
+    let renderSession: OfrendaRenderSession
     let fotosMarcos: FotosMarcosStore
+    let elementosStore: ElementosOfrendaStore
     var isActive = true
     let onSalir: () -> Void
     @State private var paso: PasoPersonalizacion = .retrato
+    @State private var regresoDeElementos: PasoPersonalizacion = .retrato
+    @State private var siguienteDeElementos: PasoPersonalizacion = .retrato
     @State private var regresoDeFoto: PasoPersonalizacion = .retrato
     @State private var fotoEnAjuste: UIImage?
     @State private var pickerItem: PhotosPickerItem?
@@ -29,6 +33,7 @@ struct OfrendaPersonalizadaFlowView: View {
                     personalizacion: $personalizacion,
                     fotosMarcos: fotosMarcos,
                     onElegirFoto: abrirPicker,
+                    onEditarElementos: { editarElementos(regreso: .retrato, siguiente: .retrato) },
                     onContinuar: { paso = .gustos },
                     onVolver: onSalir
                 )
@@ -66,23 +71,33 @@ struct OfrendaPersonalizadaFlowView: View {
             case .sugerencias:
                 SugerenciasOfrendaView(
                     personalizacion: personalizacion,
-                    onContinuar: { paso = .resultado },
+                    onContinuar: { editarElementos(regreso: .sugerencias, siguiente: .resultado) },
                     onVolver: { paso = .gustos },
                     onSalir: onSalir
+                )
+            case .elementos:
+                PersonalizarElementosView(
+                    renderSession: renderSession, store: elementosStore, fotosMarcos: fotosMarcos, isActive: isActive,
+                    onVolver: { paso = regresoDeElementos },
+                    onContinuar: { paso = siguienteDeElementos }
                 )
             case .resultado:
                 MiOfrendaFinalView(
                     personalizacion: $personalizacion,
+                    renderSession: renderSession,
                     fotosMarcos: fotosMarcos,
+                    elementosStore: elementosStore,
                     isActive: isActive,
                     onEditarGustos: { paso = .gustos },
+                    onEditarElementos: { editarElementos(regreso: .resultado, siguiente: .resultado) },
                     onCambiarFoto: abrirPicker,
                     onVolver: { paso = .sugerencias }
                 )
             }
         }
         .background(AppTheme.background.ignoresSafeArea())
-        .animation(.easeInOut(duration: 0.2), value: paso)
+        // Los pasos con RealityKit se sustituyen sin un fundido que retenga dos visores.
+        .animation(paso == .elementos || paso == .resultado ? nil : .easeInOut(duration: 0.2), value: paso)
         .task {
             await fotosMarcos.cargar()
             sincronizarRetrato()
@@ -109,6 +124,12 @@ struct OfrendaPersonalizadaFlowView: View {
             paso = .ajusteFoto
             pickerItem = nil
         }
+    }
+
+    private func editarElementos(regreso: PasoPersonalizacion, siguiente: PasoPersonalizacion) {
+        regresoDeElementos = regreso
+        siguienteDeElementos = siguiente
+        paso = .elementos
     }
 
     private func sincronizarRetrato() {

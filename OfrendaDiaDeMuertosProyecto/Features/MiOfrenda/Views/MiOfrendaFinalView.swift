@@ -9,9 +9,12 @@ import SwiftUI
 
 struct MiOfrendaFinalView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
+    let renderSession: OfrendaRenderSession
     let fotosMarcos: FotosMarcosStore
+    let elementosStore: ElementosOfrendaStore
     var isActive = true
     let onEditarGustos: () -> Void
+    let onEditarElementos: () -> Void
     let onCambiarFoto: () -> Void
     let onVolver: () -> Void
 
@@ -46,9 +49,11 @@ struct MiOfrendaFinalView: View {
                     Group {
                         if isActive {
                             OfrendaModelView(
+                                renderSession: renderSession,
                                 resetToken: 0,
                                 fotosMarcos: fotosMarcos.fotos,
                                 configuracionMarcos: fotosMarcos.configuracion,
+                                seleccionElementos: elementosStore.configuracion,
                                 isObscured: editorMarcos != nil,
                                 onLoad: { loadState = $0 },
                                 onSeleccionarMarco: { marco in
@@ -74,9 +79,9 @@ struct MiOfrendaFinalView: View {
                             Text(personalizacion.nombre.uppercased())
                                 .font(.caption.weight(.bold)).tracking(0.8)
                                 .foregroundColor(colorAcento)
-                            Text("Sus flores y \(personalizacion.comidaFavorita.isEmpty ? "recuerdos" : personalizacion.comidaFavorita.lowercased()).")
+                            Text("\(elementosStore.configuracion.visibles.count) tipos de elementos en su ofrenda.")
                                 .font(.title3.weight(.bold))
-                            Text("Su retrato: \(personalizacion.marcoRetrato.titulo.lowercased()).")
+                            Text(elementosStore.configuracion.muestra(.retrato) ? "Su retrato: \(personalizacion.marcoRetrato.titulo.lowercased())." : "Retratos ocultos · tus fotos se conservan.")
                                 .font(.caption)
                                 .foregroundStyle(colorTextoSec)
                         }
@@ -89,6 +94,13 @@ struct MiOfrendaFinalView: View {
                 .ofrendaSurface()
                 .padding(.horizontal, 24)
 
+
+                Button(action: onEditarElementos) {
+                    Label("Editar elementos de la ofrenda", systemImage: "cube.transparent")
+                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                }
+                .ofrendaSecondaryAction()
+                .padding(.horizontal, 24)
 
                 // Lo que le gustaba
                 HStack {
@@ -158,6 +170,7 @@ struct MiOfrendaFinalView: View {
         }
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .onChange(of: isActive) { _, active in if !active { loadState = .loading } }
         .sheet(item: $editorMarcos) { editor in
             MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco)
                 .ofrendaSheet(detents: [.large])

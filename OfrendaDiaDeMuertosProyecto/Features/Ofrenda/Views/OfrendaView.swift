@@ -11,6 +11,8 @@ struct OfrendaView: View {
     let elementos: [ElementoOfrenda]
     let renderSession: OfrendaRenderSession
     let fotosMarcos: FotosMarcosStore
+    var seleccionElementos = ConfiguracionElementosOfrenda()
+    var nombrePersona = ""
     var isActive = true
     @Binding var elementosVisitados: Set<String>
     @Binding var elementoSeleccionado: ElementoOfrenda?
@@ -25,6 +27,11 @@ struct OfrendaView: View {
 
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var elementosVisibles: [ElementoOfrenda] {
+        elementos.filter { seleccionElementos.muestra(elemento: $0.nombre) }
+    }
+    private var visitasVisibles: Int { elementosVisibles.filter { elementosVisitados.contains($0.nombre) }.count }
 
     var body: some View {
         Group {
@@ -46,6 +53,11 @@ struct OfrendaView: View {
         .onChange(of: elementoSeleccionado?.id) { _, selectedID in
             if selectedID == nil { focusRequest = nil }
         }
+        .onChange(of: seleccionElementos) { _, seleccion in
+            if let focusRequest, !seleccion.muestra(elemento: focusRequest.elementID) {
+                self.focusRequest = nil
+            }
+        }
         .task { await fotosMarcos.cargar() }
         .sheet(item: $editorMarcos) { editor in
             MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco)
@@ -64,7 +76,7 @@ struct OfrendaView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 12) {
-                    Text("LA OFRENDA DE ELENA")
+                    Text(nombrePersona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "LA OFRENDA DE ELENA" : "LA OFRENDA DE \(nombrePersona.uppercased())")
                         .font(.caption.weight(.bold))
                         .tracking(0.8)
                         .foregroundStyle(AppTheme.accent)
@@ -82,11 +94,11 @@ struct OfrendaView: View {
                 Text("Cada objeto, una historia.")
                     .font(.largeTitle.bold())
                     .fixedSize(horizontal: false, vertical: true)
-                Text("Acerca la ofrenda para descubrir más objetos y sus historias.")
+                Text(elementosVisibles.isEmpty ? "Elige qué objetos añadir desde Mi ofrenda." : "Acerca la ofrenda para descubrir más objetos y sus historias.")
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.secondaryText)
-                ProgressView(value: Double(elementosVisitados.count), total: Double(elementos.count)) {
-                    Text("\(elementosVisitados.count) de \(elementos.count) elementos · Explora a tu ritmo")
+                ProgressView(value: Double(visitasVisibles), total: Double(max(1, elementosVisibles.count))) {
+                    Text(elementosVisibles.isEmpty ? "Sin elementos visibles · Personaliza tu altar" : "\(visitasVisibles) de \(elementosVisibles.count) elementos · Explora a tu ritmo")
                         .font(.caption.weight(.medium))
                         .foregroundStyle(AppTheme.secondaryText)
                 }
@@ -101,7 +113,7 @@ struct OfrendaView: View {
                 let projections = paused ? [:] : viewport.positions
                 let photoControls = MarcoPhotoControls.placements(paused ? [:] : viewport.frameProjections, in: geometry.size)
                 let pins = OfrendaPinLayout.place(
-                    elementos.compactMap { elemento in
+                    elementosVisibles.compactMap { elemento in
                         guard let point = projections[elemento.nombre] else { return nil }
                         return OfrendaPinLayout.Pin(
                             id: elemento.nombre,
@@ -125,7 +137,8 @@ struct OfrendaView: View {
                             reduceMotion: reduceMotion,
                             onFocusCompleted: { requestID in
                                 guard let request = focusRequest, request.id == requestID,
-                                      let elemento = elementos.first(where: { $0.id == request.elementID }) else { return }
+                                      let elemento = elementos.first(where: { $0.id == request.elementID }),
+                                      seleccionElementos.muestra(elemento: elemento.nombre) else { return }
                                 elementosVisitados.insert(elemento.nombre)
                                 elementoSeleccionado = elemento
                             },
@@ -140,13 +153,14 @@ struct OfrendaView: View {
                                 else { errorFoto = mensaje }
                             },
                             configuracionMarcos: fotosMarcos.configuracion,
+                            seleccionElementos: seleccionElementos,
                             isObscured: elementoSeleccionado != nil || editorMarcos != nil || !isActive,
                             renderSession: renderSession
                         )
                     }
                     GlassEffectContainer(spacing: 4) {
                         ZStack {
-                            ForEach(elementos) { elemento in
+                            ForEach(elementosVisibles) { elemento in
                                 if let pin = pins[elemento.nombre] {
                                     if let anchor = projections[elemento.nombre],
                                        abs(anchor.y - pin.center.y) + abs(anchor.x - pin.center.x) > 12 {
@@ -225,9 +239,9 @@ struct OfrendaView: View {
                     Image(systemName: "heart")
                         .font(.title3)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Hazla personal, si quieres")
+                        Text("Personaliza tu ofrenda")
                             .font(.subheadline.bold())
-                        Text("Personalización opcional")
+                        Text("Fotos, recuerdos y elementos en 3D")
                             .font(.caption)
                             .foregroundStyle(AppTheme.secondaryText)
                     }

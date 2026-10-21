@@ -26,65 +26,78 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
     /// Si quieres que se siga viendo la pared café detrás del altar, cambia esto a `false`
     var ocultarParedDeFondo: Bool = true
     var configuracionMarcos = ConfiguracionMarcos()
+    var seleccionElementos = ConfiguracionElementosOfrenda()
     var isObscured = false
     var renderSession: OfrendaRenderSession?
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self, onLoad: onLoad)
-    }
+    func makeCoordinator() -> Coordinator { Coordinator(session: renderSession) }
 
     func makeUIView(context: Context) -> UIView {
-        let view = OfferingInteractiveARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
-
-        OfrendaRenderConfiguration.apply(to: view)
-        view.backgroundColor = .clear
-        view.isUserInteractionEnabled = true
-
-        let coordinator = context.coordinator
-        view.onResize = { [weak coordinator] in coordinator?.resize() }
         let host = OfrendaRenderHost()
-        host.install(view)
-        coordinator.setup(view: view)
-        renderSession?.register(view, host: host) { [weak coordinator] in coordinator?.applyVisibility() }
+        context.coordinator.mount(self, in: host)
         return host
     }
 
     func updateUIView(_ view: UIView, context: Context) {
-        context.coordinator.setObscured(isObscured)
-        context.coordinator.setConfiguracion(configuracionMarcos)
-        context.coordinator.onLoad = onLoad
-        context.coordinator.onFocusCompleted = onFocusCompleted
-        context.coordinator.reduceMotion = reduceMotion
-        context.coordinator.onSeleccionarMarco = onSeleccionarMarco
-        context.coordinator.photoFrames.onError = onErrorFoto
-        context.coordinator.setFotos(fotosMarcos)
-        if context.coordinator.resetToken != resetToken {
-            context.coordinator.resetToken = resetToken
-            context.coordinator.reset()
-            context.coordinator.lastFocusRequestID = focusRequest?.id
-            return
-        }
-        if context.coordinator.lastFocusRequestID != focusRequest?.id {
-            context.coordinator.lastFocusRequestID = focusRequest?.id
-            if let focusRequest {
-                context.coordinator.focus(on: focusRequest)
-            } else {
-                context.coordinator.restoreFraming()
-            }
-        }
+        context.coordinator.update(self)
     }
 
-    static func dismantleUIView(_ host: UIView, coordinator: Coordinator) {
-        guard let view = coordinator.renderingView else { return }
-        (view as? OfferingInteractiveARView)?.onResize = nil
-        coordinator.renderSession?.unregister(view)
-        coordinator.dispose()
-        OfrendaRenderConfiguration.release(view)
+    static func dismantleUIView(_ view: UIView, coordinator: Coordinator) {
+        guard let host = view as? OfrendaRenderHost else { return }
+        host.onLayout = nil
+        host.onWindow = nil
+        coordinator.unmount(from: host)
+    }
+
+    /// Puente de un montaje SwiftUI. El motor y la escena pertenecen a la sesión compartida.
+    @MainActor
+    final class Coordinator {
+        private let owner = UUID()
+        private let session: OfrendaRenderSession
+        private let shared: Bool
+        private var renderer: Renderer?
+
+        init(session: OfrendaRenderSession?) {
+            shared = session != nil
+            self.session = session ?? OfrendaRenderSession()
+        }
+
+        func mount(_ parent: OfrendaInteractive3DView, in host: OfrendaRenderHost) {
+            let renderer = session.mount(owner: owner, host: host) {
+                let renderer = Renderer(parent: parent, session: session)
+                let view = OfferingInteractiveARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
+                OfrendaRenderConfiguration.apply(to: view)
+                view.backgroundColor = .clear
+                view.isUserInteractionEnabled = true
+                view.onResize = { [weak renderer] in renderer?.resize() }
+                renderer.setup(view: view)
+                return (view, renderer)
+            }
+            self.renderer = renderer
+            host.onLayout = { [weak self] in self?.hostDidChange() }
+            host.onWindow = { [weak self] in self?.hostDidChange() }
+            renderer.bind(to: parent, newOwner: true)
+        }
+
+        func update(_ parent: OfrendaInteractive3DView) {
+            guard session.owns(owner) else { return }
+            renderer?.bind(to: parent, newOwner: false)
+        }
+
+        private func hostDidChange() {
+            guard session.owns(owner) else { return }
+            renderer?.resize()
+        }
+
+        func unmount(from host: OfrendaRenderHost) {
+            session.unmount(owner: owner, host: host, discard: !shared)
+            renderer = nil
+        }
     }
 
     @MainActor
-    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
-        private let elementos: [ElementoOfrenda]
+    final class Renderer: NSObject, UIGestureRecognizerDelegate {
+        private var elementos: [ElementoOfrenda]
         private let ocultarParedDeFondo: Bool
         private var publishViewport: ((OfrendaViewportState) -> Void)?
         private var pendingPublication: DispatchWorkItem?
@@ -104,9 +117,11 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         var loadTask: Task<Void, Never>?
 
         private weak var view: ARView?
-        var renderingView: ARView? { view }
-        let renderSession: OfrendaRenderSession?
+        private weak var renderSession: OfrendaRenderSession?
         private var requestedObscured = false
+        private var loadState: ModelLoadState = .loading
+        private var notifiedLoadState: ModelLoadState?
+        private var pendingLoadNotification: DispatchWorkItem?
         private let pivot = Entity()
         private let camera = PerspectiveCamera()
         private var nodosAncla: [String: Entity] = [:]
@@ -115,6 +130,9 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         private var sceneAnchor: AnchorEntity?
         private var isObscured = false
         private var configuracionMarcos = ConfiguracionMarcos()
+        private var seleccionElementos = ConfiguracionElementosOfrenda()
+        private let elementVisibility = OfrendaElementVisibility()
+        private var candleLights: [PointLight] = []
 
         private var yaw: Float = 0
         private var pitch: Float = 0
@@ -123,19 +141,100 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         private var extents = SIMD3<Float>(repeating: 2.65)
         private var previousSize = CGSize.zero
 
-        init(parent: OfrendaInteractive3DView, onLoad: @escaping (ModelLoadState) -> Void) {
-            self.renderSession = parent.renderSession
+        init(parent: OfrendaInteractive3DView, session: OfrendaRenderSession) {
+            self.seleccionElementos = parent.seleccionElementos
+            self.renderSession = session
             self.elementos = parent.elementos
             self.ocultarParedDeFondo = parent.ocultarParedDeFondo
             let viewport = parent.$viewport
             self.publishViewport = { viewport.wrappedValue = $0 }
             self.onFocusCompleted = parent.onFocusCompleted
             self.reduceMotion = parent.reduceMotion
-            self.onLoad = onLoad
+            self.onLoad = parent.onLoad
             self.resetToken = parent.resetToken
             self.onSeleccionarMarco = parent.onSeleccionarMarco
             self.fotosMarcos = parent.fotosMarcos
             self.photoFrames.onError = parent.onErrorFoto
+        }
+
+        func bind(to parent: OfrendaInteractive3DView, newOwner: Bool) {
+            if newOwner {
+                cancelFocus()
+                previousFraming = nil
+                pendingPublication?.cancel()
+                pendingLoadNotification?.cancel()
+                lastViewport = OfrendaViewportState()
+                previousSize = .zero
+                notifiedLoadState = nil
+                elementos = parent.elementos
+                resetToken = parent.resetToken
+                lastFocusRequestID = nil
+            }
+            let viewport = parent.$viewport
+            publishViewport = { viewport.wrappedValue = $0 }
+            onLoad = parent.onLoad
+            onFocusCompleted = parent.onFocusCompleted
+            reduceMotion = parent.reduceMotion
+            onSeleccionarMarco = parent.onSeleccionarMarco
+            photoFrames.onError = parent.onErrorFoto
+            setObscured(parent.isObscured)
+            setConfiguracion(parent.configuracionMarcos)
+            setSeleccion(parent.seleccionElementos)
+            setFotos(parent.fotosMarcos)
+            if newOwner {
+                if let modeloCargado { crearAnclasParaBotones(en: modeloCargado) }
+                reset()
+            } else if resetToken != parent.resetToken {
+                resetToken = parent.resetToken
+                reset()
+                lastFocusRequestID = parent.focusRequest?.id
+            } else if lastFocusRequestID != parent.focusRequest?.id {
+                lastFocusRequestID = parent.focusRequest?.id
+                if let request = parent.focusRequest { focus(on: request) }
+                else { restoreFraming() }
+            }
+            notifyLoadState()
+        }
+
+        /// Retira el altar de la escena sin destruir mallas, texturas ni el motor de RealityKit.
+        func suspend() {
+            setObscured(true)
+            cancelFocus()
+            pendingPublication?.cancel()
+            pendingLoadNotification?.cancel()
+            publishViewport = nil
+            onLoad = { _ in }
+            onFocusCompleted = { _ in }
+            onSeleccionarMarco = { _ in }
+            photoFrames.onError = { _ in }
+            notifiedLoadState = nil
+        }
+
+        private func reportLoad(_ state: ModelLoadState) {
+            loadState = state
+            notifyLoadState()
+        }
+
+        private func notifyLoadState() {
+            guard notifiedLoadState != loadState else { return }
+            // La nueva pantalla recibe ready cuando el visor ya tiene ventana, tamaño y escena.
+            if loadState == .ready {
+                guard !isObscured, let view, view.window != nil,
+                      view.bounds.width > 0, view.bounds.height > 0 else { return }
+            }
+            pendingLoadNotification?.cancel()
+            let state = loadState
+            let notification = DispatchWorkItem { [weak self] in
+                guard let self, self.loadState == state else { return }
+                if state == .ready {
+                    guard !self.isObscured, let view = self.view, view.window != nil,
+                          view.bounds.width > 0, view.bounds.height > 0 else { return }
+                }
+                self.notifiedLoadState = state
+                self.onLoad(state)
+            }
+            pendingLoadNotification = notification
+            DispatchQueue.main.async(execute: notification)
         }
 
         func setup(view: ARView) {
@@ -196,7 +295,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
 
             loadTask = Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.onLoad(.loading)
+                self.reportLoad(.loading)
                 do {
                     let entity = try await OfrendaAssets.shared.clone(named: "Ofrenda")
                     try Task.checkCancellation()
@@ -213,27 +312,34 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
                     self.modeloCargado = entity
                     self.renderSession?.altar = entity
                     OfrendaMaterials.prepare(entity, ocultarPared: self.ocultarParedDeFondo)
-                    try self.photoFrames.attach(to: entity)
-                    self.photoFrames.configurar(self.configuracionMarcos)
-                    self.photoFrames.update(self.fotosMarcos)
                     self.addCandleLights(in: entity)
+                    try self.photoFrames.attach(to: entity)
+                    self.elementVisibility.attach(to: entity)
+                    self.elementVisibility.apply(self.seleccionElementos)
+                    self.photoFrames.configurar(self.configuracionMarcos, mostrarRetratos: self.seleccionElementos.muestra(.retrato))
+                    self.photoFrames.update(self.fotosMarcos)
+                    self.candleLights.forEach { $0.isEnabled = self.seleccionElementos.muestra(.velas) }
                     self.crearAnclasParaBotones(en: entity)
                     self.reset()
-                    self.onLoad(.ready) // Coincide con tu enum ModelLoadState
+                    self.reportLoad(.ready)
                 } catch is CancellationError { }
                 catch {
-                    self.onLoad(.failed("No se pudo cargar la ofrenda: \(error.localizedDescription)"))
+                    self.reportLoad(.failed("No se pudo cargar la ofrenda: \(error.localizedDescription)"))
                 }
             }
         }
 
         func dispose() {
+            pendingLoadNotification?.cancel()
+            pendingLoadNotification = nil
             onLoad = { _ in }
             publishViewport = nil
             onFocusCompleted = { _ in }
             onSeleccionarMarco = { _ in }
             photoFrames.onError = { _ in }
             photoFrames.dispose()
+            elementVisibility.dispose()
+            candleLights.removeAll()
             fotosMarcos.removeAll()
             cancelFocus()
             pendingPublication?.cancel()
@@ -264,13 +370,27 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             } else {
                 view.scene.addAnchor(sceneAnchor)
                 updateCamera()
+                notifyLoadState()
             }
         }
 
         func setConfiguracion(_ configuracion: ConfiguracionMarcos) {
             guard configuracionMarcos != configuracion else { return }
             configuracionMarcos = configuracion
-            photoFrames.configurar(configuracion)
+            photoFrames.configurar(configuracion, mostrarRetratos: seleccionElementos.muestra(.retrato))
+            if let modeloCargado {
+                crearAnclasParaBotones(en: modeloCargado)
+                updateCamera()
+            }
+        }
+
+        func setSeleccion(_ seleccion: ConfiguracionElementosOfrenda) {
+            guard seleccionElementos != seleccion else { return }
+            seleccionElementos = seleccion
+            elementVisibility.apply(seleccion)
+            photoFrames.configurar(configuracionMarcos, mostrarRetratos: seleccion.muestra(.retrato))
+            photoFrames.update(fotosMarcos)
+            candleLights.forEach { $0.isEnabled = seleccion.muestra(.velas) }
             if let modeloCargado {
                 crearAnclasParaBotones(en: modeloCargado)
                 updateCamera()
@@ -293,10 +413,10 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             gruposAncla.removeAll()
             nodosAncla.removeAll()
 
-            for elemento in elementos {
+            for elemento in elementos where seleccionElementos.muestra(elemento: elemento.nombre) {
                 let nombres = elemento.nombre == "Retrato" ? configuracionMarcos.visibles.map(\.rawValue) : elemento.entidadesAncla
                 let centros = nombres.compactMap { nombre -> SIMD3<Float>? in
-                    guard let objeto = modelo.findEntity(named: nombre) else { return nil }
+                    guard let objeto = modelo.findEntity(named: nombre), objeto.isEnabledInHierarchy else { return nil }
                     return objeto.visualBounds(relativeTo: pivot).center
                 }
                 let respaldo = SIMD3<Float>(
@@ -366,6 +486,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
                 light.light.attenuationRadius = 0.65
                 light.position = flame.visualBounds(relativeTo: pivot).center + [0, 0.025, 0]
                 pivot.addChild(light)
+                candleLights.append(light)
             }
             #endif
         }
@@ -389,9 +510,12 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         }
 
         func resize() {
-            guard let view, view.bounds.size != previousSize else { return }
-            previousSize = view.bounds.size
-            updateCamera()
+            guard let view else { return }
+            if view.bounds.size != previousSize {
+                previousSize = view.bounds.size
+                updateCamera()
+            }
+            notifyLoadState()
         }
 
         func reset() {

@@ -70,8 +70,8 @@ final class OfrendaPhotoFrames {
         }
     }
 
-    func configurar(_ configuracion: ConfiguracionMarcos) {
-        visibles = Set(configuracion.visibles)
+    func configurar(_ configuracion: ConfiguracionMarcos, mostrarRetratos: Bool = true) {
+        visibles = mostrarRetratos ? Set(configuracion.visibles) : []
         for (marco, frame) in frames {
             frame.entity.transform = frame.transform
             frame.entity.isEnabled = visibles.contains(marco)
