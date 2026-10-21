@@ -24,13 +24,13 @@ struct PersonalizarElementosView: View {
     var body: some View {
         Group {
             if verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize {
-                ScrollView { VStack(spacing: 16) { cabecera; vistaPrevia; resumen; opciones; continuar } }.recortaIlustraciones()
+                ScrollView { VStack(spacing: 16) { cabecera; vistaPrevia; resumen; opciones; continuar } }
             } else {
                 VStack(spacing: 12) {
                     cabecera
                     vistaPrevia
                     resumen
-                    ScrollView { opciones }.recortaIlustraciones()
+                    ScrollView { opciones }
                     continuar
                 }
             }
@@ -109,7 +109,7 @@ struct PersonalizarElementosView: View {
                     set: { store.establecer(grupo, visible: $0) }
                 )) {
                     HStack(alignment: .top, spacing: 12) {
-                        IlustracionOfrendaView(tipo: grupo.icono, tamano: 40)
+                        Text(grupo.icono).font(.title2).frame(width: 32).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(grupo.nombre).font(.headline)
                             Text(grupo.detalle).font(.caption).foregroundStyle(AppTheme.secondaryText)

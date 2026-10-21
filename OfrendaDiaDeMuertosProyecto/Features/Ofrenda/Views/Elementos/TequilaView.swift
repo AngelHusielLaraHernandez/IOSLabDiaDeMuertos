@@ -12,7 +12,7 @@ struct TequilaView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: .tequila, subtituloCabecera: "En el altar",
+            icono: "🥃", subtituloCabecera: "En el altar",
             nombreElemento: "Vaso de tequila",
             tituloHistoria: "Un brindis en la memoria",
             parrafoHistoria1: "En algunas ofrendas de adultos se sirve la bebida que disfrutaba la persona recordada. Puede ser tequila, mezcal u otra elección familiar.",

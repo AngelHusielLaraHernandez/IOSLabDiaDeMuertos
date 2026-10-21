@@ -12,7 +12,7 @@ struct CanaDeAzucarView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: .cana, subtituloCabecera: "En el altar",
+            icono: "🎋", subtituloCabecera: "En el altar",
             nombreElemento: "Caña de azúcar",
             tituloHistoria: "Dulzura para compartir",
             parrafoHistoria1: "En muchas casas, los trozos de caña acompañan las frutas del altar y los alimentos que se preparan para compartir.",

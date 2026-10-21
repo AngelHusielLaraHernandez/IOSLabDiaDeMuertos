@@ -17,8 +17,6 @@ struct OfrendaView: View {
     @Binding var elementosVisitados: Set<String>
     @Binding var elementoSeleccionado: ElementoOfrenda?
     let onPersonalizar: () -> Void
-    @State private var mostrarRecorrido = false
-    @State private var pendienteDelRecorrido: ElementoOfrenda?
     @State private var resetToken = 0
     @State private var loadState: ModelLoadState = .loading
     @State private var viewport = OfrendaViewportState()
@@ -61,20 +59,6 @@ struct OfrendaView: View {
             }
         }
         .task { await fotosMarcos.cargar() }
-        .ilustracionesOfrenda(activa: isActive && !mostrarRecorrido && editorMarcos == nil && elementoSeleccionado == nil)
-        .sheet(isPresented: $mostrarRecorrido, onDismiss: {
-            guard let elemento = pendienteDelRecorrido else { return }
-            pendienteDelRecorrido = nil
-            guard isActive, seleccionElementos.muestra(elemento: elemento.nombre) else { return }
-            focusRequest = OfrendaFocusRequest(elementID: elemento.id)
-        }) {
-            RecorridoOfrendaView(elementos: elementosVisibles, visitados: elementosVisitados,
-                                ocultos: elementos.count - elementosVisibles.count, puedeAbrir: loadState == .ready) { elemento in
-                pendienteDelRecorrido = elemento
-                mostrarRecorrido = false
-            }
-            .ofrendaSheet(detents: [.medium, .large])
-        }
         .sheet(item: $editorMarcos) { editor in
             MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco)
                 .ofrendaSheet(detents: [.large])
@@ -113,31 +97,19 @@ struct OfrendaView: View {
                 Text(elementosVisibles.isEmpty ? "Elige qué objetos añadir desde Mi ofrenda." : "Acerca la ofrenda para descubrir más objetos y sus historias.")
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.secondaryText)
-                Button { mostrarRecorrido = true } label: {
-                    VStack(alignment: .leading, spacing: 7) {
-                        HStack(spacing: 10) {
-                            Text(elementosVisibles.isEmpty ? "Sin elementos visibles · Personaliza tu altar" : "\(visitasVisibles) de \(elementosVisibles.count) elementos · Explora a tu ritmo")
-                                .font(.caption.weight(.medium))
-                            Spacer(minLength: 4)
-                            Image(systemName: "chevron.down").font(.caption.bold()).foregroundStyle(AppTheme.accent)
-                        }
-                        ProgressView(value: Double(visitasVisibles), total: Double(max(1, elementosVisibles.count)))
-                            .tint(AppTheme.accent)
-                    }
-                    .foregroundStyle(AppTheme.secondaryText)
-                    .frame(minHeight: 44).contentShape(.rect)
+                ProgressView(value: Double(visitasVisibles), total: Double(max(1, elementosVisibles.count))) {
+                    Text(elementosVisibles.isEmpty ? "Sin elementos visibles · Personaliza tu altar" : "\(visitasVisibles) de \(elementosVisibles.count) elementos · Explora a tu ritmo")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(AppTheme.secondaryText)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Ver lista del recorrido")
-                .accessibilityValue("\(visitasVisibles) de \(elementosVisibles.count) elementos visitados")
-                .accessibilityHint("Muestra los elementos pendientes y completados")
-                .disabled(focusRequest != nil)
+                .padding(.top, 6)
+                .tint(AppTheme.accent)
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
 
             GeometryReader { geometry in
-                let paused = elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || !isActive
+                let paused = elementoSeleccionado != nil || editorMarcos != nil || !isActive
                 let projections = paused ? [:] : viewport.positions
                 let photoControls = MarcoPhotoControls.placements(paused ? [:] : viewport.frameProjections, in: geometry.size)
                 let pins = OfrendaPinLayout.place(
@@ -182,7 +154,7 @@ struct OfrendaView: View {
                             },
                             configuracionMarcos: fotosMarcos.configuracion,
                             seleccionElementos: seleccionElementos,
-                            isObscured: elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || !isActive,
+                            isObscured: elementoSeleccionado != nil || editorMarcos != nil || !isActive,
                             renderSession: renderSession
                         )
                     }

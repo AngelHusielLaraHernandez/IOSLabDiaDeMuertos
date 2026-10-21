@@ -14,7 +14,7 @@ struct VistaFuentesElemento: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ElementSheetHeader(icono: .fuentes, subtitulo: "Fuentes para la línea de tiempo", titulo: nombreElemento)
+            ElementSheetHeader(icono: "📚", subtitulo: "Fuentes para la línea de tiempo", titulo: nombreElemento)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("Se diferencian antecedentes, contextos históricos, registros documentados y usos actuales. Las prácticas cambian entre regiones y familias.")
@@ -55,6 +55,5 @@ struct VistaFuentesElemento: View {
             .ofrendaPrimaryAction()
         }
         .padding(24)
-        .ilustracionesOfrenda()
     }
 }

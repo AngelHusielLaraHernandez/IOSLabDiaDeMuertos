@@ -8,14 +8,17 @@
 import SwiftUI
 
 struct ElementSheetHeader: View {
-    let icono: IlustracionOfrenda
+    let icono: String
     let subtitulo: String
     let titulo: String
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         HStack(spacing: 12) {
-            IlustracionOfrendaView(tipo: icono, tamano: 44)
+            Text(icono)
+                .font(.title)
+                .frame(width: 44, height: 44)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 Text(subtitulo.uppercased())
                     .font(.caption2.weight(.bold))
