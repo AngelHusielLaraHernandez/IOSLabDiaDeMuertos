@@ -12,7 +12,7 @@ struct RetratoView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🖼️",
+            icono: .retrato,
             subtituloCabecera: "En el altar",
             nombreElemento: "Retrato",
             tituloHistoria: "Una sonrisa conocida",

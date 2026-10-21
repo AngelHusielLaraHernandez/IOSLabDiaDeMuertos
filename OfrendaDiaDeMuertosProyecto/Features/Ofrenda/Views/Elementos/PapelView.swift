@@ -13,7 +13,7 @@ struct PapelView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🎊",
+            icono: .papel,
             subtituloCabecera: "En el altar",
             nombreElemento: "Papel picado",
             tituloHistoria: "El aire entre los colores",

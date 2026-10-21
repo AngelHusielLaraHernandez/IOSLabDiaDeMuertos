@@ -19,7 +19,7 @@ struct CalaveritasView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ElementSheetHeader(icono: "💀", subtitulo: "Versos y dulces", titulo: "Calaveritas")
+            ElementSheetHeader(icono: .calaveritas, subtitulo: "Versos y dulces", titulo: "Calaveritas")
             SheetSectionPicker(secciones: ["Literaria", "De azúcar", "Historia", "Indagar"], seleccion: $seccionActiva)
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {

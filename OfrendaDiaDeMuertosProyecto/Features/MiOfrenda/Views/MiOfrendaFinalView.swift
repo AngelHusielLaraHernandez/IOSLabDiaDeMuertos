@@ -140,14 +140,14 @@ struct MiOfrendaFinalView: View {
                         MiniTarjeta(
                             titulo: "COMIDA",
                             valor: personalizacion.comidaFavorita.isEmpty ? "—" : personalizacion.comidaFavorita,
-                            icono: "🍲",
+                            icono: .comida,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
 
                         MiniTarjeta(
                             titulo: "MÚSICA",
                             valor: personalizacion.musicaFavorita.isEmpty ? "—" : personalizacion.musicaFavorita,
-                            icono: "🎵",
+                            icono: .musica,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
 
@@ -155,15 +155,15 @@ struct MiOfrendaFinalView: View {
                             titulo: "AFICIÓN",
                             valor: personalizacion.aficiones.sorted().first ?? "—",
                             icono: personalizacion.aficiones.sorted().first.map { n in
-                                Aficion.todas.first { $0.nombre == n }?.icono ?? "✨"
-                            } ?? "✨",
+                                Aficion.todas.first { $0.nombre == n }?.icono ?? .recuerdo
+                            } ?? .recuerdo,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
 
                         MiniTarjeta(
                             titulo: "RECUERDO",
                             valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido,
-                            icono: "📸",
+                            icono: .recuerdo,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
                     }
@@ -226,7 +226,7 @@ struct MiOfrendaFinalView: View {
                     .background(RoundedRectangle(cornerRadius: 20).fill(colorTarjeta.opacity(0.75)))
                     .padding(.horizontal, 24).padding(.bottom, 32)
                 }
-            }
+            }.recortaIlustraciones()
 
             // Capa de animación para la caída de pétalos
             if mostrarPetalos {
@@ -255,7 +255,7 @@ struct MiOfrendaFinalView: View {
 private struct MiniTarjeta: View {
     let titulo: String
     let valor: String
-    let icono: String
+    let icono: IlustracionOfrenda
     let colorTarjeta: Color
     let colorAcento: Color
 
@@ -264,7 +264,7 @@ private struct MiniTarjeta: View {
             Text(titulo)
                 .font(.system(size: 10, weight: .bold)).tracking(0.5)
                 .foregroundColor(colorAcento)
-            Text(icono).font(.title2)
+            IlustracionOfrendaView(tipo: icono, tamano: 40)
             Text(valor)
                 .font(.subheadline.weight(.semibold)).foregroundColor(.white)
                 .lineLimit(3).minimumScaleFactor(0.7)
@@ -295,8 +295,9 @@ private struct PetalosCempasuchilView: View {
         GeometryReader { proxy in
             ZStack {
                 ForEach(petalos) { p in
-                    Text("🌼")
-                        .font(.system(size: p.tamano))
+                    Capsule()
+                        .fill(LinearGradient(colors: [AppTheme.accent, Color.orange], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: p.tamano * 0.55, height: p.tamano)
                         .rotationEffect(.degrees(animar && !reduceMotion ? p.rotacion + 360 : p.rotacion))
                         .position(
                             x: proxy.size.width * p.x,

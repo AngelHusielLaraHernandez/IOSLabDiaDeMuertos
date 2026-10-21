@@ -12,7 +12,7 @@ struct VelasView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🕯️",
+            icono: .velas,
             subtituloCabecera: "En el altar",
             nombreElemento: "Velas",
             tituloHistoria: "Una luz para volver",

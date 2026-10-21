@@ -12,7 +12,7 @@ struct ComidaView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🍲",
+            icono: .comida,
             subtituloCabecera: "En el altar",
             nombreElemento: "Comida",
             tituloHistoria: "Su platillo favorito",

@@ -24,6 +24,7 @@ struct TarjetaDetalleElementoView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .ilustracionesOfrenda()
     }
 
     @ViewBuilder private var contenido: some View {

@@ -19,13 +19,7 @@ struct MarcosFotosView: View {
     @State private var procesando = false
     @State private var errorSeleccion: String?
 
-    private var marcosOrdenados: [MarcoOfrenda] {
-        let visibles = store.configuracion.visibles
-        guard let marcoInicial, visibles.contains(marcoInicial) else { return visibles }
-        return [marcoInicial]
-    }
-
-    private var ocupado: Bool { procesando || store.cargando || store.guardandoConfiguracion }
+    private var ocupado: Bool { procesando || store.cargando || store.guardandoConfiguracion || pickerAbierto || ajuste != nil }
     private var errorPresentado: Binding<Bool> {
         Binding(
             get: { errorSeleccion != nil || store.mensajeError != nil },
@@ -35,19 +29,14 @@ struct MarcosFotosView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ElementSheetHeader(icono: "🖼️", subtitulo: "RECUERDOS EN TU ALTAR", titulo: marcoInicial.flatMap { store.configuracion.visibles.contains($0) ? $0.titulo : nil } ?? "Tus fotografías.")
+            ElementSheetHeader(icono: .retrato, subtitulo: "RECUERDOS EN TU ALTAR", titulo: "Tus fotografías.")
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 .padding(.bottom, 8)
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    ConfiguracionMarcosView(store: store, marcoSugerido: marcoInicial)
-                    Text("Elige la foto de cada marco visible. Podrás moverla y acercarla antes de colocarla.")
-                        .font(.subheadline)
-                        .foregroundStyle(AppTheme.secondaryText)
-                    ForEach(marcosOrdenados) { marco in
-                        tarjeta(marco)
-                    }
+                    ConfiguracionMarcosView(store: store, marcoElegido: $marcoElegido, bloqueado: ocupado)
+                    tarjeta(marcoElegido)
                     Label("Las fotos se guardan en este teléfono.", systemImage: "iphone")
                         .font(.footnote)
                         .foregroundStyle(AppTheme.secondaryText)
@@ -57,14 +46,16 @@ struct MarcosFotosView: View {
                     }
                 }
                 .padding(24)
-            }
+            }.recortaIlustraciones()
         }
         .background(AppTheme.background.ignoresSafeArea())
+        .ilustracionesOfrenda(activa: ajuste == nil && !pickerAbierto)
         .interactiveDismissDisabled(procesando)
         .photosPicker(isPresented: $pickerAbierto, selection: $pickerItem, matching: .images)
         .task {
-            if let marcoInicial { marcoElegido = marcoInicial }
             await store.cargar()
+            if let marcoInicial, store.configuracion.visibles.contains(marcoInicial) { marcoElegido = marcoInicial }
+            else { marcoElegido = store.configuracion.principal }
         }
         .task(id: pickerItem) {
             guard let item = pickerItem else { return }
@@ -104,7 +95,7 @@ struct MarcosFotosView: View {
                 onCancelar: { ajuste = nil },
                 aspectMarco: seleccion.marco.relacionAspecto,
                 titulo: "Ajusta su foto.",
-                subtitulo: seleccion.marco.titulo.uppercased()
+                subtitulo: "\(seleccion.marco.numero) · \(seleccion.marco.titulo)"
             )
             .ofrendaSheet(detents: [.large])
         }
@@ -120,38 +111,10 @@ struct MarcosFotosView: View {
 
     private func tarjeta(_ marco: MarcoOfrenda) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(AppTheme.background)
-                    if let foto = store.fotos[marco] {
-                        Image(uiImage: foto.imagen)
-                            .resizable()
-                            .scaledToFill()
-                    } else {
-                        Image(systemName: "photo.badge.plus")
-                            .font(.title)
-                            .foregroundStyle(AppTheme.accent)
-                    }
-                }
-                .frame(width: 88, height: 88 / marco.relacionAspecto)
-                .clipShape(.rect(cornerRadius: 10))
-                .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(marco.titulo)
-                        .font(.headline)
-                        .accessibilityAddTraits(.isHeader)
-                    Text(store.fotos[marco]?.esPredeterminada == true ? "Foto de ejemplo. Puedes reemplazarla." : "Tu foto ya está en la ofrenda y en su vista previa.")
-                        .font(.subheadline)
-                        .foregroundStyle(AppTheme.secondaryText)
-                    if marcoInicial == marco {
-                        Text("Marco seleccionado")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(AppTheme.accent)
-                    }
-                }
-                Spacer(minLength: 0)
-            }
+            Text("\(marco.numero) · \(marco.titulo)")
+                .font(.headline).accessibilityAddTraits(.isHeader)
+            Text(store.fotos[marco]?.esPredeterminada == true ? "Esta es la foto de ejemplo. Puedes cambiarla o ajustar su encuadre." : "Esta fotografía se muestra en la ofrenda y en su vista previa.")
+                .font(.subheadline).foregroundStyle(AppTheme.secondaryText)
             Button {
                 marcoElegido = marco
                 pickerAbierto = true

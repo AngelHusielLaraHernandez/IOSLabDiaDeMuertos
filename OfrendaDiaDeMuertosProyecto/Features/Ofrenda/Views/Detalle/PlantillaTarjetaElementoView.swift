@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlantillaTarjetaElementoView: View {
-    let icono: String
+    let icono: IlustracionOfrenda
     let subtituloCabecera: String
     let nombreElemento: String
 

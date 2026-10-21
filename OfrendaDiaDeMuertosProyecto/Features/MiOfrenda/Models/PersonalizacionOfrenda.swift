@@ -24,16 +24,16 @@ struct PersonalizacionOfrenda {
 struct Aficion: Identifiable, Hashable {
     let nombre: String
     let descripcion: String
-    let icono: String
+    let icono: IlustracionOfrenda
     var id: String { nombre }
 
     // Se retira "Música" para evitar duplicar el apartado
     static let todas: [Aficion] = [
-        Aficion(nombre: "Jardinería", descripcion: "Flores y recuerdos de su jardín", icono: "🌻"),
-        Aficion(nombre: "Cocina",     descripcion: "Recetas que preparaba en casa", icono: "🍳"),
-        Aficion(nombre: "Lectura",    descripcion: "Libros que atesoraba", icono: "📖"),
-        Aficion(nombre: "Costura",    descripcion: "Telas y puntadas que hacía", icono: "🧵"),
-        Aficion(nombre: "Café",       descripcion: "Las tardes con una taza", icono: "☕")
+        Aficion(nombre: "Jardinería", descripcion: "Flores y recuerdos de su jardín", icono: .flores),
+        Aficion(nombre: "Cocina",     descripcion: "Recetas que preparaba en casa", icono: .comida),
+        Aficion(nombre: "Lectura",    descripcion: "Libros que atesoraba", icono: .libro),
+        Aficion(nombre: "Costura",    descripcion: "Telas y puntadas que hacía", icono: .costura),
+        Aficion(nombre: "Café",       descripcion: "Las tardes con una taza", icono: .cafe)
     ]
 }
 

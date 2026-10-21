@@ -36,28 +36,11 @@ struct PersonalizarRetratoView: View {
                 }
                 .ofrendaSecondaryAction()
                 .padding(.horizontal, 24)
-                ConfiguracionMarcosView(store: fotosMarcos, marcoSugerido: personalizacion.marcoRetrato)
+                ConfiguracionMarcosView(store: fotosMarcos, marcoElegido: $personalizacion.marcoRetrato)
                     .padding(.horizontal, 24)
-                Picker("Marco para su retrato", selection: $personalizacion.marcoRetrato) {
-                    ForEach(fotosMarcos.configuracion.visibles) { marco in
-                        Text(marco.titulo).tag(marco)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 24)
                 Button(action: onElegirFoto) {
                     VStack(spacing: 14) {
-                        if let foto = fotoActual {
-                            Image(uiImage: foto)
-                                .resizable().scaledToFill()
-                                .frame(width: 144, height: 144 / personalizacion.marcoRetrato.relacionAspecto)
-                                .clipShape(.rect(cornerRadius: 16))
-                        } else {
-                            Image(systemName: "photo.badge.plus")
-                                .font(.system(size: 44, weight: .light))
-                                .foregroundStyle(AppTheme.accent)
-                        }
-                        Text("Elegir foto para este marco")
+                        Text("Elegir foto del \(personalizacion.marcoRetrato.numero.lowercased())")
                             .font(.headline)
                         if !tieneFoto {
                             Text("Su retrato será el centro de tu ofrenda.")
@@ -70,6 +53,7 @@ struct PersonalizarRetratoView: View {
                     .padding(24)
                     .contentShape(.rect(cornerRadius: 24))
                 }
+                .accessibilityLabel("Elegir foto del \(personalizacion.marcoRetrato.numero.lowercased())")
                 .buttonStyle(.plain)
                 .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 24))
                 .padding(.horizontal, 24)

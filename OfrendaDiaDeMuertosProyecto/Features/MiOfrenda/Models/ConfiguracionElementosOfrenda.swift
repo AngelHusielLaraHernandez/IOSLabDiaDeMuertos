@@ -28,21 +28,21 @@ enum GrupoElementoOfrenda: String, CaseIterable, Identifiable, Sendable {
         case .tequila: "Tequila"
         }
     }
-    var icono: String {
+    var icono: IlustracionOfrenda {
         switch self {
-        case .flores: "🌼"
-        case .retrato: "🖼️"
-        case .velas: "🕯️"
-        case .papel: "🎊"
-        case .agua: "💧"
-        case .calaveritas: "💀"
-        case .pan: "🍞"
-        case .comida: "🍲"
-        case .cana: "🎋"
-        case .frutas: "🍊"
-        case .incienso: "🌫️"
-        case .cigarro: "🚬"
-        case .tequila: "🥃"
+        case .flores: .flores
+        case .retrato: .retrato
+        case .velas: .velas
+        case .papel: .papel
+        case .agua: .agua
+        case .calaveritas: .calaveritas
+        case .pan: .pan
+        case .comida: .comida
+        case .cana: .cana
+        case .frutas: .frutas
+        case .incienso: .incienso
+        case .cigarro: .cigarro
+        case .tequila: .tequila
         }
     }
     var detalle: String {

@@ -40,9 +40,9 @@ struct SugerenciasOfrendaView: View {
                         .font(.caption.weight(.bold)).tracking(0.6)
                         .foregroundColor(colorAcento)
                     HStack(spacing: 24) {
-                        VStack { Text("🌼").font(.largeTitle); Text("Flores").font(.caption).foregroundColor(.white) }
-                        VStack { Text("🕯️").font(.largeTitle); Text("Una vela").font(.caption).foregroundColor(.white) }
-                        VStack { Text("💧").font(.largeTitle); Text("Agua").font(.caption).foregroundColor(.white) }
+                        VStack { IlustracionOfrendaView(tipo: .flores, tamano: 48); Text("Flores").font(.caption).foregroundColor(.white) }
+                        VStack { IlustracionOfrendaView(tipo: .velas, tamano: 48); Text("Una vela").font(.caption).foregroundColor(.white) }
+                        VStack { IlustracionOfrendaView(tipo: .agua, tamano: 48); Text("Agua").font(.caption).foregroundColor(.white) }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -53,7 +53,7 @@ struct SugerenciasOfrendaView: View {
                 // Comida favorita
                 if !personalizacion.comidaFavorita.isEmpty {
                     TarjetaSugerencia(
-                        icono: "🍲",
+                        icono: .comida,
                         titulo: "\(personalizacion.comidaFavorita), como le gustaban",
                         razon: "Porque elegiste su comida favorita.",
                         colorTarjeta: colorTarjeta, colorTextoSec: colorTextoSec
@@ -64,7 +64,7 @@ struct SugerenciasOfrendaView: View {
                 // Música o canción favorita
                 if !personalizacion.musicaFavorita.isEmpty {
                     TarjetaSugerencia(
-                        icono: "🎵",
+                        icono: .musica,
                         titulo: "\(personalizacion.musicaFavorita)",
                         razon: "Para hacer sonar la música que alegraba sus días.",
                         colorTarjeta: colorTarjeta, colorTextoSec: colorTextoSec
@@ -85,7 +85,7 @@ struct SugerenciasOfrendaView: View {
 
                 if !personalizacion.recuerdoCompartido.isEmpty {
                     TarjetaSugerencia(
-                        icono: "📸",
+                        icono: .recuerdo,
                         titulo: "Un recuerdo: \(personalizacion.recuerdoCompartido.lowercased())",
                         razon: "Lo compartiste como momento especial.",
                         colorTarjeta: colorTarjeta, colorTextoSec: colorTextoSec
@@ -106,13 +106,13 @@ struct SugerenciasOfrendaView: View {
                 .ofrendaPrimaryAction()
                 .padding(.horizontal, 24).padding(.bottom, 24)
             }
-        }
+        }.recortaIlustraciones()
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
     }
 
-    private func iconoPara(_ aficion: String) -> String {
-        Aficion.todas.first { $0.nombre == aficion }?.icono ?? "✨"
+    private func iconoPara(_ aficion: String) -> IlustracionOfrenda {
+        Aficion.todas.first { $0.nombre == aficion }?.icono ?? .recuerdo
     }
     private func tituloPara(_ aficion: String) -> String {
         switch aficion {
@@ -139,7 +139,7 @@ struct SugerenciasOfrendaView: View {
 }
 
 private struct TarjetaSugerencia: View {
-    let icono: String
+    let icono: IlustracionOfrenda
     let titulo: String
     let razon: String
     let colorTarjeta: Color
@@ -147,7 +147,7 @@ private struct TarjetaSugerencia: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            Text(icono).font(.largeTitle).frame(width: 40)
+            IlustracionOfrendaView(tipo: icono, tamano: 44)
             VStack(alignment: .leading, spacing: 4) {
                 Text(titulo).font(.headline).foregroundColor(.white)
                 Text(razon).font(.subheadline).foregroundColor(colorTextoSec)

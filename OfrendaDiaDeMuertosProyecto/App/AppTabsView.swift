@@ -39,6 +39,7 @@ struct AppTabsView: View {
             }
             Tab("Historias", systemImage: "text.book.closed", value: .historias) {
                 HistoriasView(
+                    isActive: tab == .historias && scenePhase == .active,
                     elementos: elementos,
                     elementoSeleccionado: $elementoSeleccionado
                 )
@@ -50,6 +51,9 @@ struct AppTabsView: View {
             }
         }
         .task { await elementosStore.cargar() }
+        .onChange(of: elementoSeleccionado?.id) { _, id in
+            if let id { elementosVisitados.insert(id) }
+        }
         .onChange(of: elementosStore.configuracion) { _, seleccion in
             if let elementoSeleccionado, !seleccion.muestra(elemento: elementoSeleccionado.nombre) {
                 self.elementoSeleccionado = nil

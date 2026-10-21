@@ -15,6 +15,8 @@ enum MarcoOfrenda: String, CaseIterable, Identifiable, Codable, Sendable {
     nonisolated var id: String { rawValue }
     nonisolated var titulo: String { self == .izquierdo ? "Marco izquierdo" : "Marco derecho" }
 
+    var numero: String { self == .izquierdo ? "Marco 1" : "Marco 2" }
+
     /// Proporción del hueco interior, medida sobre la malla exportada, no del borde.
     nonisolated var relacionAspecto: CGFloat { 15.0 / 17.0 }
 }

@@ -12,7 +12,7 @@ struct PanDeMuertoView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🍞",
+            icono: .pan,
             subtituloCabecera: "En el altar",
             nombreElemento: "Pan de muerto",
             tituloHistoria: "El aroma de la cocina",

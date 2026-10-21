@@ -96,6 +96,7 @@ struct OfrendaPersonalizadaFlowView: View {
             }
         }
         .background(AppTheme.background.ignoresSafeArea())
+        .ilustracionesOfrenda(activa: isActive && !pickerAbierto && paso != .ajusteFoto)
         // Los pasos con RealityKit se sustituyen sin un fundido que retenga dos visores.
         .animation(paso == .elementos || paso == .resultado ? nil : .easeInOut(duration: 0.2), value: paso)
         .task {

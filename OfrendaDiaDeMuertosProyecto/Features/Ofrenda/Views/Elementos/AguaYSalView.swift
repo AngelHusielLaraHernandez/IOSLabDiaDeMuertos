@@ -12,7 +12,7 @@ struct AguaYSalView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🥛",
+            icono: .agua,
             subtituloCabecera: "En el altar",
             nombreElemento: "Agua y sal",
             tituloHistoria: "Después del viaje",

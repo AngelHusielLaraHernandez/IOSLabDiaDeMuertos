@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct HistoriasView: View {
+    var isActive = true
     let elementos: [ElementoOfrenda]
     @Binding var elementoSeleccionado: ElementoOfrenda?
 
@@ -41,7 +42,7 @@ struct HistoriasView: View {
                 .padding(.top, 16)
 
                 // Lista de elementos/historias
-                VStack(spacing: 12) {
+                LazyVStack(spacing: 12) {
                     ForEach(elementos) { elemento in
                         Button {
                             elementoSeleccionado = elemento
@@ -53,8 +54,7 @@ struct HistoriasView: View {
                                         .fill(Color.white.opacity(0.12))
                                         .frame(width: 48, height: 48)
 
-                                    Text(elemento.icono)
-                                        .font(.title2)
+                                    IlustracionOfrendaView(tipo: elemento.icono, tamano: 48)
                                 }
 
                                 // Título y subtítulo
@@ -88,9 +88,10 @@ struct HistoriasView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
             }
-        }
+        }.recortaIlustraciones()
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .ilustracionesOfrenda(activa: isActive)
     }
 
     /// Retorna el subtítulo temático según el elemento

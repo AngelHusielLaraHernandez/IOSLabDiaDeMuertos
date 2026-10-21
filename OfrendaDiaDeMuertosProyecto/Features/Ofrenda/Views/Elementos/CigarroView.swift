@@ -12,7 +12,7 @@ struct CigarroView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🚬", subtituloCabecera: "En el altar",
+            icono: .cigarro, subtituloCabecera: "En el altar",
             nombreElemento: "Cigarro",
             tituloHistoria: "Un recuerdo personal",
             parrafoHistoria1: "Algunas familias colocan un cigarro porque formaba parte de las costumbres de la persona adulta a quien dedican el altar.",

@@ -12,7 +12,7 @@ struct InciensoView: View {
 
     var body: some View {
         PlantillaTarjetaElementoView(
-            icono: "🌫️", subtituloCabecera: "En el altar",
+            icono: .incienso, subtituloCabecera: "En el altar",
             nombreElemento: "Incienso y copal",
             tituloHistoria: "Un aroma de bienvenida",
             parrafoHistoria1: "El humo perfuma el espacio de la ofrenda y acompaña los momentos de recuerdo y oración.",
