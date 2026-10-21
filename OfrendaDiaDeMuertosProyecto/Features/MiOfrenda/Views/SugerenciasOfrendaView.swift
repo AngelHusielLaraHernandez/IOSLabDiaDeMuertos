@@ -61,6 +61,17 @@ struct SugerenciasOfrendaView: View {
                     .padding(.horizontal, 24)
                 }
 
+                // Música o canción favorita
+                if !personalizacion.musicaFavorita.isEmpty {
+                    TarjetaSugerencia(
+                        icono: "🎵",
+                        titulo: "\(personalizacion.musicaFavorita)",
+                        razon: "Para hacer sonar la música que alegraba sus días.",
+                        colorTarjeta: colorTarjeta, colorTextoSec: colorTextoSec
+                    )
+                    .padding(.horizontal, 24)
+                }
+
                 // Aficiones
                 ForEach(Array(personalizacion.aficiones).sorted(), id: \.self) { aficion in
                     TarjetaSugerencia(

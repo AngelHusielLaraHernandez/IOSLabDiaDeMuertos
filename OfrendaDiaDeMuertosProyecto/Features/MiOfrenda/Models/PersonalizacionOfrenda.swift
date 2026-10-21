@@ -1,5 +1,5 @@
 //
-//  PersonalizacionModels.swift
+//  PersonalizacionOfrenda.swift
 //  OfrendaDiaDeMuertosProyecto
 //
 //  Created by Victor Flores on 16/10/26.
@@ -12,6 +12,7 @@ struct PersonalizacionOfrenda {
     var marcoRetrato: MarcoOfrenda = .izquierdo
     var nombre: String = ""
     var comidaFavorita: String = ""
+    var musicaFavorita: String = "" // Único campo para música/canción favorita (Opcional)
     var aficiones: Set<String> = []
     var recuerdoCompartido: String = ""
 
@@ -26,9 +27,9 @@ struct Aficion: Identifiable, Hashable {
     let icono: String
     var id: String { nombre }
 
+    // Se retira "Música" para evitar duplicar el apartado
     static let todas: [Aficion] = [
         Aficion(nombre: "Jardinería", descripcion: "Flores y recuerdos de su jardín", icono: "🌻"),
-        Aficion(nombre: "Música",     descripcion: "Canciones que le gustaba escuchar", icono: "🎵"),
         Aficion(nombre: "Cocina",     descripcion: "Recetas que preparaba en casa", icono: "🍳"),
         Aficion(nombre: "Lectura",    descripcion: "Libros que atesoraba", icono: "📖"),
         Aficion(nombre: "Costura",    descripcion: "Telas y puntadas que hacía", icono: "🧵"),

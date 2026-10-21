@@ -18,7 +18,7 @@ Este documento describe lo que tenemos implementado actualmente. Cuando una part
 5. [Archivos de arranque: App](#archivos-app).
 6. [Archivos compartidos: Core](#archivos-core).
 7. [Entrada al Mictlán: Inicio](#archivos-inicio).
-8. [Pestaña Historias reservada](#archivos-historias).
+8. [Pestaña Historias](#archivos-historias).
 9. [Datos y estados de la ofrenda](#archivos-datos-ofrenda).
 10. [Visores, cámara y carga de modelos 3D](#archivos-3d).
 11. [Pantalla del altar y botones flotantes](#archivos-interfaz-ofrenda).
@@ -46,7 +46,7 @@ Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG 
 | Pestaña | Qué encontramos ahí |
 | --- | --- |
 | **Ofrenda** | El altar 3D, sus controles de movimiento y los botones flotantes que abren las historias. |
-| **Historias** | Pestaña temporalmente vacía, con el fondo de la aplicación. |
+| **Historias** | Lista de los 13 elementos para abrir su significado, historia e inspección 3D, aunque estén ocultos en el altar personal. |
 | **Mi ofrenda** | El flujo opcional para elegir una fotografía, escribir un nombre, agregar gustos y ver una propuesta personalizada. |
 
 Tenemos **13 elementos registrados**: Flores, Retrato, Velas, Papel, Agua y sal, Calaveritas, Pan, Comida, Caña de azúcar, Frutas, Incienso, Cigarro y Tequila. Los ocho primeros pertenecen a la vista general. Los cinco últimos aparecen al acercar la cámara a un factor de 0.9 o menor, si su objeto está en el encuadre y cabe su etiqueta.
@@ -272,7 +272,7 @@ flowchart TD
     P -->|"recurso preparado"| B
     B --> F["AppTabsView"]
     F --> G["OfrendaView"]
-    F --> H["Historias: fondo vacío"]
+    F --> H["Historias: lista de elementos"]
     F --> I["OfrendaPersonalizadaFlowView"]
     G --> J["OfrendaInteractive3DView"]
     G -->|"termina el enfoque"| K["Elemento seleccionado"]
@@ -291,14 +291,14 @@ La vista previa del Canvas abre `AppTabsView` directamente. Esto nos permite tra
 | Mostrar la entrada | `ContentView.swift` | La entrada HTML y el cambio hacia las pestañas. |
 | Pestaña actual | `AppTabsView.swift` | Navegación y activación del visor correspondiente. |
 | Elemento seleccionado | `AppTabsView.swift` | Ofrenda, Historias y presentación de la hoja. |
-| Elementos visitados | `AppTabsView.swift` | Progreso del altar y marcas en Historias. |
+| Elementos visitados | `AppTabsView.swift` | Progreso y marcas de las categorías recorridas en el altar. |
 | Fotos de los marcos principales | `FotosMarcosStore`, conservado por `AppTabsView.swift` | Editor, visor interactivo y archivos locales. |
 | Perfil personalizado | `AppTabsView.swift` | Todo el flujo de Mi ofrenda. |
 | Paso de personalización | `OfrendaPersonalizadaFlowView.swift` | Retrato, ajuste, gustos, sugerencias, elementos y resultado. |
 | Coordenadas de las etiquetas | `OfrendaView.swift` mediante `OfrendaViewportState` | Distribución de botones en 2D. |
 | Giro, zoom y cámara | Coordinadores de los visores 3D | RealityKit y reconocimiento de gestos. |
 | Sección de una tarjeta | La plantilla o `CalaveritasView.swift` | Selector de Historia, Significado, Indagar, etc. |
-| Calaverita generada visible | `MiOfrendaFinalView.swift` | Resultado de la plantilla de versos. |
+| Calaverita generada visible | `MiOfrendaFinalView.swift` | Resultado de la combinación aleatoria de estrofas locales. |
 
 Para entender el código, `@State` indica que esa vista conserva un valor. `@Binding` permite trabajar sobre un valor que pertenece a otra vista. Por ejemplo, Mi ofrenda recibe el perfil como binding y lo modifica sin crear otro perfil independiente.
 
@@ -368,7 +368,7 @@ La vista conserva `tab`, `elementoSeleccionado`, `elementosVisitados`, `personal
 
 `elementosStore` carga la selección persistida y se comparte con ambos recorridos. Si se oculta un elemento que estuviera seleccionado, cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El nombre del perfil también se pasa al encabezado principal mientras vive ese perfil.
 
-El conjunto de visitados alimenta el progreso del altar; solo se cuentan las categorías que siguen visibles. Historias conserva su TabItem pero su contenido se retiró temporalmente; no utiliza bindings ni presenta una lista.
+El conjunto de visitados alimenta el progreso del altar; solo se cuentan las categorías que siguen visibles. Historias recibe el catálogo completo y el binding del elemento seleccionado. Al tocar una tarjeta abre la misma hoja del altar; su botón inferior dice Volver a historias y conserva esa pestaña al cerrar.
 
 El `TabView` es nativo. La hoja de detalle también se presenta aquí mediante `.sheet(item:)`. Las tarjetas del altar usan alturas de 82 % y pantalla completa para dejar espacio al ejemplar 3D sobre el contenido. Conservan el texto Volver a la ofrenda.
 
@@ -479,13 +479,15 @@ Si cambiamos el nombre del handler o el mensaje, tenemos que hacerlo en Swift y 
 Si el HTML no aparece en el bundle, el archivo no dibuja una pantalla de error propia. Una entrada vacía requiere revisar primero ese recurso y su inclusión.
 
 <a id="archivos-historias"></a>
-## 8. Pestaña Historias reservada
+## 8. Pestaña Historias
 
 ### 11. HistoriasView.swift
 
 **Archivo:** [Features/Historias/Views/HistoriasView.swift](OfrendaDiaDeMuertosProyecto/Features/Historias/Views/HistoriasView.swift)
 
-Este archivo conserva únicamente su encabezado. Se retiraron el tipo `HistoriasView`, sus bindings y su lista de tarjetas. La pestaña sigue declarada en `AppTabsView` y dibuja solamente `AppTheme.background`, sin mensajes ni contenido de reemplazo.
+`HistoriasView` recibe `elementos` y el binding `elementoSeleccionado`. Dibuja el encabezado Historias de la ofrenda y una tarjeta por objeto, con icono, nombre, subtítulo temático y flecha. `subtituloPara` agrupa los objetos por guiar el camino, recibir con cariño, compartir la mesa y mantener la memoria.
+
+Al tocar una tarjeta actualiza la selección compartida de `AppTabsView`; la hoja muestra las mismas secciones culturales y el objeto 3D que usamos desde el altar. La lista conserva los 13 elementos aunque algunos estén ocultos en la personalización. `OfrendaAssets.cloneElement` activa únicamente la copia de inspección; no cambia la visibilidad del objeto original ni guarda otra selección.
 
 Las historias, los significados y las cronologías de los objetos siguen disponibles al tocar sus referencias sobre el altar. Por eso no vaciamos las vistas compartidas de detalle ni los datos de Ofrenda: también los necesita la pantalla principal.
 
@@ -1055,13 +1057,13 @@ Cuando cambiamos la fotografía desde el resultado, el ajuste regresa al resulta
 
 **Archivo:** [Features/MiOfrenda/Models/PersonalizacionOfrenda.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Models/PersonalizacionOfrenda.swift)
 
-Define `PersonalizacionOfrenda` con fotografía, nombre, comida favorita, conjunto de aficiones y recuerdo compartido. Ahora también contiene `marcoRetrato: MarcoOfrenda`, cuyo valor inicial es el marco izquierdo.
+Define `PersonalizacionOfrenda` con fotografía, nombre, comida favorita, música o canción favorita opcional, conjunto de aficiones y recuerdo compartido. Ahora también contiene `marcoRetrato: MarcoOfrenda`, cuyo valor inicial es el marco izquierdo.
 
 `marcoRetrato` indica qué foto corresponde a la persona de este perfil. La imagen de `foto` se sincroniza con ese marco en el almacén compartido. Seleccionar el marco derecho no reemplaza la imagen del izquierdo.
 
 `estaCompleta` comprueba foto y nombre. Las vistas también tienen sus validaciones; el flujo puede conservar una foto de ejemplo y pide un nombre para continuar, además de comida en el paso de gustos.
 
-El archivo también contiene `Aficion`, con las seis opciones Jardinería, Música, Cocina, Lectura, Costura y Café, y `PasoPersonalizacion` con retrato, ajusteFoto, gustos, sugerencias, elementos y resultado.
+El archivo también contiene `Aficion`, con las cinco opciones Jardinería, Cocina, Lectura, Costura y Café. Música tiene su propio campo para escribir una canción o género y ya no se duplica como afición. También define `PasoPersonalizacion` con retrato, ajusteFoto, gustos, sugerencias, elementos y resultado.
 
 El perfil completo todavía vive en memoria. La persistencia de fotos de los marcos es una responsabilidad de `FotosMarcosStore`.
 
@@ -1071,7 +1073,7 @@ El perfil completo todavía vive en memoria. La persistencia de fotos de los mar
 
 Contiene `CalaveritaGenerator.generar(para:)`. Recibe una `PersonalizacionOfrenda` y devuelve un `String` con tres estrofas.
 
-La generación actual utiliza una plantilla local. Sustituye el nombre, la comida, una afición y un recuerdo dentro de versos que ya están escritos en el archivo. Funciona sin conexión y no consulta una inteligencia artificial ni un servicio externo.
+La generación combina una estrofa inicial, una intermedia y una final elegidas al azar. Hay 6 comienzos, 8 partes intermedias y 6 cierres: 288 combinaciones posibles antes de sustituir los datos del perfil. Funciona sin conexión y no consulta una inteligencia artificial ni un servicio externo. Cada resultado conserva tres estrofas de cuatro versos; el cierre incluye el recuerdo compartido.
 
 Cuando un dato está vacío, utiliza los siguientes valores:
 
@@ -1079,12 +1081,13 @@ Cuando un dato está vacío, utiliza los siguientes valores:
 | --- | --- |
 | Nombre | el alma querida |
 | Comida | pan de muerto |
-| Afición | recordar |
-| Recuerdo | las tardes en silencio |
+| Música | un dulce cantar |
+| Afición | sus pasatiempos |
+| Recuerdo | las tardes en paz |
 
-La comida, la afición y el recuerdo se convierten a minúsculas al incorporarse a los versos. El nombre conserva el texto escrito. Si seleccionamos varias aficiones, toma la primera después de ordenarlas alfabéticamente; no necesariamente la primera que tocamos.
+La comida, la música, la afición y el recuerdo se convierten a minúsculas al incorporarse a los versos. El nombre conserva el texto escrito. Si seleccionamos varias aficiones, toma la primera después de ordenarlas alfabéticamente; no necesariamente la primera que tocamos.
 
-Con los mismos datos obtenemos el mismo poema. Por eso, el botón Regenerar vuelve a completar la plantilla, pero no produce variaciones aleatorias. Para cambiar el estilo de los versos debemos editar esta función. Para introducir una generación diferente en el futuro habría que diseñar esa función y sus estados; actualmente no está implementada.
+El botón Generar otra calaverita vuelve a sortear las estrofas. Puede repetirse una combinación porque el sorteo no lleva un historial de poemas. Los datos se marcan con `**` para resaltarlos en el resultado. `escaparMarkdown` conserva como texto literal los caracteres especiales escritos por el usuario, de modo que un gusto no se convierta en un enlace o formato introducido accidentalmente.
 
 Este servicio no modifica la foto ni el modelo 3D. Su responsabilidad termina al devolver el texto.
 
@@ -1145,15 +1148,15 @@ El resultado regresa mediante `onConfirmar`. El editor no guarda archivos por s�
 
 **Archivo:** [Features/MiOfrenda/Views/GustosRecuerdosView.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Views/GustosRecuerdosView.swift)
 
-Recoge la comida favorita, las aficiones y el recuerdo compartido. Trabaja directamente sobre el perfil mediante `@Binding`.
+Recoge la comida favorita, la música o canción favorita opcional, las aficiones y el recuerdo compartido. Trabaja directamente sobre el perfil mediante `@Binding`.
 
-El campo de comida alimenta `comidaFavorita`. Debajo se recorren las opciones de `Aficion.todas`. Al tocar una, se inserta o elimina su nombre del `Set` de aficiones. Por eso podemos seleccionar varias y no se repite una misma opción.
+El campo de comida alimenta `comidaFavorita`. El siguiente campo alimenta `musicaFavorita` y puede quedarse vacío. Después se recorren las opciones de `Aficion.todas`. Al tocar una, se inserta o elimina su nombre del `Set` de aficiones. Por eso podemos seleccionar varias y no se repite una misma opción.
 
 Cada selección cambia el tinte del control y sustituye el símbolo de agregar por una marca. También se comunica el estado seleccionado mediante accesibilidad.
 
 El campo de recuerdo permite escribir el texto que después se muestra en la propuesta y se incorpora a la calaverita.
 
-`puedeContinuar` comprueba únicamente que la comida favorita no esté vacía después de quitar espacios. Las aficiones y el recuerdo pueden quedarse vacíos. El botón de continuar llama al flujo para abrir sugerencias; los controles de navegación permiten regresar al retrato o salir hacia la ofrenda.
+`puedeContinuar` comprueba únicamente que la comida favorita no esté vacía después de quitar espacios. La música, las aficiones y el recuerdo pueden quedarse vacíos. El botón de continuar llama al flujo para abrir sugerencias; los controles de navegación permiten regresar al retrato o salir hacia la ofrenda.
 
 Esta vista no crea alimentos ni objetos tridimensionales. Recoge datos que las siguientes pantallas interpretan.
 
@@ -1163,7 +1166,7 @@ Esta vista no crea alimentos ni objetos tridimensionales. Recoge datos que las s
 
 Convierte el perfil en una propuesta escrita. Recibe `personalizacion` como valor, porque en esta pantalla leemos los datos y mostramos recomendaciones.
 
-Primero presenta una base con flores, una vela y agua. Después agrega una tarjeta para la comida favorita, tarjetas por cada afición seleccionada y, si existe, una tarjeta para el recuerdo compartido.
+Primero presenta una base con flores, una vela y agua. Después agrega una tarjeta para la comida favorita, otra para la música si fue escrita, tarjetas por cada afición seleccionada y, si existe, una tarjeta para el recuerdo compartido.
 
 Las aficiones se ordenan alfabéticamente antes de mostrarse. Para construir cada sugerencia tenemos tres funciones privadas:
 
@@ -1171,7 +1174,7 @@ Las aficiones se ordenan alfabéticamente antes de mostrarse. Para construir cad
 - `tituloPara` devuelve el objeto o detalle propuesto según el gusto.
 - `razonPara` explica por qué ese detalle puede representar a la persona.
 
-Los casos particulares de esas funciones cubren las seis aficiones del catálogo. Si agregamos una nueva, debemos revisar también sus sugerencias para que no dependa únicamente de los valores de respaldo.
+Los casos particulares de esas funciones cubren las aficiones del catálogo y conservan el caso de Música como respaldo. Si agregamos una nueva, debemos revisar también sus sugerencias para que no dependa únicamente de los valores de respaldo.
 
 En este mismo archivo está `TarjetaSugerencia`, una vista privada que acomoda icono, título y explicación sobre una superficie morada. La reutilizamos para mantener el mismo diseño entre recomendaciones.
 
@@ -1187,9 +1190,13 @@ La tarjeta principal contiene el altar real a todo el ancho, con 300 puntos de a
 
 La presentación utiliza `EditorMarcos` mediante `.sheet(item:)`, para que la hoja reciba desde el primer intento el marco elegido. El botón Cambiar foto del resumen utiliza el marco asociado al perfil.
 
-Solo monta el visor si la pestaña y la escena están activas. Al salir conserva su espacio y libera la escena mediante el representable compartido.
+Solo monta el visor si la pestaña y la escena están activas. Al salir conserva su espacio y suspende el altar; la sesión mantiene el mismo visor y modelo preparados para el siguiente montaje.
 
-Las tres `MiniTarjeta` muestran comida, primera afición ordenada y recuerdo. El poema continúa usando `CalaveritaGenerator` al pulsar el botón, sin generación remota.
+Las cuatro `MiniTarjeta` se acomodan en una cuadrícula de dos columnas y muestran comida, música, primera afición ordenada y recuerdo. El poema usa `CalaveritaGenerator` al pulsar el botón, sin generación remota.
+
+`formatearCalaverita` interpreta únicamente formato Markdown en línea y conserva los saltos de verso. Resalta los datos en naranja, negritas y cursivas, y les asigna el enlace interno `cempasuchil://flores`. El manejador `openURL` intercepta ese enlace para mostrar pétalos, sin abrir otra aplicación.
+
+`PetalosCempasuchilView` usa 20 elementos con identidades conservadas en `@State`, tamaños, posiciones, retrasos y duraciones variados. Su tarea de cierre se cancela al retirar la vista y espera a que termine el pétalo más lento. Con Reducir movimiento utiliza una aparición breve sin caída ni giro. La capa permite que los toques sigan llegando a los controles inferiores.
 
 El resultado y el altar principal muestran las mismas fotos. Ya no existe un montaje independiente del retrato con `foto.usdz`. Los fallos de textura se comunican a la interfaz; el resumen conserva `ModelLoadState` y muestra «Cargando modelo 3D…» mientras prepara el altar. También retira su ancla al abrir el editor de marcos.
 
@@ -1433,7 +1440,7 @@ Esta tabla sirve para ubicar primero la responsabilidad y después revisar las c
 3. Creamos su vista de contenido, preferentemente con la plantilla común.
 4. Agregamos el caso correspondiente en `TarjetaDetalleElementoView`.
 5. Escribimos los hitos y sus referencias.
-6. Revisamos el progreso del altar. Historias está vacía temporalmente.
+6. Revisamos el progreso del altar y abrimos el mismo elemento desde Historias, incluyendo uno que esté oculto en la ofrenda personal.
 7. Revisamos el máximo de etiquetas en `OfrendaPinLayout`: la vista general actualmente permite ocho, por lo que agregar un noveno elemento no implica mostrar nueve botones.
 8. Probamos el enfoque, el cierre de la tarjeta y la recuperación del encuadre.
 
@@ -1582,7 +1589,7 @@ Si usamos el proyecto local, cambiamos el argumento de `-project` por `ProyectoL
 | Acercamiento | La cantidad de botones disminuye y no invade el control de restablecer. |
 | Giro | No permite dar la vuelta completa para ver la parte trasera. |
 | Gestos | Funcionan rotación, desplazamiento, pellizco y doble toque en un dispositivo táctil. |
-| Historias | La pestaña permanece vacía; los detalles se consultan desde la ofrenda. |
+| Historias | Los 13 elementos abren su hoja y modelo; un objeto oculto se puede inspeccionar sin reactivarlo en la ofrenda. |
 | Tarjetas | Se pueden leer todas sus secciones con texto normal y texto de accesibilidad. |
 | Indagar | La línea de tiempo abre las fuentes y permite regresar al elemento. |
 | Calaveritas | Se distinguen el recorrido literario y el de azúcar. |
@@ -1647,7 +1654,7 @@ Esta sección nos ayuda a diferenciar lo que funciona de lo que todavía tendrí
 - El perfil personalizado y el progreso no se guardan entre arranques.
 - `Item.swift` no representa una persistencia terminada de Mi ofrenda.
 - Las sugerencias son texto local basado en reglas y no reorganizan automáticamente los objetos 3D.
-- La calaverita personalizada se completa con una plantilla fija.
+- La calaverita personalizada combina estrofas locales al azar; puede repetirse una combinación y no utiliza generación remota.
 - La página HTML es local; no existe una descarga de contenido cultural ni un backend conectado.
 - Las referencias nuevas incluyen URL; parte del contenido anterior solo conserva referencias escritas. Conviene revisar la bibliografía completa antes de una entrega académica.
 - La ofrenda general conserva un título con Elena. El nombre personalizado pertenece al recorrido de Mi ofrenda y no reemplaza automáticamente ese título.
@@ -1961,7 +1968,7 @@ Guarda yaw, pitch, zoom y tiempo de animación del ejemplar. Calcula la orientac
 
 **Archivo:** [Features/Ofrenda/ThreeD/Elemento3DView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/ThreeD/Elemento3DView.swift)
 
-Reúne la cabecera SwiftUI y los controles de giro. `VisorObjeto3D` pide prestada la `ARView` de la sesión y la monta dentro de su `OfrendaRenderHost`; no construye otra `ARView`. El coordinador monta un ancla con cámara de 34°, luces y pivote del objeto, copia las entidades seleccionadas, prepara sus materiales y encuadra una esfera que contiene la pieza. Para Retrato usa `OfrendaPhotoFrames` con la foto vigente. Los reconocedores nativos de arrastre y pellizco permiten inspeccionarla.
+Reúne la cabecera SwiftUI y los controles de giro. `VisorObjeto3D` pide prestada la `ARView` de la sesión y la monta dentro de su `OfrendaRenderHost`; no construye otra `ARView`. El coordinador monta un ancla con cámara de 34°, luces y pivote del objeto, copia las entidades seleccionadas, activa las raíces de esas copias aunque estén ocultas en el altar, prepara sus materiales y encuadra una esfera que contiene la pieza. Para Retrato usa `OfrendaPhotoFrames` con la foto vigente. Los reconocedores nativos de arrastre y pellizco permiten inspeccionarla.
 
 La carga tiene una tarea cancelable y un UUID de generación. Si cerramos la tarjeta antes de terminar, la tarea no puede volver a montar una pieza vieja. El indicador «Cargando modelo 3D…» se conserva hasta preparar y publicar el objeto. Si falta el visor o la geometría, se informa el error en esa cabecera.
 

@@ -39,12 +39,25 @@ struct GustosRecuerdosView: View {
                 }
                 .padding(.horizontal, 24)
 
-                // Comida favorita
+                // Comida favorita (Obligatorio para continuar)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SU COMIDA FAVORITA")
                         .font(.caption.weight(.bold)).tracking(0.6)
                         .foregroundColor(colorAcento)
                     TextField("Por ejemplo, tamales", text: $personalizacion.comidaFavorita)
+                        .font(.title3).foregroundColor(.white)
+                        .textInputAutocapitalization(.sentences)
+                }
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
+                .padding(.horizontal, 24)
+
+                // Música o canción favorita (Opcional)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("SU MÚSICA O CANCIÓN FAVORITA (OPCIONAL)")
+                        .font(.caption.weight(.bold)).tracking(0.6)
+                        .foregroundColor(colorAcento)
+                    TextField("Por ejemplo, Cielito Lindo", text: $personalizacion.musicaFavorita)
                         .font(.title3).foregroundColor(.white)
                         .textInputAutocapitalization(.sentences)
                 }

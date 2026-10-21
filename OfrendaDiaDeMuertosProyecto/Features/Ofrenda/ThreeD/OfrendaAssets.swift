@@ -41,6 +41,8 @@ final class OfrendaAssets {
             guard let original = modelo.findEntity(named: nombre) else { throw AssetError.notFound(nombre) }
             let copia = original.clone(recursive: true)
             copia.transform = Transform(matrix: original.transformMatrix(relativeTo: modelo))
+            // Historias también muestra piezas ocultas en el altar; solo se activa la copia.
+            copia.isEnabled = true
             // El retrato se vuelve a conectar al store, sin duplicar su panel de fotografía.
             removePhotoOverlays(from: copia)
             detalle.addChild(copia)

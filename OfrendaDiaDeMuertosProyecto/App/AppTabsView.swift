@@ -38,7 +38,10 @@ struct AppTabsView: View {
                 )
             }
             Tab("Historias", systemImage: "text.book.closed", value: .historias) {
-                AppTheme.background.ignoresSafeArea()
+                HistoriasView(
+                    elementos: elementos,
+                    elementoSeleccionado: $elementoSeleccionado
+                )
             }
             Tab("Mi ofrenda", systemImage: "heart", value: .miOfrenda) {
                 OfrendaPersonalizadaFlowView(personalizacion: $personalizacion, renderSession: renderSession, fotosMarcos: fotosMarcos, elementosStore: elementosStore, isActive: tab == .miOfrenda && scenePhase == .active) {
@@ -65,7 +68,7 @@ struct AppTabsView: View {
                 elemento: elemento,
                 renderSession: renderSession,
                 fotosMarcos: fotosMarcos,
-                textoBotonCerrar: "Volver a la ofrenda"
+                textoBotonCerrar: tab == .historias ? "Volver a historias" : "Volver a la ofrenda"
             )
             .ofrendaSheet(detents: [.fraction(0.82), .large])
         }
