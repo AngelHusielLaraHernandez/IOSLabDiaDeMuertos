@@ -17,14 +17,17 @@ struct MiOfrendaFinalView: View {
     let onEditarElementos: () -> Void
     let onCambiarFoto: () -> Void
     let onVolver: () -> Void
-
+    
+    @EnvironmentObject var ofrendasManager: OfrendasManager
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var loadState: ModelLoadState = .loading
     @State private var calaverita: String?
     @State private var mostrarCalaverita = false
     @State private var editorMarcos: EditorMarcos?
     @State private var errorFoto: String?
     @State private var mostrarPetalos = false
-
+    
     private let colorFondo = AppTheme.background
     private let colorTarjeta = AppTheme.surface
     private let colorAcento = AppTheme.accent
@@ -53,9 +56,9 @@ struct MiOfrendaFinalView: View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-
+                    
                     FlowNavigationBar(onVolver: onVolver)
-
+                    
                     VStack(alignment: .leading, spacing: 6) {
                         Text("SUS GUSTOS, SU HISTORIA")
                             .font(.caption.weight(.bold)).tracking(0.8)
@@ -64,7 +67,7 @@ struct MiOfrendaFinalView: View {
                             .font(.system(size: 30, weight: .bold)).foregroundColor(.white)
                     }
                     .padding(.horizontal, 24)
-
+                    
                     // Propuesta con el modelo 3D y marco
                     VStack(alignment: .leading, spacing: 14) {
                         Group {
@@ -116,14 +119,14 @@ struct MiOfrendaFinalView: View {
                     .padding(16)
                     .ofrendaSurface()
                     .padding(.horizontal, 24)
-
+                    
                     Button(action: onEditarElementos) {
                         Label("Editar elementos de la ofrenda", systemImage: "cube.transparent")
                             .frame(maxWidth: .infinity).padding(.vertical, 8)
                     }
                     .ofrendaSecondaryAction()
                     .padding(.horizontal, 24)
-
+                    
                     // Lo que le gustaba
                     HStack {
                         Text("LO QUE LE GUSTABA")
@@ -134,7 +137,7 @@ struct MiOfrendaFinalView: View {
                             .ofrendaSecondaryAction()
                     }
                     .padding(.horizontal, 24)
-
+                    
                     // Cuadrícula con las mini tarjetas
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         MiniTarjeta(
@@ -143,14 +146,14 @@ struct MiOfrendaFinalView: View {
                             icono: .comida,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
-
+                        
                         MiniTarjeta(
                             titulo: "MÚSICA",
                             valor: personalizacion.musicaFavorita.isEmpty ? "—" : personalizacion.musicaFavorita,
                             icono: .musica,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
-
+                        
                         MiniTarjeta(
                             titulo: "AFICIÓN",
                             valor: personalizacion.aficiones.sorted().first ?? "—",
@@ -159,7 +162,7 @@ struct MiOfrendaFinalView: View {
                             } ?? .recuerdo,
                             colorTarjeta: colorTarjeta, colorAcento: colorAcento
                         )
-
+                        
                         MiniTarjeta(
                             titulo: "RECUERDO",
                             valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido,
@@ -168,13 +171,13 @@ struct MiOfrendaFinalView: View {
                         )
                     }
                     .padding(.horizontal, 24)
-
+                    
                     // Calaverita Literaria Interactiva
                     VStack(alignment: .leading, spacing: 14) {
                         Text("SUS RECUERDOS, HECHOS VERSOS")
                             .font(.caption.weight(.bold)).tracking(0.6)
                             .foregroundColor(colorAcento)
-
+                        
                         if mostrarCalaverita, let calaverita {
                             Text(calaverita.formatearCalaverita(colorAcento: colorAcento))
                                 .font(.body).italic()
@@ -194,7 +197,7 @@ struct MiOfrendaFinalView: View {
                             Text("Un poema humorístico y tradicional escrito especialmente con sus gustos y recuerdos.")
                                 .font(.subheadline).foregroundColor(colorTextoSec)
                         }
-
+                        
                         VStack(spacing: 10) {
                             Button {
                                 withAnimation(.easeInOut) {
@@ -207,7 +210,7 @@ struct MiOfrendaFinalView: View {
                                     .frame(maxWidth: .infinity).padding(.vertical, 8)
                             }
                             .ofrendaPrimaryAction()
-
+                            
                             if mostrarCalaverita {
                                 Button {
                                     onEditarGustos()
@@ -224,7 +227,27 @@ struct MiOfrendaFinalView: View {
                     }
                     .padding(20)
                     .background(RoundedRectangle(cornerRadius: 20).fill(colorTarjeta.opacity(0.75)))
-                    .padding(.horizontal, 24).padding(.bottom, 32)
+                    .padding(.horizontal, 24).padding(.bottom, 16)
+                    
+                    //Boton para cerrar y guardar la ofrenda en la lissta
+                    Button {
+                        // Si la ofrenda ya está guardada en la lista la actualiza, si no, la agrega como nueva
+                        if ofrendasManager.ofrendas.contains(where: { $0.id == personalizacion.id }) {
+                            ofrendasManager.actualizarOfrenda(personalizacion)
+                        } else {
+                            ofrendasManager.agregarOfrenda(personalizacion)
+                        }
+                        
+                        dismiss() // Cierra la pantalla y regresa a la lista
+                    } label: {
+                        Text("Terminar")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                    }
+                    .ofrendaPrimaryAction()
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 32)
                 }
             }.recortaIlustraciones()
 

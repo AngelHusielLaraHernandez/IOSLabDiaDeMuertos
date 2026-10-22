@@ -45,7 +45,7 @@ struct OfrendaPersonalizadaFlowView: View {
                             guardandoFoto = true
                             Task { @MainActor in
                                 if await fotosMarcos.guardar(ajustada, en: marcoDelAjuste) {
-                                    personalizacion.foto = ajustada
+                                    //personalizacion.foto = ajustada
                                     fotoEnAjuste = nil
                                     paso = regresoDeFoto
                                 }
@@ -137,7 +137,7 @@ struct OfrendaPersonalizadaFlowView: View {
         if !fotosMarcos.configuracion.visibles.contains(personalizacion.marcoRetrato) {
             personalizacion.marcoRetrato = fotosMarcos.configuracion.principal
         }
-        personalizacion.foto = fotosMarcos.fotos[personalizacion.marcoRetrato]?.imagen
+        //personalizacion.foto = fotosMarcos.fotos[personalizacion.marcoRetrato]?.imagen
     }
 
     private func abrirPicker() {

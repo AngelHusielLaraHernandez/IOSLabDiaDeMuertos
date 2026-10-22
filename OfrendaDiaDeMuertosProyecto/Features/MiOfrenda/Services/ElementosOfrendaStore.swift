@@ -11,7 +11,10 @@ import Observation
 /// Una selección compartida por el editor, Mi ofrenda y la pantalla principal.
 @MainActor @Observable
 final class ElementosOfrendaStore {
-    static let shared = ElementosOfrendaStore()
+    let idOfrenda: UUID
+    
+    //static let shared = ElementosOfrendaStore()
+    
     private(set) var configuracion = ConfiguracionElementosOfrenda()
     private(set) var cargando = false
     private(set) var guardando = false
@@ -21,8 +24,29 @@ final class ElementosOfrendaStore {
     private var escritura: Task<Void, Never>?
     private let archivos: ArchivoElementosOfrenda
 
-    init(archivo: URL? = nil) { archivos = ArchivoElementosOfrenda(archivo: archivo) }
+    //init(archivo: URL? = nil) { archivos = ArchivoElementosOfrenda(archivo: archivo) }
 
+    
+    // 2. Modificamos el init para recibir el UUID
+        init(idOfrenda: UUID) {
+            self.idOfrenda = idOfrenda
+            
+            // 3. Calculamos la ruta única para el JSON de los objetos 3D de ESTA ofrenda
+            let urlArchivo: URL = {
+                let applicationSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+                return applicationSupport.appendingPathComponent("OfrendaPersonalizada").appendingPathComponent("\(idOfrenda.uuidString)_elementos.json")
+            }()
+            
+       
+            self.archivos = ArchivoElementosOfrenda(archivo: urlArchivo)
+            
+            
+            Task {
+                await self.cargar()
+            }
+        }
+    
+    
     func cargar() async {
         guard !haCargado, !cargando else { return }
         cargando = true
