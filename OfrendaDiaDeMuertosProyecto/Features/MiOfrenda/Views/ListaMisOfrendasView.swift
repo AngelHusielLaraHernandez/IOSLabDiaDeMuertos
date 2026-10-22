@@ -15,8 +15,6 @@ struct ListaMisOfrendasView: View {
     
     @State private var mostrandoNuevaOfrenda = false
     @State private var nuevaOfrenda = PersonalizacionOfrenda()
-    
-    // Estado para controlar el modo de edición (eliminar ofrendas)
     @State private var editMode: EditMode = .inactive
 
     var body: some View {
@@ -28,9 +26,7 @@ struct ListaMisOfrendasView: View {
                             .font(.system(size: 50))
                             .foregroundStyle(AppTheme.accent)
                         Text("Sin ofrendas")
-                            .font(.title2)
-                            .bold()
-                            .foregroundColor(.white)
+                            .font(.title2).bold().foregroundColor(.white)
                         
                         Button("Crear mi primera ofrenda") {
                             nuevaOfrenda = PersonalizacionOfrenda()
@@ -49,38 +45,32 @@ struct ListaMisOfrendasView: View {
                                     renderSession: renderSession,
                                     fotosMarcos: FotosMarcosStore(idOfrenda: ofrenda.id),
                                     elementosStore: ElementosOfrendaStore(idOfrenda: ofrenda.id),
-                                    onSalir: onSalir
+                                    onSalir: onSalir // Aquí ya se pasa correctamente
                                 )
                             ) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(ofrenda.nombre.isEmpty ? "Ofrenda en progreso" : ofrenda.nombre)
-                                        .font(.headline)
-                                        .foregroundColor(.white)
+                                        .font(.headline).foregroundColor(.white)
                                     if !ofrenda.comidaFavorita.isEmpty {
                                         Text(ofrenda.comidaFavorita)
-                                            .font(.subheadline)
-                                            .foregroundColor(AppTheme.secondaryText)
+                                            .font(.subheadline).foregroundColor(AppTheme.secondaryText)
                                     }
                                 }
                                 .padding(.vertical, 4)
                             }
-                            // Fondo morado de cada tarjeta/fila
                             .listRowBackground(AppTheme.surface.opacity(0.8))
                         }
                         .onDelete(perform: ofrendasManager.eliminarOfrenda)
                     }
-                    // Ocultamos el fondo gris/negro por defecto de la List
                     .scrollContentBackground(.hidden)
                 }
             }
-            // Fondo morado de toda la pantalla
             .background(AppTheme.background.ignoresSafeArea())
             .navigationTitle("Mis Ofrendas")
             .environment(\.editMode, $editMode)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
-                        // Botón de "-" para activar/desactivar el modo de eliminación
                         if !ofrendasManager.ofrendas.isEmpty {
                             Button {
                                 withAnimation {
@@ -88,19 +78,16 @@ struct ListaMisOfrendasView: View {
                                 }
                             } label: {
                                 Image(systemName: editMode == .active ? "checkmark.circle.fill" : "minus.circle")
-                                    .font(.title3)
-                                    .foregroundStyle(AppTheme.accent)
+                                    .font(.title3).foregroundStyle(AppTheme.accent)
                             }
                         }
                         
-                        // Botón de "+" para agregar nueva ofrenda
                         Button(action: {
                             nuevaOfrenda = PersonalizacionOfrenda()
                             mostrandoNuevaOfrenda = true
                         }) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(AppTheme.accent)
+                                .font(.title3).foregroundStyle(AppTheme.accent)
                         }
                     }
                 }
@@ -112,8 +99,9 @@ struct ListaMisOfrendasView: View {
                     fotosMarcos: FotosMarcosStore(idOfrenda: nuevaOfrenda.id),
                     elementosStore: ElementosOfrendaStore(idOfrenda: nuevaOfrenda.id),
                     onSalir: {
-                        ofrendasManager.agregarOfrenda(nuevaOfrenda)
+                        // Al salir del sheet, lo cerramos y cambiamos a la pestaña principal
                         mostrandoNuevaOfrenda = false
+                        onSalir()
                     }
                 )
             }

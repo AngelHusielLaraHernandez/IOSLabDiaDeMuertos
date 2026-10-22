@@ -2,8 +2,6 @@
 //  OfrendaPersonalizadaFlowView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
-//  Created by Angel Lara on 16/10/26.
-//
 
 import SwiftUI
 import PhotosUI
@@ -15,9 +13,11 @@ struct OfrendaPersonalizadaFlowView: View {
     let elementosStore: ElementosOfrendaStore
     var isActive = true
     let onSalir: () -> Void
+    
+    // NUEVO: Para cerrar la vista (sheet o push) antes de cambiar de pestaña
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var paso: PasoPersonalizacion = .retrato
-    @State private var regresoDeElementos: PasoPersonalizacion = .retrato
-    @State private var siguienteDeElementos: PasoPersonalizacion = .retrato
     @State private var regresoDeFoto: PasoPersonalizacion = .retrato
     @State private var fotoEnAjuste: UIImage?
     @State private var pickerItem: PhotosPickerItem?
@@ -33,7 +33,6 @@ struct OfrendaPersonalizadaFlowView: View {
                     personalizacion: $personalizacion,
                     fotosMarcos: fotosMarcos,
                     onElegirFoto: abrirPicker,
-                    onEditarElementos: { editarElementos(regreso: .retrato, siguiente: .retrato) },
                     onContinuar: { paso = .gustos },
                     onVolver: onSalir
                 )
@@ -45,17 +44,13 @@ struct OfrendaPersonalizadaFlowView: View {
                             guardandoFoto = true
                             Task { @MainActor in
                                 if await fotosMarcos.guardar(ajustada, en: marcoDelAjuste) {
-                                    //personalizacion.foto = ajustada
                                     fotoEnAjuste = nil
                                     paso = regresoDeFoto
                                 }
                                 guardandoFoto = false
                             }
                         },
-                        onCancelar: {
-                            fotoEnAjuste = nil
-                            paso = regresoDeFoto
-                        },
+                        onCancelar: { fotoEnAjuste = nil; paso = regresoDeFoto },
                         aspectMarco: marcoDelAjuste.relacionAspecto,
                         subtitulo: marcoDelAjuste.titulo.uppercased()
                     )
@@ -64,6 +59,7 @@ struct OfrendaPersonalizadaFlowView: View {
             case .gustos:
                 GustosRecuerdosView(
                     personalizacion: $personalizacion,
+                    elementosStore: elementosStore,
                     onContinuar: { paso = .sugerencias },
                     onVolver: { paso = .retrato },
                     onSalir: onSalir
@@ -71,15 +67,17 @@ struct OfrendaPersonalizadaFlowView: View {
             case .sugerencias:
                 SugerenciasOfrendaView(
                     personalizacion: personalizacion,
-                    onContinuar: { editarElementos(regreso: .sugerencias, siguiente: .resultado) },
+                    onContinuar: { paso = .resultado },
                     onVolver: { paso = .gustos },
                     onSalir: onSalir
                 )
             case .elementos:
-                PersonalizarElementosView(
-                    renderSession: renderSession, store: elementosStore, fotosMarcos: fotosMarcos, isActive: isActive,
-                    onVolver: { paso = regresoDeElementos },
-                    onContinuar: { paso = siguienteDeElementos }
+                GustosRecuerdosView(
+                    personalizacion: $personalizacion,
+                    elementosStore: elementosStore,
+                    onContinuar: { paso = .resultado },
+                    onVolver: { paso = .gustos },
+                    onSalir: onSalir
                 )
             case .resultado:
                 MiOfrendaFinalView(
@@ -89,15 +87,17 @@ struct OfrendaPersonalizadaFlowView: View {
                     elementosStore: elementosStore,
                     isActive: isActive,
                     onEditarGustos: { paso = .gustos },
-                    onEditarElementos: { editarElementos(regreso: .resultado, siguiente: .resultado) },
                     onCambiarFoto: abrirPicker,
-                    onVolver: { paso = .sugerencias }
+                    onVolver: { paso = .sugerencias },
+                    onTerminar: { // <-- NUEVO CIERRE
+                        dismiss() // Cierra la vista flotante o hace pop en la navegación
+                        onSalir() // Llama a la acción que cambia a la pestaña principal
+                    }
                 )
             }
         }
         .background(AppTheme.background.ignoresSafeArea())
         .ilustracionesOfrenda(activa: isActive && !pickerAbierto && paso != .ajusteFoto)
-        // Los pasos con RealityKit se sustituyen sin un fundido que retenga dos visores.
         .animation(paso == .elementos || paso == .resultado ? nil : .easeInOut(duration: 0.2), value: paso)
         .task {
             await fotosMarcos.cargar()
@@ -127,17 +127,10 @@ struct OfrendaPersonalizadaFlowView: View {
         }
     }
 
-    private func editarElementos(regreso: PasoPersonalizacion, siguiente: PasoPersonalizacion) {
-        regresoDeElementos = regreso
-        siguienteDeElementos = siguiente
-        paso = .elementos
-    }
-
     private func sincronizarRetrato() {
         if !fotosMarcos.configuracion.visibles.contains(personalizacion.marcoRetrato) {
             personalizacion.marcoRetrato = fotosMarcos.configuracion.principal
         }
-        //personalizacion.foto = fotosMarcos.fotos[personalizacion.marcoRetrato]?.imagen
     }
 
     private func abrirPicker() {

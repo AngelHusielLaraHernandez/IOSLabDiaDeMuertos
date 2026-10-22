@@ -1,14 +1,8 @@
-//
-//  GustosRecuerdosView.swift
-//  OfrendaDiaDeMuertosProyecto
-//
-//  Created by Victor Flores on 16/10/26.
-//
-
 import SwiftUI
 
 struct GustosRecuerdosView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
+    let elementosStore: ElementosOfrendaStore          // NUEVO
     let onContinuar: () -> Void
     let onVolver: () -> Void
     let onSalir: () -> Void
@@ -25,7 +19,6 @@ struct GustosRecuerdosView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-
                 FlowNavigationBar(onVolver: onVolver, onSalir: onSalir)
 
                 VStack(alignment: .leading, spacing: 6) {
@@ -34,12 +27,12 @@ struct GustosRecuerdosView: View {
                         .foregroundColor(colorAcento)
                     Text("¿Qué le gustaba?")
                         .font(.system(size: 34, weight: .bold)).foregroundColor(.white)
-                    Text("Piensa en sus sabores, pasatiempos y momentos favoritos.")
+                    Text("Piensa en sus sabores, pasatiempos y momentos favoritos. Cada pasatiempo pondrá sus objetos en la ofrenda.")
                         .font(.subheadline).foregroundColor(colorTextoSec)
                 }
                 .padding(.horizontal, 24)
 
-                // Comida favorita (Obligatorio para continuar)
+                // Comida favorita
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SU COMIDA FAVORITA")
                         .font(.caption.weight(.bold)).tracking(0.6)
@@ -52,7 +45,7 @@ struct GustosRecuerdosView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
                 .padding(.horizontal, 24)
 
-                // Música o canción favorita (Opcional)
+                // Música
                 VStack(alignment: .leading, spacing: 6) {
                     Text("SU MÚSICA O CANCIÓN FAVORITA (OPCIONAL)")
                         .font(.caption.weight(.bold)).tracking(0.6)
@@ -74,16 +67,18 @@ struct GustosRecuerdosView: View {
 
                     ForEach(Aficion.todas) { aficion in
                         let activa = personalizacion.aficiones.contains(aficion.nombre)
-                        Button {
-                            if activa { personalizacion.aficiones.remove(aficion.nombre) }
-                            else      { personalizacion.aficiones.insert(aficion.nombre) }
-                        } label: {
+                        Button { toggleAficion(aficion) } label: {
                             HStack(alignment: .top, spacing: 12) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(aficion.nombre)
                                         .font(.headline).foregroundColor(.white)
                                     Text(aficion.descripcion)
                                         .font(.subheadline).foregroundColor(colorTextoSec)
+                                    if !aficion.grupos.isEmpty {
+                                        Text(aficion.grupos.map(\.nombre).joined(separator: " · "))
+                                            .font(.caption2)
+                                            .foregroundColor(colorAcento.opacity(0.8))
+                                    }
                                 }
                                 Spacer()
                                 Image(systemName: activa ? "checkmark" : "plus")
@@ -116,15 +111,15 @@ struct GustosRecuerdosView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
                 .padding(.horizontal, 24)
 
+                // Vista previa de elementos
+                vistaPreviaElementos
+
                 Spacer(minLength: 20)
 
-                Button {
-                    onContinuar()
-                } label: {
+                Button { onContinuar() } label: {
                     Text("Ver sugerencias")
                         .font(.headline).foregroundColor(.black)
                         .frame(maxWidth: .infinity).padding(.vertical, 8)
-
                 }
                 .ofrendaPrimaryAction()
                 .disabled(!puedeContinuar)
@@ -134,5 +129,75 @@ struct GustosRecuerdosView: View {
         .scrollDismissesKeyboard(.interactively)
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .task {
+            await elementosStore.cargar()
+            sincronizarAficionesDesdeElementos()
+        }
+        .onChange(of: personalizacion.aficiones) { _, _ in
+            sincronizarElementosDesdeAficiones()
+        }
+    }
+
+    // MARK: - Sincronización
+
+    private func toggleAficion(_ aficion: Aficion) {
+        if personalizacion.aficiones.contains(aficion.nombre) {
+            personalizacion.aficiones.remove(aficion.nombre)
+        } else {
+            personalizacion.aficiones.insert(aficion.nombre)
+        }
+    }
+
+    /// Recalcula visibilidad del modelo a partir de los pasatiempos marcados.
+    private func sincronizarElementosDesdeAficiones() {
+        elementosStore.establecer(.retrato, visible: true)
+        let cubiertos = Set(personalizacion.aficiones.flatMap { nombre in
+            Aficion.todas.first(where: { $0.nombre == nombre })?.grupos ?? []
+        })
+        for grupo in GrupoElementoOfrenda.allCases where grupo != .retrato {
+            elementosStore.establecer(grupo, visible: cubiertos.contains(grupo))
+        }
+    }
+
+    /// Al abrir la vista por primera vez, refleja qué elementos están visibles
+    /// (compatibilidad con ofrendas guardadas antes del cambio).
+    private func sincronizarAficionesDesdeElementos() {
+        for aficion in Aficion.todas where !aficion.grupos.isEmpty {
+            let todosVisibles = aficion.grupos.allSatisfy { elementosStore.configuracion.muestra($0) }
+            if todosVisibles {
+                personalizacion.aficiones.insert(aficion.nombre)
+            } else {
+                personalizacion.aficiones.remove(aficion.nombre)
+            }
+        }
+    }
+
+    // MARK: - Vista previa de elementos
+
+    private var vistaPreviaElementos: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("ELEMENTOS EN TU OFRENDA")
+                .font(.caption.weight(.bold)).tracking(0.6)
+                .foregroundColor(colorAcento)
+            if elementosStore.configuracion.visibles.isEmpty {
+                Text("Aún no hay objetos. Marca un pasatiempo para añadirlos.")
+                    .font(.caption).foregroundColor(colorTextoSec)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(elementosStore.configuracion.visibles) { grupo in
+                            Text(grupo.nombre)
+                                .font(.caption)
+                                .padding(.horizontal, 10).padding(.vertical, 4)
+                                .background(colorTarjeta, in: .capsule)
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.5)))
+        .padding(.horizontal, 24)
     }
 }

@@ -17,18 +17,8 @@ struct AppTabsView: View {
     @State private var elementoSeleccionado: ElementoOfrenda?
     @State private var elementosVisitados: Set<String> = []
     
-    // 1. Agregamos el OfrendasManager
+    // Manager global de las ofrendas
     @StateObject private var ofrendasManager = OfrendasManager()
-    
-   
-    
-    // 3. Como borramos el .shared, creamos almacenes por defecto para el altar principal (didáctico)
-    // Usamos un UUID de puros ceros para identificar a la ofrenda principal/educativa.
-    @State private var elementosStore = ElementosOfrendaStore(idOfrenda: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
-
-    @State private var fotosMarcos = FotosMarcosStore(idOfrenda: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
-    
-    
     
     @Environment(\.scenePhase) private var scenePhase
     private let elementos = OfrendaCatalog.elementos
@@ -36,18 +26,16 @@ struct AppTabsView: View {
     var body: some View {
         TabView(selection: $tab) {
             Tab("Ofrenda", systemImage: "house", value: .ofrenda) {
-                OfrendaView(
-                    elementos: elementos,
+                OfrendaPrincipalTabView(
                     renderSession: renderSession,
-                    fotosMarcos: fotosMarcos,
-                    seleccionElementos: elementosStore.configuracion,
-                    nombrePersona: "", // Como es la ofrenda general, dejamos el nombre vacío
                     isActive: tab == .ofrenda && scenePhase == .active,
                     elementosVisitados: $elementosVisitados,
                     elementoSeleccionado: $elementoSeleccionado,
-                    onPersonalizar: { tab = .miOfrenda }
+                    onPersonalizar: { tab = .miOfrenda },
+                    ofrendas: ofrendasManager.ofrendas
                 )
             }
+            
             Tab("Historias", systemImage: "text.book.closed", value: .historias) {
                 HistoriasView(
                     isActive: tab == .historias && scenePhase == .active,
@@ -55,39 +43,27 @@ struct AppTabsView: View {
                     elementoSeleccionado: $elementoSeleccionado
                 )
             }
+            
             Tab("Mi ofrenda", systemImage: "heart", value: .miOfrenda) {
-                // 4. AQUÍ AGREGAMOS TU NUEVA LISTA
                 ListaMisOfrendasView(
                     renderSession: renderSession,
                     onSalir: { tab = .ofrenda }
                 )
             }
         }
-        // 5. INYECTAMOS EL MANAGER A TODA LA APP
+        // 1. INYECTAMOS EL MANAGER A TODA LA APP
         .environmentObject(ofrendasManager)
-        
-        .task { await elementosStore.cargar() }
         .onChange(of: elementoSeleccionado?.id) { _, id in
             if let id { elementosVisitados.insert(id) }
         }
-        .onChange(of: elementosStore.configuracion) { _, seleccion in
-            if let elementoSeleccionado, !seleccion.muestra(elemento: elementoSeleccionado.nombre) {
-                self.elementoSeleccionado = nil
-            }
-        }
-        .alert("Selección de la ofrenda", isPresented: Binding(
-            get: { elementosStore.mensajeError != nil }, set: { if !$0 { elementosStore.mensajeError = nil } }
-        )) {
-            Button("Volver a guardar") { elementosStore.reintentarGuardado() }
-            Button("Entendido", role: .cancel) { elementosStore.mensajeError = nil }
-        } message: { Text(elementosStore.mensajeError ?? "") }
         .tint(AppTheme.accent)
         .preferredColorScheme(.dark)
         .sheet(item: $elementoSeleccionado) { elemento in
             TarjetaDetalleElementoView(
                 elemento: elemento,
                 renderSession: renderSession,
-                fotosMarcos: fotosMarcos,
+                // Usamos la ofrenda principal/didáctica para el detalle global
+                fotosMarcos: FotosMarcosStore(idOfrenda: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!),
                 textoBotonCerrar: tab == .historias ? "Volver a historias" : "Volver a la ofrenda"
             )
             .ofrendaSheet(detents: [.fraction(0.82), .large])
@@ -95,3 +71,125 @@ struct AppTabsView: View {
     }
 }
 
+// MARK: - Pestaña principal con selector de ofrendas
+
+private struct OfrendaPrincipalTabView: View {
+    static let didacticID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+
+    let renderSession: OfrendaRenderSession
+    let isActive: Bool
+    @Binding var elementosVisitados: Set<String>
+    @Binding var elementoSeleccionado: ElementoOfrenda?
+    let onPersonalizar: () -> Void
+    let ofrendas: [PersonalizacionOfrenda]
+
+    @State private var idSeleccionada: UUID? = nil // nil = ofrenda general/didáctica
+    @State private var elementosStore: ElementosOfrendaStore
+    @State private var fotosMarcos: FotosMarcosStore
+    @State private var nombrePersona: String = ""
+
+    private let elementos = OfrendaCatalog.elementos
+
+    init(renderSession: OfrendaRenderSession,
+         isActive: Bool,
+         elementosVisitados: Binding<Set<String>>,
+         elementoSeleccionado: Binding<ElementoOfrenda?>,
+         onPersonalizar: @escaping () -> Void,
+         ofrendas: [PersonalizacionOfrenda]) {
+        self.renderSession = renderSession
+        self.isActive = isActive
+        self._elementosVisitados = elementosVisitados
+        self._elementoSeleccionado = elementoSeleccionado
+        self.onPersonalizar = onPersonalizar
+        self.ofrendas = ofrendas
+        let didactic = Self.didacticID
+        _elementosStore = State(initialValue: ElementosOfrendaStore(idOfrenda: didactic))
+        _fotosMarcos = State(initialValue: FotosMarcosStore(idOfrenda: didactic))
+    }
+
+    var body: some View {
+        OfrendaView(
+            elementos: elementos,
+            renderSession: renderSession,
+            fotosMarcos: fotosMarcos,
+            seleccionElementos: elementosStore.configuracion,
+            nombrePersona: nombrePersona,
+            isActive: isActive,
+            elementosVisitados: $elementosVisitados,
+            elementoSeleccionado: $elementoSeleccionado,
+            onPersonalizar: onPersonalizar
+        )
+        // Selector flotante en la esquina superior derecha
+        .overlay(alignment: .topTrailing) {
+            selectorDeOfrenda
+                .padding(.top, 80)      // <-- Ajusta este valor si necesitas bajarlo o subirlo más
+                .padding(.trailing, 20)
+        }
+        .task {
+            await elementosStore.cargar()
+        }
+        .onChange(of: idSeleccionada) { _, _ in
+            aplicarSeleccion()
+        }
+        // Mantenemos la validación de elementos ocultos
+        .onChange(of: elementosStore.configuracion) { _, seleccion in
+            if let elementoSeleccionado, !seleccion.muestra(elemento: elementoSeleccionado.nombre) {
+                self.elementoSeleccionado = nil
+            }
+        }
+        // Mantenemos la alerta de errores del Store
+        .alert("Selección de la ofrenda", isPresented: Binding(
+            get: { elementosStore.mensajeError != nil },
+            set: { if !$0 { elementosStore.mensajeError = nil } }
+        )) {
+            Button("Volver a guardar") { elementosStore.reintentarGuardado() }
+            Button("Entendido", role: .cancel) { elementosStore.mensajeError = nil }
+        } message: {
+            Text(elementosStore.mensajeError ?? "")
+        }
+    }
+
+    private var selectorDeOfrenda: some View {
+        Menu {
+            Button {
+                idSeleccionada = nil
+            } label: {
+                Label("Ofrenda general", systemImage: idSeleccionada == nil ? "checkmark" : "square.stack")
+            }
+            
+            if !ofrendas.isEmpty {
+                Divider()
+                ForEach(ofrendas) { ofrenda in
+                    Button {
+                        idSeleccionada = ofrenda.id
+                    } label: {
+                        Label(ofrenda.nombre.isEmpty ? "Ofrenda sin nombre" : ofrenda.nombre,
+                              systemImage: idSeleccionada == ofrenda.id ? "checkmark" : "person.crop.circle")
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "rectangle.stack.badge.person.crop")
+                .font(.title3)
+                .padding(12)
+                .background(.ultraThinMaterial, in: .circle)
+                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
+        }
+        .accessibilityLabel("Cambiar de ofrenda")
+    }
+
+    private func aplicarSeleccion() {
+        let id = idSeleccionada ?? Self.didacticID
+        elementosStore = ElementosOfrendaStore(idOfrenda: id)
+        fotosMarcos = FotosMarcosStore(idOfrenda: id)
+        
+        if let id = idSeleccionada,
+           let ofrenda = ofrendas.first(where: { $0.id == id }) {
+            nombrePersona = ofrenda.nombre
+        } else {
+            nombrePersona = ""
+        }
+        
+        Task { await elementosStore.cargar() }
+    }
+}

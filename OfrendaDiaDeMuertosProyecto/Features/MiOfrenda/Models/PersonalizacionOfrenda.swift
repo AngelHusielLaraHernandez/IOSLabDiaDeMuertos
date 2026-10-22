@@ -37,13 +37,35 @@ struct Aficion: Identifiable, Hashable {
     let icono: IlustracionOfrenda
     var id: String { nombre }
 
-    // Se retira "Música" para evitar duplicar el apartado
+    /// Grupos del modelo 3D que activa este pasatiempo.
+    /// Retrato se maneja por separado (viene de la foto elegida).
+    var grupos: [GrupoElementoOfrenda] {
+        switch nombre {
+        case "Jardinería":            return [.flores]
+        case "Cocina":                return [.comida]
+        case "Café":                  return [.agua]
+        case "Fe y oración":          return [.velas, .incienso]
+        case "Fiestas y papel picado":return [.papel, .calaveritas]
+        case "Panadería":             return [.pan]
+        case "Campo y cosecha":       return [.frutas, .cana]
+        case "Brindis":               return [.tequila]
+        case "Puros":                 return [.cigarro]
+        default:                      return []
+        }
+    }
+
     static let todas: [Aficion] = [
-        Aficion(nombre: "Jardinería", descripcion: "Flores y recuerdos de su jardín", icono: .flores),
-        Aficion(nombre: "Cocina",     descripcion: "Recetas que preparaba en casa", icono: .comida),
-        Aficion(nombre: "Lectura",    descripcion: "Libros que atesoraba", icono: .libro),
-        Aficion(nombre: "Costura",    descripcion: "Telas y puntadas que hacía", icono: .costura),
-        Aficion(nombre: "Café",       descripcion: "Las tardes con una taza", icono: .cafe)
+        Aficion(nombre: "Jardinería",             descripcion: "Flores y recuerdos de su jardín",  icono: .flores),
+        Aficion(nombre: "Cocina",                 descripcion: "Recetas que preparaba en casa",     icono: .comida),
+        Aficion(nombre: "Lectura",                descripcion: "Libros que atesoraba",              icono: .libro),
+        Aficion(nombre: "Costura",                descripcion: "Telas y puntadas que hacía",        icono: .costura),
+        Aficion(nombre: "Café",                   descripcion: "Las tardes con una taza",           icono: .cafe),
+        Aficion(nombre: "Fe y oración",           descripcion: "Velas y copal para la casa",        icono: .velas),
+        Aficion(nombre: "Fiestas y papel picado", descripcion: "Calaveritas y colores",             icono: .papel),
+        Aficion(nombre: "Panadería",              descripcion: "El pan de muerto familiar",         icono: .pan),
+        Aficion(nombre: "Campo y cosecha",        descripcion: "Frutas frescas y caña",             icono: .frutas),
+        Aficion(nombre: "Brindis",                descripcion: "Un trago para recordarle",          icono: .tequila),
+        Aficion(nombre: "Puros",                  descripcion: "Los momentos de pausa",             icono: .cigarro)
     ]
 }
 

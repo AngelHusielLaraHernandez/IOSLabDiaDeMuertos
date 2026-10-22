@@ -14,12 +14,12 @@ struct MiOfrendaFinalView: View {
     let elementosStore: ElementosOfrendaStore
     var isActive = true
     let onEditarGustos: () -> Void
-    let onEditarElementos: () -> Void
     let onCambiarFoto: () -> Void
     let onVolver: () -> Void
+    let onTerminar: () -> Void // <-- NUEVO PARÁMETRO
     
     @EnvironmentObject var ofrendasManager: OfrendasManager
-    @Environment(\.dismiss) private var dismiss
+    // @Environment(\.dismiss) private var dismiss // <-- YA NO ES NECESARIO
     
     @State private var loadState: ModelLoadState = .loading
     @State private var calaverita: String?
@@ -28,37 +28,30 @@ struct MiOfrendaFinalView: View {
     @State private var errorFoto: String?
     @State private var mostrarPetalos = false
     
+    // ... (las variables de colores y el init se mantienen igual) ...
     private let colorFondo = AppTheme.background
     private let colorTarjeta = AppTheme.surface
     private let colorAcento = AppTheme.accent
     private let colorTextoSec = AppTheme.secondaryText
 
     private var descripcionSubtitulo: String {
+        // ... igual ...
         var partes: [String] = []
-        if !personalizacion.comidaFavorita.isEmpty {
-            partes.append(personalizacion.comidaFavorita.lowercased())
-        }
-        if !personalizacion.musicaFavorita.isEmpty {
-            partes.append(personalizacion.musicaFavorita.lowercased())
-        }
-
+        if !personalizacion.comidaFavorita.isEmpty { partes.append(personalizacion.comidaFavorita.lowercased()) }
+        if !personalizacion.musicaFavorita.isEmpty { partes.append(personalizacion.musicaFavorita.lowercased()) }
         let inicio = elementosStore.configuracion.muestra(.flores) ? "Sus flores" : "Sus recuerdos"
-        if partes.isEmpty {
-            return "Sus gustos y recuerdos."
-        } else if partes.count == 1 {
-            return "\(inicio) y \(partes[0])."
-        } else {
-            return "\(inicio), \(partes[0]) y \(partes[1])."
-        }
+        if partes.isEmpty { return "Sus gustos y recuerdos." }
+        else if partes.count == 1 { return "\(inicio) y \(partes[0])." }
+        else { return "\(inicio), \(partes[0]) y \(partes[1])." }
     }
 
     var body: some View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    
                     FlowNavigationBar(onVolver: onVolver)
                     
+                    // ... (resto del código de la vista de la ofrenda y gustos) ...
                     VStack(alignment: .leading, spacing: 6) {
                         Text("SUS GUSTOS, SU HISTORIA")
                             .font(.caption.weight(.bold)).tracking(0.8)
@@ -68,7 +61,6 @@ struct MiOfrendaFinalView: View {
                     }
                     .padding(.horizontal, 24)
                     
-                    // Propuesta con el modelo 3D y marco
                     VStack(alignment: .leading, spacing: 14) {
                         Group {
                             if isActive {
@@ -80,9 +72,7 @@ struct MiOfrendaFinalView: View {
                                     seleccionElementos: elementosStore.configuracion,
                                     isObscured: editorMarcos != nil,
                                     onLoad: { loadState = $0 },
-                                    onSeleccionarMarco: { marco in
-                                        editorMarcos = EditorMarcos(marco: marco)
-                                    },
+                                    onSeleccionarMarco: { marco in editorMarcos = EditorMarcos(marco: marco) },
                                     onErrorFoto: { errorFoto = $0 }
                                 )
                                 .frame(height: 300)
@@ -108,8 +98,7 @@ struct MiOfrendaFinalView: View {
                                 Text(descripcionSubtitulo)
                                     .font(.subheadline).foregroundStyle(colorTextoSec)
                                 Text(elementosStore.configuracion.muestra(.retrato) ? "Su retrato: \(personalizacion.marcoRetrato.titulo.lowercased())." : "Retratos ocultos · tus fotos se conservan.")
-                                    .font(.caption)
-                                    .foregroundStyle(colorTextoSec)
+                                    .font(.caption).foregroundStyle(colorTextoSec)
                             }
                             Spacer(minLength: 4)
                             Button("Cambiar foto", action: onCambiarFoto)
@@ -120,14 +109,6 @@ struct MiOfrendaFinalView: View {
                     .ofrendaSurface()
                     .padding(.horizontal, 24)
                     
-                    Button(action: onEditarElementos) {
-                        Label("Editar elementos de la ofrenda", systemImage: "cube.transparent")
-                            .frame(maxWidth: .infinity).padding(.vertical, 8)
-                    }
-                    .ofrendaSecondaryAction()
-                    .padding(.horizontal, 24)
-                    
-                    // Lo que le gustaba
                     HStack {
                         Text("LO QUE LE GUSTABA")
                             .font(.caption.weight(.bold)).tracking(0.6)
@@ -138,41 +119,14 @@ struct MiOfrendaFinalView: View {
                     }
                     .padding(.horizontal, 24)
                     
-                    // Cuadrícula con las mini tarjetas
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        MiniTarjeta(
-                            titulo: "COMIDA",
-                            valor: personalizacion.comidaFavorita.isEmpty ? "—" : personalizacion.comidaFavorita,
-                            icono: .comida,
-                            colorTarjeta: colorTarjeta, colorAcento: colorAcento
-                        )
-                        
-                        MiniTarjeta(
-                            titulo: "MÚSICA",
-                            valor: personalizacion.musicaFavorita.isEmpty ? "—" : personalizacion.musicaFavorita,
-                            icono: .musica,
-                            colorTarjeta: colorTarjeta, colorAcento: colorAcento
-                        )
-                        
-                        MiniTarjeta(
-                            titulo: "AFICIÓN",
-                            valor: personalizacion.aficiones.sorted().first ?? "—",
-                            icono: personalizacion.aficiones.sorted().first.map { n in
-                                Aficion.todas.first { $0.nombre == n }?.icono ?? .recuerdo
-                            } ?? .recuerdo,
-                            colorTarjeta: colorTarjeta, colorAcento: colorAcento
-                        )
-                        
-                        MiniTarjeta(
-                            titulo: "RECUERDO",
-                            valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido,
-                            icono: .recuerdo,
-                            colorTarjeta: colorTarjeta, colorAcento: colorAcento
-                        )
+                        MiniTarjeta(titulo: "COMIDA", valor: personalizacion.comidaFavorita.isEmpty ? "—" : personalizacion.comidaFavorita, icono: .comida, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                        MiniTarjeta(titulo: "MÚSICA", valor: personalizacion.musicaFavorita.isEmpty ? "—" : personalizacion.musicaFavorita, icono: .musica, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                        MiniTarjeta(titulo: "AFICIÓN", valor: personalizacion.aficiones.sorted().first ?? "—", icono: personalizacion.aficiones.sorted().first.map { n in Aficion.todas.first { $0.nombre == n }?.icono ?? .recuerdo } ?? .recuerdo, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                        MiniTarjeta(titulo: "RECUERDO", valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido, icono: .recuerdo, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
                     }
                     .padding(.horizontal, 24)
                     
-                    // Calaverita Literaria Interactiva
                     VStack(alignment: .leading, spacing: 14) {
                         Text("SUS RECUERDOS, HECHOS VERSOS")
                             .font(.caption.weight(.bold)).tracking(0.6)
@@ -180,15 +134,10 @@ struct MiOfrendaFinalView: View {
                         
                         if mostrarCalaverita, let calaverita {
                             Text(calaverita.formatearCalaverita(colorAcento: colorAcento))
-                                .font(.body).italic()
-                                .foregroundColor(.white)
-                                .lineSpacing(5)
-                                .transition(.opacity)
+                                .font(.body).italic().foregroundColor(.white).lineSpacing(5).transition(.opacity)
                                 .environment(\.openURL, OpenURLAction { url in
                                     if url.scheme == "cempasuchil" {
-                                        withAnimation {
-                                            mostrarPetalos = true
-                                        }
+                                        withAnimation { mostrarPetalos = true }
                                         return .handled
                                     }
                                     return .systemAction
@@ -212,13 +161,8 @@ struct MiOfrendaFinalView: View {
                             .ofrendaPrimaryAction()
                             
                             if mostrarCalaverita {
-                                Button {
-                                    onEditarGustos()
-                                } label: {
-                                    Text("Editar gustos")
-                                        .font(.subheadline.weight(.semibold))
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 4)
+                                Button { onEditarGustos() } label: {
+                                    Text("Editar gustos").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
                                 }
                                 .ofrendaSecondaryAction()
                             }
@@ -229,16 +173,14 @@ struct MiOfrendaFinalView: View {
                     .background(RoundedRectangle(cornerRadius: 20).fill(colorTarjeta.opacity(0.75)))
                     .padding(.horizontal, 24).padding(.bottom, 16)
                     
-                    //Boton para cerrar y guardar la ofrenda en la lissta
+                    // BOTÓN TERMINAR ACTUALIZADO
                     Button {
-                        // Si la ofrenda ya está guardada en la lista la actualiza, si no, la agrega como nueva
                         if ofrendasManager.ofrendas.contains(where: { $0.id == personalizacion.id }) {
                             ofrendasManager.actualizarOfrenda(personalizacion)
                         } else {
                             ofrendasManager.agregarOfrenda(personalizacion)
                         }
-                        
-                        dismiss() // Cierra la pantalla y regresa a la lista
+                        onTerminar() // <-- Llamamos a la nueva clausura
                     } label: {
                         Text("Terminar")
                             .font(.headline)
@@ -251,20 +193,15 @@ struct MiOfrendaFinalView: View {
                 }
             }.recortaIlustraciones()
 
-            // Capa de animación para la caída de pétalos
             if mostrarPetalos {
-                PetalosCempasuchilView {
-                    mostrarPetalos = false
-                }
-                .ignoresSafeArea()
+                PetalosCempasuchilView { mostrarPetalos = false }.ignoresSafeArea()
             }
         }
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .onChange(of: isActive) { _, active in if !active { loadState = .loading } }
         .sheet(item: $editorMarcos) { editor in
-            MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco)
-                .ofrendaSheet(detents: [.large])
+            MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco).ofrendaSheet(detents: [.large])
         }
         .alert("No se pudo mostrar la foto", isPresented: Binding(
             get: { errorFoto != nil }, set: { if !$0 { errorFoto = nil } }
@@ -274,6 +211,7 @@ struct MiOfrendaFinalView: View {
     }
 }
 
+// ... (Las estructuras MiniTarjeta, PetalosCempasuchilView, PetaloData y la extensión String.formatearCalaverita se quedan exactamente igual) ...
 // MARK: - Mini Tarjeta Component
 private struct MiniTarjeta: View {
     let titulo: String

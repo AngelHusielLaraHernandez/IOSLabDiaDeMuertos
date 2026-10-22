@@ -2,8 +2,6 @@
 //  PersonalizarRetratoView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
-//  Created by Angel Lara on 16/10/26.
-//
 
 import SwiftUI
 
@@ -11,9 +9,10 @@ struct PersonalizarRetratoView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
     let fotosMarcos: FotosMarcosStore
     let onElegirFoto: () -> Void
-    let onEditarElementos: () -> Void
+    // Eliminado: let onEditarElementos: () -> Void
     let onContinuar: () -> Void
     let onVolver: () -> Void
+    
     private var fotoActual: UIImage? { fotosMarcos.fotos[personalizacion.marcoRetrato]?.imagen }
     private var tieneFoto: Bool { fotoActual != nil }
     private var tieneNombre: Bool { !personalizacion.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -30,12 +29,9 @@ struct PersonalizarRetratoView: View {
                         .font(.largeTitle.bold())
                 }
                 .padding(.horizontal, 24)
-                Button(action: onEditarElementos) {
-                    Label("Elegir elementos del modelo 3D", systemImage: "cube.transparent")
-                        .frame(maxWidth: .infinity).padding(.vertical, 8)
-                }
-                .ofrendaSecondaryAction()
-                .padding(.horizontal, 24)
+                
+                // Eliminado el botón que llamaba a onEditarElementos
+                
                 ConfiguracionMarcosView(store: fotosMarcos, marcoElegido: $personalizacion.marcoRetrato)
                     .padding(.horizontal, 24)
                 Button(action: onElegirFoto) {
