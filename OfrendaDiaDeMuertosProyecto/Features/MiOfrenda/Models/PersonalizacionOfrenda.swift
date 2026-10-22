@@ -7,18 +7,28 @@
 
 import SwiftUI
 
-struct PersonalizacionOfrenda {
-    var foto: UIImage? = nil
+struct PersonalizacionOfrenda: Identifiable, Codable {
+    var id = UUID() //Es el identificador para cada ofrenda se usa UUID para el anexo automatico
+    //var foto: UIImage? = nil a ver si no lo rompo
     var marcoRetrato: MarcoOfrenda = .izquierdo
     var nombre: String = ""
     var comidaFavorita: String = ""
     var musicaFavorita: String = "" // Único campo para música/canción favorita (Opcional)
     var aficiones: Set<String> = []
     var recuerdoCompartido: String = ""
-
+    
+    /*
     var estaCompleta: Bool {
         foto != nil && !nombre.trimmingCharacters(in: .whitespaces).isEmpty
     }
+     */
+    
+    //Lo cambie porque ahora depende de los marcos usando esta id
+    
+    var estaCompleta: Bool {
+            !nombre.isEmpty && !comidaFavorita.isEmpty
+        }
+    
 }
 
 struct Aficion: Identifiable, Hashable {

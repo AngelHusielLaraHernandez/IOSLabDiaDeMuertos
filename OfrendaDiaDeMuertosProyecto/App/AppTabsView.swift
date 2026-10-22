@@ -16,9 +16,20 @@ struct AppTabsView: View {
     @State private var tab: AppTab = .ofrenda
     @State private var elementoSeleccionado: ElementoOfrenda?
     @State private var elementosVisitados: Set<String> = []
-    @State private var personalizacion = PersonalizacionOfrenda()
-    @State private var elementosStore = ElementosOfrendaStore.shared
-    @State private var fotosMarcos = FotosMarcosStore.shared
+    
+    // 1. Agregamos el OfrendasManager
+    @StateObject private var ofrendasManager = OfrendasManager()
+    
+   
+    
+    // 3. Como borramos el .shared, creamos almacenes por defecto para el altar principal (didáctico)
+    // Usamos un UUID de puros ceros para identificar a la ofrenda principal/educativa.
+    @State private var elementosStore = ElementosOfrendaStore(idOfrenda: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
+
+    @State private var fotosMarcos = FotosMarcosStore(idOfrenda: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
+    
+    
+    
     @Environment(\.scenePhase) private var scenePhase
     private let elementos = OfrendaCatalog.elementos
 
@@ -30,7 +41,7 @@ struct AppTabsView: View {
                     renderSession: renderSession,
                     fotosMarcos: fotosMarcos,
                     seleccionElementos: elementosStore.configuracion,
-                    nombrePersona: personalizacion.nombre,
+                    nombrePersona: "", // Como es la ofrenda general, dejamos el nombre vacío
                     isActive: tab == .ofrenda && scenePhase == .active,
                     elementosVisitados: $elementosVisitados,
                     elementoSeleccionado: $elementoSeleccionado,
@@ -45,11 +56,16 @@ struct AppTabsView: View {
                 )
             }
             Tab("Mi ofrenda", systemImage: "heart", value: .miOfrenda) {
-                OfrendaPersonalizadaFlowView(personalizacion: $personalizacion, renderSession: renderSession, fotosMarcos: fotosMarcos, elementosStore: elementosStore, isActive: tab == .miOfrenda && scenePhase == .active) {
-                    tab = .ofrenda
-                }
+                // 4. AQUÍ AGREGAMOS TU NUEVA LISTA
+                ListaMisOfrendasView(
+                    renderSession: renderSession,
+                    onSalir: { tab = .ofrenda }
+                )
             }
         }
+        // 5. INYECTAMOS EL MANAGER A TODA LA APP
+        .environmentObject(ofrendasManager)
+        
         .task { await elementosStore.cargar() }
         .onChange(of: elementoSeleccionado?.id) { _, id in
             if let id { elementosVisitados.insert(id) }
@@ -78,3 +94,4 @@ struct AppTabsView: View {
         }
     }
 }
+

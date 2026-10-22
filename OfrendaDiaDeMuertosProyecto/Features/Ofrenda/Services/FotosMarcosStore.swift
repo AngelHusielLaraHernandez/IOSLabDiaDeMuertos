@@ -9,10 +9,12 @@ import Foundation
 import Observation
 import UIKit
 
+
 /// Una sola fuente de fotos para la pantalla principal, la propuesta y el Canvas.
 @MainActor @Observable
 final class FotosMarcosStore {
-    static let shared = FotosMarcosStore()
+    let idOfrenda: UUID
+    
     private(set) var fotos: [MarcoOfrenda: FotoMarco]
     private(set) var cargando = false
     private(set) var guardandoConfiguracion = false
@@ -20,14 +22,22 @@ final class FotosMarcosStore {
     var mensajeError: String?
     private let predeterminadas: [MarcoOfrenda: FotoMarco]
     private var haCargado = false
-    private let archivos = ArchivoFotosMarcos()
+    private let archivos: ArchivoFotosMarcos // Ya no lo inicializamos aquí directamente
 
-    init() {
+    init(idOfrenda: UUID) {
+        self.idOfrenda = idOfrenda
+        // Inicializamos el actor pasándole el ID para que sepa en qué carpeta guardar
+        self.archivos = ArchivoFotosMarcos(idOfrenda: idOfrenda)
+        
         let ejemplos = Self.cargarEjemplos()
-        predeterminadas = ejemplos
-        fotos = ejemplos
+        self.predeterminadas = ejemplos
+        self.fotos = ejemplos
+        
+        Task {
+            await cargar()
+        }
     }
-
+    
     func cargar() async {
         guard !haCargado, !cargando else { return }
         cargando = true
@@ -102,6 +112,7 @@ final class FotosMarcosStore {
                   let thumbnail = PhotoProcessor.thumbnail(from: data, maxPixelSize: 1024) else { continue }
             let imagen = UIImage(cgImage: thumbnail)
             let ratio = marco.relacionAspecto
+            // CORRECCIÓN AQUÍ: Se añade el asterisco para multiplicar
             let size = CGSize(width: 1024 * ratio, height: 1024)
             let rect = PhotoCropGeometry.imageRect(image: imagen.size, viewport: size, zoom: 1, offset: .zero)
             let format = UIGraphicsImageRendererFormat()
@@ -119,11 +130,19 @@ final class FotosMarcosStore {
 
 /// El acceso al disco se hace fuera del actor de la interfaz.
 private actor ArchivoFotosMarcos {
+    let idOfrenda: UUID // Agregamos el ID aquí también
+    
+    init(idOfrenda: UUID) {
+        self.idOfrenda = idOfrenda
+    }
+    
     private var carpeta: URL {
         get throws {
             try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                         appropriateFor: nil, create: true)
                 .appendingPathComponent("FotosMarcos", isDirectory: true)
+                // AHORA SÍ creará una subcarpeta única por cada ofrenda
+                .appendingPathComponent(idOfrenda.uuidString, isDirectory: true)
         }
     }
 
