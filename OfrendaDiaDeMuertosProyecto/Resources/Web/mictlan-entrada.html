@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Entrada a Mictlán</title>
+<style>
+:root{--noche:#120a1f;--morado:#2a1244;--flor:#ff9d1c;--magenta:#d6247a;--hueso:#f3ead8;--piedra:#3b2a4d}
+@media (prefers-color-scheme:dark){:root{--noche:#120a1f}}
+*{box-sizing:border-box;margin:0}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--noche);color:var(--hueso);font-family:Karla,system-ui,sans-serif}
+body{position:fixed;inset:0;overscroll-behavior:none}
+#app{position:relative;width:100%;height:100%;height:100dvh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 70%,var(--morado),var(--noche) 70%)}
+#scene{width:100%;height:100%;flex:none;position:relative;transform-origin:50% 68%;transition:transform 3.4s cubic-bezier(.65,0,.9,.4)}
+#scene svg{width:100%;height:100%;display:block;overflow:visible}
+.doorL,.doorR{transition:transform 2.2s cubic-bezier(.6,0,.2,1)}
+.open .doorL{transform:translateX(-92px)}
+.open .doorR{transform:translateX(92px)}
+#glow{opacity:.25;transition:opacity 2s ease .3s}
+.open #glow{opacity:1}
+.cross #scene{transform:scale(7.5)}
+#hint{position:absolute;z-index:10;bottom:max(8%,calc(env(safe-area-inset-bottom,0px) + 24px));left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);padding:0 20px;text-align:center;font-size:1rem;letter-spacing:.02em;transition:opacity .6s}
+#hint button{all:unset;cursor:pointer;padding:.9rem 1.6rem;border:2px solid var(--flor);border-radius:2rem;color:var(--flor);font-weight:600;animation:pulso 2.4s ease-in-out infinite}
+#hint button:focus-visible{outline:3px solid var(--hueso);outline-offset:3px}
+@keyframes pulso{50%{box-shadow:0 0 22px 2px rgba(255,157,28,.45)}}
+.started #hint{opacity:0;pointer-events:none}
+#petals{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.p{position:absolute;top:-6vh;width:10px;height:15px;border-radius:70% 0 70% 0;background:var(--flor);opacity:.85;animation:cae linear infinite}
+.p.m{background:var(--magenta)}
+@keyframes cae{to{transform:translate(var(--dx),112vh) rotate(var(--r))}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:titila 1.3s ease-in-out infinite alternate}
+@keyframes titila{from{transform:scale(1,.88)}to{transform:scale(.92,1.08)}}
+@media (prefers-reduced-motion:reduce){.p,.flame,#hint button{animation:none}#scene,.doorL,.doorR{transition-duration:.01s}}
+#titulo{--u:min(14vw,12vh);position:absolute;top:max(15%,calc(env(safe-area-inset-top,0px) + 24px));left:0;right:0;z-index:1;display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*.3);color:var(--flor);pointer-events:none;animation:entra 1.8s ease backwards;transition:opacity 1.2s ease,visibility 0s 1.2s}
+#titulo .w{display:flex;align-items:flex-end;gap:calc(var(--u)*.14)}
+#titulo .gl{display:block;flex:none;fill:currentColor;overflow:visible}
+@keyframes entra{from{opacity:0;transform:translateY(-12px)}}
+.cross #titulo,.arrived #titulo{opacity:0;visibility:hidden}
+/* Un único control inicia el recorrido; al terminar continúa SwiftUI. */
+#hint button {
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+  backdrop-filter:blur(20px) saturate(1.5);
+  background-color:rgba(74,53,98,.38);
+  border:1px solid rgba(255,227,160,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 28px rgba(0,0,0,.2);
+  min-height:44px;
+}
+#hint button:focus-visible{outline:3px solid var(--hueso);outline-offset:5px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* Limita el área de composición y detiene animaciones que ya no se ven. */
+#app{overflow:hidden;isolation:isolate}
+.started #hint button{animation:none}
+.arrived .p,.arrived .flame,.paused *{animation-play-state:paused!important}
+/* En horizontal, la puerta y el título comparten el ancho sin recortarse. */
+@media (orientation:landscape) and (max-height:600px){
+  #scene{width:50%;margin-left:50%}
+  #titulo{--u:min(9vw,12dvh);right:50%;top:max(12%,env(safe-area-inset-top,0px))}
+  #hint{right:50%;bottom:max(12%,calc(env(safe-area-inset-bottom,0px) + 12px))}
+}
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="titulo" role="img" aria-label="Hanal Pixán"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><path id="gH" d="M4 220L4 139 42 139L80 140 80 220L80 300 42 300L4 300 4 220ZM206 252L206 204 212 204L218 203 212 203L206 203 206 178L206 153 147 153L88 153 88 82L88 11 95 11L102 11 102 75L102 139 154 139L206 139 206 124L206 108 212 108C215 108 217 108 217 107C217 106 215 106 212 106L206 106 206 58L206 11 223 11L240 12 241 59L241 106 236 106C233 106 231 106 231 107C231 108 233 108 236 108L241 108 241 155L240 202 236 203L230 204 236 204L240 204 241 252L241 299 224 299L206 299 206 252ZM66 266L66 247 50 238L34 229 34 220L34 210 46 204C52 200 59 196 62 195L66 192 66 173L66 153 46 153C35 153 26 153 26 153C26 154 31 157 38 161L50 167 50 176L50 185 34 194L18 203 18 219L18 236 34 245L50 254 50 263L50 272 40 277C34 280 28 284 27 284L26 286 46 286L66 286 66 266ZM227 252L227 218 224 218L220 218 220 252L220 285 224 285L227 285 227 252ZM227 155L226 122 224 122L220 122 220 155L220 189 224 189L227 189 227 155ZM104 168C99 164 96 160 96 160C96 160 103 160 112 160L127 160 119 168L111 176 104 168ZM141 168C136 164 133 160 133 160C133 160 140 160 149 160L164 160 156 168L148 176 141 168ZM178 168C173 164 170 160 170 160C170 160 177 160 186 160L201 160 193 168L185 176 178 168ZM4 104L4 76 42 76L80 76 80 104L80 133 42 133L4 133 4 104ZM110 115C110 107 110 100 111 100C111 100 118 107 126 115L141 130 126 130L110 130 110 115ZM66 116L66 112 42 112L18 112 18 116L18 119 42 119L66 119 66 116ZM66 94L66 90 42 90L18 90 18 94L18 98 42 98L66 98 66 94ZM227 58L227 25 224 25L220 25 220 58L220 92 224 92L227 92 227 58ZM4 40L4 11 42 11L80 12 80 40L80 68 42 69L4 69 4 40ZM35 40L35 25 26 25L18 25 18 40L18 55 26 55L35 55 35 40ZM66 40L66 26 57 25L49 25 49 40L49 55 58 55L66 55 66 40Z"/><path id="gA" d="M10 297L4 294 7 289C8 286 21 264 35 240L60 196 144 196L228 196 253 240C267 264 280 286 281 289L284 294 278 297L272 301 267 293C265 288 253 268 241 247L220 210 144 210L68 210 43 254C29 278 17 298 17 299L16 301 10 297ZM54 187C51 185 49 184 49 183C49 182 143 19 144 19C145 19 237 179 239 182L239 184 234 187C230 189 228 190 227 190C227 189 209 158 186 119C164 81 146 49 145 48L144 46 143 48C143 49 124 81 102 119C79 158 61 190 60 190C60 190 57 189 54 187ZM77 182C92 155 144 67 144 67C144 67 150 76 156 87C163 98 178 125 191 147C204 169 214 188 214 188C214 188 204 188 191 188L168 188 157 168C150 156 144 147 144 147C144 147 138 156 132 168L120 188 97 188L74 188 77 182Z"/><path id="gN" d="M95 299C81 297 80 297 80 298L80 300 42 300L4 300 4 272L4 243 42 243L80 243 80 250L80 256 90 249L99 243 97 242C95 242 91 241 88 240C84 240 81 239 80 239L79 238 89 231L99 224 97 223C96 223 93 222 90 222C86 221 83 221 82 220L80 220 80 228L80 236 42 236L4 236 4 207L4 178 43 178L82 178 91 172L100 166 92 164C87 164 83 163 82 163L80 163 80 168L80 172 42 172L4 172 4 92L4 12 42 12L80 12 80 19L80 27 90 20C99 13 110 8 112 10C113 10 133 62 188 209L206 254 206 229L206 204 212 204L218 204 212 203L206 202 206 155L206 108 211 108C215 108 217 108 217 107C217 106 215 106 211 106L206 106 206 59L206 12 224 12L240 12 241 59L241 106 236 106C233 106 231 106 231 107C231 108 233 108 236 108L241 108 241 155L240 202 236 203L230 204 236 204L241 204 241 252L241 299 224 299L206 299 206 297C206 295 114 53 110 43L108 40 108 170C108 242 108 301 107 301C107 301 101 300 95 299ZM90 287L99 280 92 279C88 279 83 278 82 278L80 278 80 286C80 296 79 295 90 287ZM35 272L35 257 26 257L18 257 18 272L18 286 26 286L35 286 35 272ZM66 272L66 257 58 257L49 257 49 272L49 286 58 286L66 286 66 272ZM227 251L227 218 224 218L220 218 220 252L220 285 223 285L227 285 227 251ZM90 268L99 262 96 261C94 260 90 260 86 259L80 259 80 267C80 271 80 275 80 275C81 275 85 272 90 268ZM66 218L66 214 42 214L18 214 18 218L18 222 42 222L66 222 66 218ZM95 207L99 204 98 204C97 203 94 203 91 203C88 202 84 202 83 201L80 201 80 209L80 218 85 214C88 212 92 209 95 207ZM66 196L66 192 42 192L18 192 18 196L18 200 42 200L66 200 66 196ZM92 190C99 185 99 184 92 184C88 183 84 183 83 182L80 182 80 190L80 199 83 197C85 195 89 192 92 190ZM227 155L226 122 225 121C224 121 222 121 221 122L220 122 220 155C220 190 220 189 224 189L227 189 227 155ZM90 153L99 146 92 145C88 145 83 144 82 144L80 144 80 152C80 162 79 162 90 153ZM58 158C58 158 52 154 45 151L33 144 33 135L34 127 50 118L66 108 66 92L66 76 52 68C45 64 37 60 36 59L33 57 33 49L34 41 44 34C51 31 56 28 57 27L58 26 38 26L18 26 18 46L18 65 34 74L50 83 50 92L50 101 34 110L18 119 18 138C18 148 18 157 18 158L19 159 38 159C49 159 58 159 58 158ZM90 135C94 131 98 128 98 128C98 127 85 125 81 125L80 125 80 133C80 138 80 141 81 141C81 141 85 138 90 135ZM90 115L99 108 92 107C88 107 83 106 82 106L80 106 80 114C80 124 79 123 90 115ZM90 96L99 90 92 88C89 88 84 87 83 87L80 87 80 95C80 99 80 103 80 103C81 103 85 100 90 96ZM227 58L227 25 224 25L220 25 220 58L220 92 224 92L227 92 227 58ZM91 77L99 71 96 70C95 69 91 69 87 68L80 68 80 76L80 84 81 83C82 83 86 80 91 77ZM91 58C95 54 99 52 99 51C99 51 94 50 89 50L80 48 80 57L80 65 81 64C82 64 86 61 91 58ZM90 39L99 32 96 32C95 31 91 31 88 30C86 30 83 30 82 29L80 29 80 37C80 42 80 46 80 46C81 46 85 43 90 39Z"/><path id="gL" d="M14 291C8 287 4 283 4 283C4 283 8 282 14 281C20 280 24 279 24 279C24 279 19 275 14 272C2 263 2 263 13 262C18 261 22 261 23 260C24 260 20 257 14 252C8 248 4 245 4 244C4 244 8 244 12 243C16 242 21 242 22 241L24 241 14 233C8 229 4 226 4 225C4 225 9 224 14 224C19 223 23 222 24 222C24 222 19 218 14 214L4 207 5 206C6 206 9 205 13 205C16 204 20 203 22 203L24 202 14 195C3 187 3 186 11 186C15 185 19 185 21 184L24 183 14 176L4 169 5 168C6 168 10 167 15 166C20 165 24 165 24 164C24 164 20 161 14 157C3 149 2 148 7 148C9 148 14 147 17 147L24 145 14 138C2 129 2 129 14 128C19 127 24 126 24 126C23 126 19 122 14 118C8 115 4 111 4 111C4 111 8 110 14 109C20 108 24 107 24 107C24 107 19 103 14 100C9 96 4 92 4 92C4 91 17 89 22 89C25 89 25 88 14 80C2 72 2 72 13 71C18 70 22 70 23 69L24 69 14 61L4 54 6 53C8 53 12 52 15 51C19 51 22 50 23 50L24 49 14 42C8 38 4 35 4 34C5 34 9 33 14 32C19 32 23 31 24 31C24 31 19 27 14 23C8 19 4 16 4 15C5 15 28 11 31 11L33 11 33 22C33 28 33 33 34 33C34 33 39 30 46 27L56 20 57 15L57 9 64 9L70 9 70 137L70 265 72 267C76 270 105 290 106 290C106 290 118 284 133 278L158 265 159 254L159 243 145 243L132 243 132 241C133 240 140 227 158 197L166 183 169 189C176 200 200 242 200 242C200 243 194 243 186 243L173 243 173 270L173 298 98 298L24 298 14 291ZM71 284C71 283 41 262 41 262C40 262 40 267 40 273L40 284 56 284C64 284 71 284 71 284ZM159 282C159 281 158 281 155 282L152 284 156 284L159 284 159 282ZM57 240C57 231 57 224 56 224C54 224 33 237 33 238C34 240 55 255 56 255C57 255 57 248 57 240ZM176 229C176 228 170 218 167 213L166 211 161 219C158 224 156 228 156 228C156 229 160 229 166 229C172 229 176 229 176 229ZM49 212L56 208 56 206L56 204 49 200C45 198 41 196 41 196C40 196 40 200 40 206C40 218 40 217 49 212ZM57 185C57 183 57 181 56 180C55 179 38 169 35 167L33 167 33 171L34 175 44 182C57 189 57 189 57 185ZM56 153C56 148 56 143 55 143C53 143 40 152 40 153C40 154 53 163 55 163C56 163 56 158 56 153ZM46 133L56 126 57 123C57 118 56 118 44 124L34 131 33 135C33 140 32 140 46 133ZM49 106L56 102 56 100L56 98 49 94C40 89 40 88 40 100C40 106 40 110 41 110C41 110 45 108 49 106ZM57 78L56 74 46 67C32 60 33 60 33 65L34 69 44 76C58 83 57 83 57 78ZM56 47C56 42 56 37 55 37C53 37 40 46 40 47C40 48 53 57 55 57C56 57 56 52 56 47Z"/><path id="gP" d="M27 305C27 305 27 303 27 302L27 300 15 288L4 276 15 264L27 252 15 241L4 229 15 218L26 206 15 194L4 183 15 171L27 159 27 145L27 131 21 125L16 119 21 113L27 107 27 62L27 17 34 17L41 17 41 54C41 75 41 92 42 92C42 92 62 73 85 49C108 26 128 7 128 7C128 7 154 32 185 63L240 119 184 175L128 231 85 189C62 165 42 146 42 146C41 146 41 182 41 226L41 306 34 306C30 306 27 306 27 305ZM49 275L49 258 58 266L66 275 58 284L49 292 49 275ZM49 230L49 212 58 220C62 225 66 229 66 230C66 230 62 234 58 239L49 247 49 230ZM174 164L219 119 174 73C149 48 128 28 128 28C127 28 108 48 84 71L41 114 41 119L41 123 84 167C108 191 128 210 128 210C128 210 149 189 174 164ZM49 182L49 165 58 173L66 182 58 191L49 199 49 182ZM133 150L133 125 126 125L119 125 119 142L119 158 112 158L104 158 104 142L104 125 86 125L67 125 67 118L67 110 86 110L104 110 104 95L104 79 106 79C107 78 110 78 113 78L118 78 119 94L119 110 126 110L133 110 133 86C133 72 133 61 134 61C135 61 191 118 191 118C185 125 134 175 134 175C133 175 133 164 133 150ZM157 132L164 125 156 125L148 126 148 132C148 141 148 141 157 132ZM156 104C153 101 150 98 149 98L148 97 148 104L148 110 155 110L161 110 156 104ZM49 44L49 17 76 17C91 17 103 17 103 17C103 18 50 71 49 71C49 71 49 59 49 44Z"/><path id="gI" d="M29 298C30 297 35 295 40 292L49 286 49 155L48 24 39 18C34 15 29 12 28 12C28 11 37 11 48 11L69 11 69 23C69 30 69 35 68 35C68 35 67 34 65 33L63 32 63 155L63 278 66 276L69 275 69 287L69 299 48 299L28 299 29 298ZM4 275C4 264 4 255 5 255C6 255 38 273 38 274C38 275 12 290 5 294C4 294 4 285 4 275ZM25 256C19 253 15 251 15 250C15 250 20 248 25 245L34 239 35 245C35 248 35 254 35 257L34 262 25 256ZM4 226L4 207 5 207C8 209 37 226 37 226C37 227 6 246 5 246C4 246 4 237 4 226ZM25 209C20 206 16 203 16 203C15 203 20 200 25 197L35 191 35 203C35 209 35 214 34 214C34 214 30 212 25 209ZM4 178C4 168 4 159 5 159C8 160 38 178 38 179C38 180 6 198 5 198C4 198 4 189 4 178ZM26 161C21 158 16 156 16 155C16 154 34 144 35 144C35 145 35 150 35 156L34 167 26 161ZM4 131L4 111 9 114C12 116 20 120 26 124C33 127 38 131 38 131C38 131 33 135 26 138C19 142 11 147 9 148L4 151 4 131ZM25 113C20 110 15 108 15 108C15 107 19 105 25 102L34 96 35 102C35 105 35 110 35 113L34 119 25 113ZM4 84C4 73 4 64 5 64C5 64 34 80 36 82L38 84 22 93C13 98 5 103 5 103C4 103 4 94 4 84ZM25 66C14 60 14 60 26 53L35 48 35 60C35 66 35 71 34 71C34 71 30 69 25 66ZM4 36C4 25 4 16 4 16C6 16 38 35 38 36C37 37 6 55 5 55C4 55 4 46 4 36Z"/><path id="gX" d="M5 303C4 303 4 300 4 296L4 290 13 290L22 290 22 282L22 274 30 274L38 274 41 272L43 270 43 262L43 254 51 254L59 254 60 252L62 250 62 242L62 234 71 234L79 234 90 222L101 211 93 202C88 197 84 193 84 192C84 192 88 187 93 182L102 174 93 164L84 155 93 146L102 136 93 127L84 117 93 108L101 99 91 88L80 77 71 77L62 76 62 68L62 60 60 58L59 56 50 56L42 56 42 48L42 39 40 38L38 36 30 36L22 36 22 28L22 20 13 20L4 20 4 13L4 6 32 6L59 6 59 13L59 20 51 20L43 20 63 41L83 61 131 61L178 61 197 41C208 30 217 21 217 21C217 20 214 20 209 20L202 20 202 13L202 6 230 6L257 6 257 13L257 20 248 20L238 20 238 28L238 36 230 36L223 36 220 38L218 40 218 48L218 56 210 56L202 56 200 58L198 61 198 68L198 76 190 76L183 76 170 88L158 100 166 109L174 117 166 126L157 134 167 145L177 155 168 165C162 170 158 175 158 176C158 176 162 180 166 185L174 192 166 200C162 205 158 209 158 210C158 210 163 216 170 222L182 234 190 234L198 234 198 242L198 250 200 252L201 254 210 254L219 254 219 263L219 272 221 273C222 274 226 274 230 274L238 274 238 282L238 290 248 290L257 290 257 297L257 304 230 304L202 304 202 297L202 290 209 290C214 290 217 290 217 289C217 289 209 280 199 270L180 252 130 252L80 252 62 271L43 290 51 290L59 290 59 297L58 304 32 304C17 304 5 304 5 303ZM148 220L131 202 113 220L95 238 130 238C150 238 166 238 166 238C166 238 158 230 148 220ZM116 187C109 180 109 180 109 193L109 203 115 198L120 192 116 187ZM148 192L148 185 144 188C143 190 141 192 141 192C141 193 147 200 148 200C148 200 148 197 148 192ZM144 168L157 155 144 141L131 128 117 142L103 155 116 169C124 176 130 182 130 182C130 182 137 176 144 168ZM124 161C117 154 117 155 124 148L130 142 133 145C135 147 138 150 139 152L142 155 136 161L129 167 124 161ZM116 123L120 118 116 113C109 106 109 106 109 118C109 130 109 130 116 123ZM148 118L148 111 144 114L141 118 144 121C146 123 148 125 148 125C148 125 148 122 148 118ZM162 76C162 75 147 75 130 75L98 75 114 91L130 108 146 92C155 84 162 76 162 76Z"/></defs></svg><div class="w"><svg class="gl" viewBox="0 0 245 307" style="width:calc(var(--u)*0.790);height:calc(var(--u)*0.990)" aria-hidden="true"><use href="#gH"/></svg><svg class="gl" viewBox="0 0 288 317" style="width:calc(var(--u)*0.929);height:calc(var(--u)*1.023)" aria-hidden="true"><use href="#gA"/></svg><svg class="gl" viewBox="0 0 245 307" style="width:calc(var(--u)*0.790);height:calc(var(--u)*0.990)" aria-hidden="true"><use href="#gN"/></svg><svg class="gl" viewBox="0 0 288 317" style="width:calc(var(--u)*0.929);height:calc(var(--u)*1.023)" aria-hidden="true"><use href="#gA"/></svg><svg class="gl" viewBox="0 0 204 307" style="width:calc(var(--u)*0.658);height:calc(var(--u)*0.990)" aria-hidden="true"><use href="#gL"/></svg></div><div class="w"><svg class="gl" viewBox="0 0 244 326" style="width:calc(var(--u)*0.787);height:calc(var(--u)*1.052)" aria-hidden="true"><use href="#gP"/></svg><svg class="gl" viewBox="0 0 73 307" style="width:calc(var(--u)*0.235);height:calc(var(--u)*0.990)" aria-hidden="true"><use href="#gI"/></svg><svg class="gl" viewBox="0 0 261 319" style="width:calc(var(--u)*0.842);height:calc(var(--u)*1.029)" aria-hidden="true"><use href="#gX"/></svg><svg class="gl" viewBox="0 -75 288 392" style="width:calc(var(--u)*0.929);height:calc(var(--u)*1.265)" aria-hidden="true"><use href="#gA"/><path d="M128 -14L192 -62" stroke="currentColor" stroke-width="17" fill="none"/></svg><svg class="gl" viewBox="0 0 245 307" style="width:calc(var(--u)*0.790);height:calc(var(--u)*0.990)" aria-hidden="true"><use href="#gN"/></svg></div></div>
+  <div id="petals" aria-hidden="true"></div>
+  <div id="scene">
+    <svg viewBox="0 0 400 1000" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Portal de piedra con escalones, entrada a Mictlán">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="70%" r="70%">
+          <stop offset="0" stop-color="#ffe3a0"/><stop offset=".35" stop-color="#ff9d1c"/>
+          <stop offset=".75" stop-color="#d6247a"/><stop offset="1" stop-color="#2a1244"/>
+        </radialGradient>
+        <clipPath id="op"><path id="opening" d="M110 500V230H130V200H150V175H250V200H270V230H290V500Z"/></clipPath>
+      </defs>
+      <g fill="#f3ead8" opacity=".7"><circle cx="40" cy="90" r="2"/><circle cx="130" cy="200" r="1.5"/><circle cx="300" cy="120" r="2.5"/><circle cx="360" cy="260" r="1.5"/><circle cx="70" cy="340" r="1.5"/><circle cx="220" cy="60" r="1.5"/><circle cx="200" cy="250" r="2"/></g>
+      <path d="M-400 830H800V1400H-400Z" fill="#1d1230"/>
+      <g transform="translate(0 330)">
+      <!-- luz detrás de la puerta -->
+      <g clip-path="url(#op)">
+        <rect id="glow" x="100" y="160" width="200" height="340" fill="url(#g)"/>
+        <path d="M185 300H215L262 500H138Z" fill="#ff9d1c" opacity=".9"/>
+        <path d="M193 300H207L222 500H178Z" fill="#ffd27a" opacity=".8"/>
+        <g fill="#fff3cf"><circle cx="200" cy="262" r="3"/><circle cx="170" cy="285" r="2"/><circle cx="232" cy="280" r="2"/><circle cx="150" cy="330" r="2.5"/><circle cx="252" cy="326" r="2.5"/></g>
+        <!-- puertas -->
+        <g class="doorL"><rect x="100" y="165" width="100" height="340" fill="#4a3562"/><path d="M118 250V490M150 250V490M182 250V490" stroke="#2a1244" stroke-width="3"/></g>
+        <g class="doorR"><rect x="200" y="165" width="100" height="340" fill="#4a3562"/><path d="M218 250V490M250 250V490M282 250V490" stroke="#2a1244" stroke-width="3"/></g>
+      </g>
+      <!-- marco escalonado -->
+      <path d="M40 500V200H70V170H100V140H130V110H270V140H300V170H330V200H360V500H290V230H270V200H250V175H150V200H130V230H110V500Z" fill="#3b2a4d" stroke="#1a0f2b" stroke-width="3"/>
+      <path d="M52 500V210M348 500V210" stroke="#ff9d1c" stroke-width="2" stroke-dasharray="6 10" opacity=".5"/>
+      <!-- calavera en el dintel -->
+      <g transform="translate(200 142)">
+        <path d="M-20 4C-24-20-10-26 0-26S24-20 20 4L14 8V16H-14V8Z" fill="#f3ead8"/>
+        <circle cx="-8" cy="-6" r="5.5" fill="#1a0f2b"/><circle cx="8" cy="-6" r="5.5" fill="#1a0f2b"/>
+        <path d="M0 2L-3 8H3Z" fill="#1a0f2b"/>
+        <path d="M-8 10V16M0 10V16M8 10V16" stroke="#1a0f2b" stroke-width="1.5"/>
+        <circle cx="-8" cy="-6" r="2" fill="#ff9d1c"/><circle cx="8" cy="-6" r="2" fill="#ff9d1c"/>
+      </g>
+      <!-- velas -->
+      <g>
+        <rect x="14" y="440" width="14" height="50" rx="2" fill="#f3ead8"/>
+        <path class="flame" d="M21 413C12 428 14 438 21 438S30 428 21 413Z" fill="#ff9d1c"/>
+        <rect x="372" y="440" width="14" height="50" rx="2" fill="#f3ead8"/>
+        <path class="flame" d="M379 413C370 428 372 438 379 438S388 428 379 413Z" fill="#ff9d1c" style="animation-delay:-.6s"/>
+      </g>
+      <!-- cempasúchil en la base -->
+      <g fill="#ff9d1c"><circle cx="70" cy="494" r="9"/><circle cx="92" cy="498" r="7"/><circle cx="330" cy="494" r="9"/><circle cx="308" cy="498" r="7"/><circle cx="48" cy="498" r="6" fill="#d6247a"/><circle cx="352" cy="498" r="6" fill="#d6247a"/></g>
+    </g>
+    </svg>
+  </div>
+  <div id="hint"><button id="start">Cruzar el umbral</button></div>
+</main>
+<script>
+(function(){
+  var app=document.getElementById('app'),box=document.getElementById('petals');
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // pétalos de cempasúchil
+  if(!reduce){for(var i=0;i<26;i++){var p=document.createElement('i');p.className='p'+(i%6==0?' m':'');
+    p.style.left=(Math.random()*100)+'%';p.style.animationDuration=(7+Math.random()*7)+'s';
+    p.style.animationDelay=(-Math.random()*12)+'s';p.style.setProperty('--dx',(Math.random()*120-60)+'px');
+    p.style.setProperty('--r',(300+Math.random()*500)+'deg');box.appendChild(p);}}
+  var timers=[],finished=false,pendingEntry=false;
+  document.addEventListener('visibilitychange',function(){
+    app.classList.toggle('paused',document.hidden);
+    if(!document.hidden&&pendingEntry){pendingEntry=false;send('opened');}
+  });
+  window.addEventListener('pagehide',function(){timers.forEach(clearTimeout);timers=[];});
+  function send(a){try{window.webkit.messageHandlers.bookAction.postMessage(a);}catch(e){}}
+  function later(f,t){timers.push(setTimeout(f,t));}
+  function complete(){
+    if(finished)return;
+    finished=true;
+    app.classList.add('arrived');
+    timers.forEach(clearTimeout);timers=[];
+    // Conserva el camino visible mientras Swift prepara la ofrenda.
+    if(document.hidden)pendingEntry=true;else send('opened');
+  }
+  var scene=document.getElementById('scene');
+  scene.addEventListener('transitionend',function(event){
+    if(event.target===scene&&event.propertyName==='transform'&&app.classList.contains('cross'))complete();
+  });
+  function run(){
+    if(app.classList.contains('started'))return;
+    document.getElementById('start').disabled=true;
+    app.classList.add('started','open');
+    later(function(){app.classList.add('cross');},reduce?50:1900);
+    // Respaldo si WebKit no entrega transitionend (por ejemplo, al regresar del fondo).
+    later(complete,reduce?200:5500);
+  }
+  document.getElementById('start').addEventListener('click',function(){send('clicked');run();});
+})();
+</script>
+</body>
+</html>
