@@ -20,7 +20,7 @@ struct CalaveritasView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ElementSheetHeader(icono: .calaveritas, subtitulo: "Dulce tradición", titulo: "Calaveritas de Azúcar")
-            SheetSectionPicker(secciones: ["Significado", "Elaboración", "Historia"], seleccion: $seccionActiva)
+            SheetSectionPicker(secciones: ["Significado", "Elaboración", "Historia", "Indagar"], seleccion: $seccionActiva)
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -66,7 +66,7 @@ struct CalaveritasView: View {
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
 
-                    } else {
+                    } else if seccionActiva == 2 {
                         // HISTORIA
                         Text("Raíces e Historia")
                             .font(.title3.weight(.bold))
@@ -77,12 +77,20 @@ struct CalaveritasView: View {
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
 
+                    } else {
+                        Text("Su camino hasta el altar")
+                            .font(.title3.weight(.bold))
+                            .foregroundColor(.white)
                         VStack(spacing: 12) {
                             ForEach(hitos) { hito in
                                 TarjetaHitoTimeline(hito: hito) {
                                     mostrarFuentes = true
                                 }
                             }
+                        }
+                        if let vinculo = TradicionesCatalog.vinculo(para: "Calaveritas") {
+                            TarjetaLugarView(lugar: vinculo.lugar, contexto: vinculo.contexto)
+                            Text(vinculo.lugar.avisoVisita).font(.footnote).foregroundStyle(AppTheme.secondaryText)
                         }
                     }
                 }

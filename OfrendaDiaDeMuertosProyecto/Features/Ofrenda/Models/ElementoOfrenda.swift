@@ -21,5 +21,7 @@ struct ElementoOfrenda: Identifiable {
     var entidadesAncla: [String] = []
     /// Los detalles pequeños se descubren al acercar la cámara (un factor menor acerca).
     var zoomMaximoEtiqueta: Float = 2.5
+    /// Los temas de lectura adicionales no crean anclas 3D ni aumentan el recorrido físico.
+    var esElementoDelAltar = true
 }
 

@@ -48,7 +48,7 @@ enum OfrendaCatalog {
         ElementoOfrenda(
             nombre: "Calaveritas", icono: .calaveritas,
             tituloHistoria: "Recordar con una sonrisa",
-            descripcionHistoria: "Pueden ser dulces de azúcar o versos llenos de ingenio y cariño.",
+            descripcionHistoria: "Las figuras de azúcar recuerdan con dulzura a quienes queremos.",
             significado: "Nos invitan a mirar la muerte con humor, afecto y cercanía.",
             anclaNormalizada: SIMD3<Float>(0.24, 0.38, 0.15)
         ),
@@ -59,7 +59,8 @@ enum OfrendaCatalog {
             descripcionHistoria: "Versos con humor y afecto para recordar.",
             significado: "La sátira y la rima como homenaje.",
             anclaNormalizada: SIMD3<Float>(x: 0.30, y: 0.30, z: 0.20),
-            entidadesAncla: []
+            entidadesAncla: [],
+            esElementoDelAltar: false
         ),
         ElementoOfrenda(
             nombre: "Pan", icono: .pan,
@@ -121,5 +122,8 @@ enum OfrendaCatalog {
             zoomMaximoEtiqueta: 0.9
         )
     ]
+
+    /// Solo los 13 grupos que tienen representación en la ofrenda tridimensional.
+    static let elementosDelAltar = elementos.filter(\.esElementoDelAltar)
 
 }

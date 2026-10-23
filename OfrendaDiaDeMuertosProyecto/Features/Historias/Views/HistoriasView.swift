@@ -13,12 +13,15 @@ struct HistoriasView: View {
     let elementos: [ElementoOfrenda]
     @Binding var elementoSeleccionado: ElementoOfrenda?
 
+    @State private var catalogo = 0
+
     private let colorFondo = AppTheme.background
     private let colorTarjeta = AppTheme.surface
     private let colorAcento = AppTheme.accent
     private let colorTextoSec = AppTheme.secondaryText
 
     var body: some View {
+        GeometryReader { geometria in
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
 
@@ -29,11 +32,11 @@ struct HistoriasView: View {
                         .tracking(0.8)
                         .foregroundColor(colorAcento)
 
-                    Text("Historias de la ofrenda.")
-                        .font(.system(size: 34, weight: .bold))
+                    Text(catalogo == 0 ? "Historias de la ofrenda." : "La tradición crece.")
+                        .font(.largeTitle.bold())
                         .foregroundColor(.white)
 
-                    Text("Elige un objeto. Puedes empezar por cualquiera.")
+                    Text(catalogo == 0 ? "Elige un objeto. Puedes empezar por cualquiera." : "Conoce ofrendas y celebraciones monumentales. Descubre sus historias y los lugares que las reciben.")
                         .font(.subheadline)
                         .foregroundColor(colorTextoSec)
                         .padding(.top, 4)
@@ -41,6 +44,14 @@ struct HistoriasView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
 
+                SheetSectionPicker(secciones: ["Elementos", "Celebraciones"], seleccion: $catalogo, titulo: "Catálogo de historias")
+                    .padding(.horizontal, 24)
+                    .accessibilityIdentifier("historias.catalogo")
+
+                if catalogo == 1 {
+                    CelebracionesView(onExplorarElementos: { catalogo = 0 })
+                        .padding(.horizontal, 24).padding(.bottom, 32)
+                } else {
                 // Lista de elementos/historias
                 LazyVStack(spacing: 12) {
                     ForEach(elementos) { elemento in
@@ -87,11 +98,20 @@ struct HistoriasView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
+                }
             }
         }.recortaIlustraciones()
+        .overlay(alignment: .top) {
+            colorFondo
+                .frame(height: geometria.safeAreaInsets.top)
+                .offset(y: -geometria.safeAreaInsets.top)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
-        .ilustracionesOfrenda(activa: isActive)
+        .ilustracionesOfrenda(activa: isActive && catalogo == 0)
+        }
     }
 
     /// Retorna el subtítulo temático según el elemento

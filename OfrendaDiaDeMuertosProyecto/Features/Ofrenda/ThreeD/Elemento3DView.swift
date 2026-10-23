@@ -16,6 +16,7 @@ struct Elemento3DView: View {
     let elemento: ElementoOfrenda
     let fotosMarcos: FotosMarcosStore
     let renderSession: OfrendaRenderSession
+    var isActive = true
     @State private var estado: ModelLoadState = .loading
     @State private var giroAutomatico = true
     @State private var resetToken = 0
@@ -37,7 +38,7 @@ struct Elemento3DView: View {
                 fotos: fotosMarcos.fotos,
                 giroAutomatico: giroAutomatico,
                 reducirMovimiento: reducirMovimiento,
-                isActive: scenePhase == .active,
+                isActive: isActive && scenePhase == .active,
                 resetToken: resetToken,
                 onLoad: { estado = $0 },
                 onGirar: { giroAutomatico = false },
@@ -251,6 +252,7 @@ private struct VisorObjeto3D: UIViewRepresentable {
 
         func updateAnimation() {
             let visible = isActive && view?.window != nil
+            view?.isHidden = !visible
             if let view, let anchor {
                 let attached = view.scene.anchors.contains { $0 === anchor }
                 if visible && !attached { view.scene.addAnchor(anchor) }
@@ -299,6 +301,7 @@ private struct VisorObjeto3D: UIViewRepresentable {
 
         func dispose() {
             generation = UUID()
+            view?.isHidden = false
             if let view {
                 gestures.forEach { view.removeGestureRecognizer($0) }
                 if let anchor { view.scene.removeAnchor(anchor) }

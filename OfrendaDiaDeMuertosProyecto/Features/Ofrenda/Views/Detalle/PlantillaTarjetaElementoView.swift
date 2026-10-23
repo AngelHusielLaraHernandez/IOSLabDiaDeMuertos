@@ -117,6 +117,12 @@ struct PlantillaTarjetaElementoView: View {
                             .padding(.vertical, 8)
                         }
                         .buttonStyle(.glass)
+
+                        if let vinculo = TradicionesCatalog.vinculo(para: nombreElemento) {
+                            TarjetaLugarView(lugar: vinculo.lugar, contexto: vinculo.contexto)
+                            Text(vinculo.lugar.avisoVisita)
+                                .font(.footnote).foregroundStyle(AppTheme.secondaryText)
+                        }
                     }
 
                 }

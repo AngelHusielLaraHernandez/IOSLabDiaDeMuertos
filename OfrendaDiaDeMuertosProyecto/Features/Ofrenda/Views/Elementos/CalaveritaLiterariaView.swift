@@ -1,5 +1,5 @@
 //
-//  CalaveritasLiterariasView.swift
+//  CalaveritaLiterariaView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
 //  Created by Victor Flores on 23/10/26.
@@ -19,7 +19,7 @@ struct CalaveritaLiterariaView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ElementSheetHeader(icono: .calaveritas, subtitulo: "Poesía y sátira", titulo: "Calaveritas Literarias")
+            ElementSheetHeader(icono: .calaveritaLiteraria, subtitulo: "Poesía y sátira", titulo: "Calaveritas Literarias")
             SheetSectionPicker(secciones: ["Ejemplo", "Origen", "Estructura"], seleccion: $seccionActiva)
             
             ScrollView {
