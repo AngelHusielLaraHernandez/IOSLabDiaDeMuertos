@@ -49,6 +49,41 @@ struct CalaveritasRegression {
         verificar(!noGuardable.agregarOfrenda(perfil), "Un fallo de disco no puede confirmarse como guardado")
         verificar(noGuardable.ofrendasParaCalaveritas.isEmpty, "El fallo de disco no puede desbloquear la generación")
 
+        verificar(ofrendas.idOfrendaPrincipal == nil && ofrendas.idModeloPrincipal == OfrendasManager.ofrendaGeneralID, "Sin elección se conserva la ofrenda general")
+        let versionGeneral = ofrendas.versionPrincipal
+        verificar(ofrendas.seleccionarOfrendaPrincipal(perfil.id), "Debe poder elegirse una ofrenda guardada")
+        verificar(ofrendas.ofrendaPrincipal == perfil && ofrendas.versionPrincipal != versionGeneral, "La principal usa la versión guardada, no el borrador")
+        verificar(OfrendasManager(urlGuardado: urlPerfiles).idOfrendaPrincipal == perfil.id, "La elección debe sobrevivir al reinicio")
+        verificar(ofrendas.seleccionarOfrendaPrincipal(otroPerfil.id) && ofrendas.idModeloPrincipal == otroPerfil.id, "Solo una ofrenda puede ser principal")
+        let versionLuis = ofrendas.versionPrincipal
+        verificar(ofrendas.seleccionarOfrendaPrincipal(otroPerfil.id) && ofrendas.versionPrincipal == versionLuis, "Volver a marcar la misma no reconstruye el visor")
+        verificar(!ofrendas.seleccionarOfrendaPrincipal(UUID()) && ofrendas.idOfrendaPrincipal == otroPerfil.id, "Un ID inexistente no cambia la selección")
+        verificar(!noGuardable.seleccionarOfrendaPrincipal(nil) && noGuardable.mensajeErrorSeleccion != nil, "Un fallo de escritura debe explicarse")
+
+        let carpetaSeleccion = carpeta.appendingPathComponent("seleccion-fallida")
+        try FileManager.default.createDirectory(at: carpetaSeleccion, withIntermediateDirectories: true)
+        let seleccionFallida = OfrendasManager(urlGuardado: urlPerfiles, urlSeleccion: carpetaSeleccion.appendingPathComponent("seleccion.json"))
+        verificar(seleccionFallida.seleccionarOfrendaPrincipal(perfil.id), "Preparar una selección válida para comprobar errores de disco")
+        try FileManager.default.removeItem(at: carpetaSeleccion)
+        verificar(!seleccionFallida.seleccionarOfrendaPrincipal(otroPerfil.id) && seleccionFallida.idOfrendaPrincipal == perfil.id, "El check anterior se conserva si no se puede guardar el cambio")
+
+        verificar(ofrendas.seleccionarOfrendaPrincipal(perfil.id), "Debe poder volver a la primera ofrenda")
+        var perfilActualizado = perfil
+        perfilActualizado.musicaFavorita = "Boleros"
+        let versionAnterior = ofrendas.versionPrincipal
+        verificar(ofrendas.actualizarOfrenda(perfilActualizado), "Debe guardarse la edición de la ofrenda activa")
+        verificar(ofrendas.ofrendaPrincipal == perfilActualizado && ofrendas.versionPrincipal != versionAnterior, "Guardar la activa debe refrescar sus fotos y objetos")
+        verificar(ofrendas.seleccionarOfrendaPrincipal(nil) && ofrendas.ofrendaPrincipal == nil, "La general debe poder elegirse desde la misma lista")
+        verificar(OfrendasManager(urlGuardado: urlPerfiles).idModeloPrincipal == OfrendasManager.ofrendaGeneralID, "La elección general también debe persistir")
+        verificar(ofrendas.seleccionarOfrendaPrincipal(perfil.id), "Seleccionar la primera antes de eliminarla")
+
+        let urlEleccionDanada = carpeta.appendingPathComponent("eleccion-danada.json")
+        try Data("{eleccion dañada".utf8).write(to: urlEleccionDanada)
+        let eleccionDanada = OfrendasManager(urlGuardado: urlPerfiles, urlSeleccion: urlEleccionDanada)
+        verificar(eleccionDanada.idOfrendaPrincipal == nil && eleccionDanada.mensajeErrorSeleccion != nil, "Una elección dañada debe recuperar la general y explicar el problema")
+        verificar(eleccionDanada.seleccionarOfrendaPrincipal(nil), "Marcar la general debe reparar la elección dañada")
+        verificar(OfrendasManager(urlGuardado: urlPerfiles, urlSeleccion: urlEleccionDanada).mensajeErrorSeleccion == nil, "La elección reparada debe poder recuperarse")
+
         let urlPoemas = carpeta.appendingPathComponent("calaveritas.json")
         let store = CalaveritasStore(urlGuardado: urlPoemas)
         let primero = CalaveritaGuardada(para: perfil, texto: CalaveritaGenerator.generar(para: perfil))
@@ -62,6 +97,9 @@ struct CalaveritasRegression {
         verificar(CalaveritasStore(urlGuardado: urlPoemas).calaveritas == store.calaveritas, "La colección debe sobrevivir al reinicio")
         ofrendas.eliminarOfrenda(en: IndexSet(integersIn: 0..<ofrendas.ofrendas.count))
         verificar(ofrendas.ofrendasParaCalaveritas.isEmpty, "Al eliminar la ofrenda se bloquea su generación")
+        verificar(ofrendas.idOfrendaPrincipal == nil && ofrendas.idModeloPrincipal == OfrendasManager.ofrendaGeneralID, "Eliminar la activa debe restaurar la general")
+        verificar(OfrendasManager(urlGuardado: urlPerfiles).idOfrendaPrincipal == nil, "El reinicio no debe recuperar la ofrenda eliminada")
+
         verificar(CalaveritasStore(urlGuardado: urlPoemas).calaveritas.count == 2, "Eliminar el altar no elimina los poemas guardados")
         verificar(store.calaveritas.allSatisfy { $0.nombrePersona == "Elena" }, "La colección conserva su destinatario original")
 

@@ -190,3 +190,5 @@ private struct MiniTarjeta: View {
         .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.7)))
     }
 }
+
+

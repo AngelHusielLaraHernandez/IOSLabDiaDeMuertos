@@ -2,6 +2,8 @@
 //  OfrendaPersonalizadaFlowView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
+//  Created by Angel Lara on 16/10/26.
+//
 
 import SwiftUI
 import PhotosUI
@@ -13,6 +15,7 @@ struct OfrendaPersonalizadaFlowView: View {
     let elementosStore: ElementosOfrendaStore
     var isActive = true
     let onSalir: () -> Void
+    var onGuardar: (() -> Void)? = nil
     
     // NUEVO: Para cerrar la vista (sheet o push) antes de cambiar de pestaña
     @Environment(\.dismiss) private var dismiss
@@ -91,7 +94,7 @@ struct OfrendaPersonalizadaFlowView: View {
                     onVolver: { paso = .sugerencias },
                     onTerminar: { // <-- NUEVO CIERRE
                         dismiss() // Cierra la vista flotante o hace pop en la navegación
-                        onSalir() // Llama a la acción que cambia a la pestaña principal
+                        (onGuardar ?? onSalir)() // La lista puede conservar el foco para elegir con el check.
                     }
                 )
             }

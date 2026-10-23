@@ -92,7 +92,7 @@ struct OfrendaView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 12) {
-                    Text(nombrePersona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "LA OFRENDA DE ELENA" : "LA OFRENDA DE \(nombrePersona.uppercased())")
+                    Text(nombrePersona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "OFRENDA GENERAL" : "LA OFRENDA DE \(nombrePersona.uppercased())")
                         .font(.caption.weight(.bold))
                         .tracking(0.8)
                         .foregroundStyle(AppTheme.accent)

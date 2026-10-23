@@ -383,7 +383,7 @@ Es el punto donde se unen Ofrenda, Historias, Mi ofrenda y Calaveritas. El enum 
 
 La vista conserva la pestaña, el elemento seleccionado, la sesión 3D y las instancias de `OfrendasManager`, `CalaveritasStore` y `ProgresoRecorridoStore`. Los tres almacenes se entregan como objetos del entorno. El último conserva los elementos visitados entre arranques. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. Además obtiene el catálogo de `OfrendaCatalog.elementos`.
 
-`elementosStore` carga la selección persistida y se comparte con ambos recorridos. Si se oculta un elemento que estuviera seleccionado, cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El nombre del perfil también se pasa al encabezado principal mientras vive ese perfil.
+`OfrendaPrincipalTabView` carga la selección persistida del altar elegido. Cada flujo de edición recibe almacenes propios para el ID de su perfil. Si se oculta un elemento que estuviera seleccionado, se cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El encabezado principal recibe el nombre del perfil confirmado en `ofrendasGuardadas`.
 
 El conjunto de visitados alimenta el progreso del altar; solo se cuentan las categorías que siguen visibles. Historias recibe el catálogo completo y el binding del elemento seleccionado. Al tocar una tarjeta abre la misma hoja del altar; su botón inferior dice Volver a historias y conserva esa pestaña al cerrar.
 
@@ -2262,3 +2262,13 @@ No se incorporaron como hechos las comparaciones sin comprobar de 120,000 planta
 ### Comprobaciones
 
 `Tests/TradicionesRegression.swift` prueba los archivos reales del catálogo y del recorrido con un UserDefaults independiente. Comprueba reapertura, visitas repetidas, alias, claves desconocidas, vínculos para los 13 elementos, umbrales de desbloqueo y correspondencia de los medios de transporte. Se ejecuta con `Scripts/probar-tradiciones.sh` en un simulador iOS abierto. La cobertura de imágenes y las rutas disponibles son respuestas de MapKit y se revisan también con la aplicación en ejecución.
+
+## 31. Elegir la ofrenda principal desde Mi ofrenda
+
+El selector flotante de la pantalla principal se retiró. En Mis ofrendas encontramos un check para la Ofrenda general y otro junto a cada perfil guardado. Solo una opción permanece marcada. Tocar el check decide qué altar se muestra; tocar el nombre abre su edición. Al guardar un perfil volvemos a la lista para poder marcarlo, sin seleccionarlo automáticamente.
+
+`OfrendasManager` conserva `idOfrendaPrincipal`, resuelve el perfil confirmado en `ofrendaPrincipal` y entrega `idModeloPrincipal` para cargar sus recursos. La elección se guarda de forma atómica en `ofrenda_principal.json`, separado de `mis_ofrendas.json`; los perfiles anteriores no cambian de formato. Sin elección, con un ID desconocido o después de eliminar la activa se usa la Ofrenda general. Un error al guardar una nueva elección conserva el check anterior y se explica desde la lista.
+
+`AppTabsView` comparte esa selección con el altar. `OfrendaPrincipalTabView` recibe el ID y el nombre elegidos, sin mantener un selector propio. Crea los almacenes de elementos y fotos para ese mismo ID. El encabezado muestra Ofrenda general cuando no hay un perfil elegido. `versionPrincipal` cambia al elegir otro perfil o al guardar cambios en el que está activo, para recuperar sus recursos. Se conserva la misma `OfrendaRenderSession`: la selección no crea otro motor 3D ni descarga otra copia del modelo. Las hojas que se abren desde el altar también reciben sus fotografías; las de Historias usan las del recorrido general.
+
+`ListaMisOfrendasView` usa una lista nativa con selección y edición separadas, etiquetas accesibles y un estado vacío que conserva la opción general. `OfrendaPersonalizadaFlowView.onGuardar` permite volver a esta lista después de guardar, mientras `onSalir` conserva la salida del flujo. Las pruebas de `CalaveritasRegression.swift` comprueban elección única, reapertura, borradores sin guardar, IDs inválidos, actualización de la activa, eliminación, elección dañada y fallos de escritura, además de las reglas del generador.
