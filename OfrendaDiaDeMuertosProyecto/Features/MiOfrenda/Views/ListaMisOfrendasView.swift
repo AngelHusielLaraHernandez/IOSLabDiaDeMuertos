@@ -11,6 +11,7 @@ struct ListaMisOfrendasView: View {
     @EnvironmentObject var ofrendasManager: OfrendasManager
     
     let renderSession: OfrendaRenderSession
+    var isActive = true
     let onSalir: () -> Void
     
     @State private var mostrandoNuevaOfrenda = false
@@ -45,7 +46,8 @@ struct ListaMisOfrendasView: View {
                                     renderSession: renderSession,
                                     fotosMarcos: FotosMarcosStore(idOfrenda: ofrenda.id),
                                     elementosStore: ElementosOfrendaStore(idOfrenda: ofrenda.id),
-                                    onSalir: onSalir // Aquí ya se pasa correctamente
+                                    isActive: isActive,
+                                    onSalir: onSalir
                                 )
                             ) {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -98,6 +100,7 @@ struct ListaMisOfrendasView: View {
                     renderSession: renderSession,
                     fotosMarcos: FotosMarcosStore(idOfrenda: nuevaOfrenda.id),
                     elementosStore: ElementosOfrendaStore(idOfrenda: nuevaOfrenda.id),
+                    isActive: isActive,
                     onSalir: {
                         // Al salir del sheet, lo cerramos y cambiamos a la pestaña principal
                         mostrandoNuevaOfrenda = false

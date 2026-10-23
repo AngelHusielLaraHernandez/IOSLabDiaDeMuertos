@@ -9,7 +9,7 @@ import Foundation
 
 enum CalaveritaGenerator {
 
-    static func generar(para personalizacion: PersonalizacionOfrenda) -> String {
+    static func generar(para personalizacion: PersonalizacionOfrenda, evitando anterior: String? = nil) -> String {
 
         let nombreOriginal = personalizacion.nombre.trimmingCharacters(in: .whitespacesAndNewlines)
         let nombre = escaparMarkdown(nombreOriginal.isEmpty ? "el alma querida" : nombreOriginal)
@@ -183,10 +183,14 @@ enum CalaveritaGenerator {
             """
         ]
 
-        let e1 = estrofasInicio.randomElement() ?? estrofasInicio[0]
+        var e1 = estrofasInicio.randomElement() ?? estrofasInicio[0]
         let e2 = estrofasMedio.randomElement() ?? estrofasMedio[0]
         let e3 = estrofasFin.randomElement() ?? estrofasFin[0]
 
+        // «Generar otra» siempre cambia al menos una estrofa de la versión visible.
+        if "\(e1)\n\n\(e2)\n\n\(e3)" == anterior {
+            e1 = estrofasInicio.first(where: { $0 != e1 }) ?? e1
+        }
         return "\(e1)\n\n\(e2)\n\n\(e3)"
     }
 

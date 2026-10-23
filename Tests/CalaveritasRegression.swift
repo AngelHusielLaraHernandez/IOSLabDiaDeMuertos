@@ -1,0 +1,92 @@
+//
+//  CalaveritasRegression.swift
+//  OfrendaDiaDeMuertosProyecto
+//
+//  Created by Angel Lara on 16/10/26.
+//
+
+import Foundation
+
+/// Pruebas sobre los mismos modelos y servicios compilados por la app, sin tocar sus documentos.
+@main
+struct CalaveritasRegression {
+    @MainActor
+    static func main() throws {
+        let carpeta = FileManager.default.temporaryDirectory.appendingPathComponent("calaveritas-regression-\(UUID())")
+        try FileManager.default.createDirectory(at: carpeta, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: carpeta) }
+        var comprobaciones = 0
+        func verificar(_ valor: @autoclosure () -> Bool, _ mensaje: String) {
+            precondition(valor(), mensaje)
+            comprobaciones += 1
+        }
+
+        var perfil = PersonalizacionOfrenda()
+        verificar(!perfil.estaCompleta, "Un perfil vacío debe estar bloqueado")
+        perfil.nombre = " \n "
+        perfil.comidaFavorita = "\t "
+        verificar(!perfil.estaCompleta, "Los espacios no son parámetros válidos")
+        perfil.nombre = "Elena"
+        perfil.comidaFavorita = "Tamales"
+        verificar(perfil.estaCompleta, "Los gustos opcionales no deben bloquear un perfil válido")
+
+        let urlPerfiles = carpeta.appendingPathComponent("ofrendas.json")
+        let ofrendas = OfrendasManager(urlGuardado: urlPerfiles)
+        verificar(ofrendas.ofrendasParaCalaveritas.isEmpty, "Sin guardado no debe habilitarse el generador")
+        ofrendas.ofrendas = [perfil]
+        verificar(ofrendas.ofrendasParaCalaveritas.isEmpty, "Editar en memoria no equivale a guardar")
+        verificar(ofrendas.agregarOfrenda(perfil), "El perfil debe guardarse")
+        verificar(ofrendas.ofrendasParaCalaveritas == [perfil], "Solo el guardado exitoso desbloquea el perfil")
+        ofrendas.ofrendas[0].comidaFavorita = "Mole sin guardar"
+        verificar(ofrendas.ofrendasParaCalaveritas[0].comidaFavorita == "Tamales", "El generador debe usar la última versión guardada")
+        verificar(OfrendasManager(urlGuardado: urlPerfiles).ofrendasGuardadas == [perfil], "Los perfiles deben recuperarse al abrir la app")
+        var otroPerfil = PersonalizacionOfrenda()
+        otroPerfil.nombre = "Luis"
+        otroPerfil.comidaFavorita = "Mole"
+        verificar(ofrendas.agregarOfrenda(otroPerfil), "Debe poder guardarse una segunda ofrenda")
+        verificar(ofrendas.ofrendasGuardadas.first?.comidaFavorita == "Tamales", "Guardar otra ofrenda no confirma ediciones ajenas sin guardar")
+        let noGuardable = OfrendasManager(urlGuardado: carpeta.appendingPathComponent("ausente/ofrendas.json"))
+        verificar(!noGuardable.agregarOfrenda(perfil), "Un fallo de disco no puede confirmarse como guardado")
+        verificar(noGuardable.ofrendasParaCalaveritas.isEmpty, "El fallo de disco no puede desbloquear la generación")
+
+        let urlPoemas = carpeta.appendingPathComponent("calaveritas.json")
+        let store = CalaveritasStore(urlGuardado: urlPoemas)
+        let primero = CalaveritaGuardada(para: perfil, texto: CalaveritaGenerator.generar(para: perfil))
+        verificar(store.guardar(primero), "Debe guardarse el poema generado")
+        verificar(store.contiene(primero), "La interfaz debe detectar el poema guardado")
+        let duplicado = CalaveritaGuardada(para: perfil, texto: primero.texto)
+        verificar(store.guardar(duplicado) && store.calaveritas.count == 1, "Guardar dos veces no duplica un poema")
+        let segundo = CalaveritaGuardada(para: perfil, texto: CalaveritaGenerator.generar(para: perfil, evitando: primero.texto))
+        verificar(store.guardar(segundo), "Debe poder conservarse otra versión")
+        verificar(store.calaveritas.first?.id == segundo.id, "Los poemas recientes aparecen primero")
+        verificar(CalaveritasStore(urlGuardado: urlPoemas).calaveritas == store.calaveritas, "La colección debe sobrevivir al reinicio")
+        ofrendas.eliminarOfrenda(en: IndexSet(integersIn: 0..<ofrendas.ofrendas.count))
+        verificar(ofrendas.ofrendasParaCalaveritas.isEmpty, "Al eliminar la ofrenda se bloquea su generación")
+        verificar(CalaveritasStore(urlGuardado: urlPoemas).calaveritas.count == 2, "Eliminar el altar no elimina los poemas guardados")
+        verificar(store.calaveritas.allSatisfy { $0.nombrePersona == "Elena" }, "La colección conserva su destinatario original")
+
+        let urlDaniada = carpeta.appendingPathComponent("danado.json")
+        let original = Data("{coleccion dañada".utf8)
+        try original.write(to: urlDaniada)
+        let daniada = CalaveritasStore(urlGuardado: urlDaniada)
+        verificar(daniada.mensajeError != nil, "La lectura fallida debe comunicarse")
+        verificar(!daniada.guardar(primero), "No debe sobreescribirse una colección que no pudo leerse")
+        let conservado = try Data(contentsOf: urlDaniada)
+        verificar(conservado == original, "El archivo original debe conservarse")
+        let sinCarpeta = CalaveritasStore(urlGuardado: carpeta.appendingPathComponent("ausente/poemas.json"))
+        verificar(!sinCarpeta.guardar(primero) && sinCarpeta.calaveritas.isEmpty, "Un guardado fallido no debe mostrar una confirmación falsa")
+
+        var anterior = primero.texto
+        for _ in 0..<300 {
+            let otra = CalaveritaGenerator.generar(para: perfil, evitando: anterior)
+            verificar(otra != anterior, "Generar otra debe cambiar el poema visible")
+            anterior = otra
+        }
+        perfil.nombre = "Luz * [sitio](https://ejemplo.com)"
+        for _ in 0..<30 {
+            let poema = CalaveritaGenerator.generar(para: perfil)
+            verificar(!poema.contains("https://"), "Los datos personales no deben introducir enlaces Markdown")
+        }
+        print("CALAVERITAS_OK: \(comprobaciones) comprobaciones")
+    }
+}

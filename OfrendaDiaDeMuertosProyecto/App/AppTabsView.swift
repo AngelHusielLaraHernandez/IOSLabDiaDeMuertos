@@ -8,7 +8,7 @@
 import SwiftUI
 
 private enum AppTab: Hashable {
-    case ofrenda, historias, miOfrenda
+    case ofrenda, historias, miOfrenda, calaveritas
 }
 
 struct AppTabsView: View {
@@ -19,6 +19,7 @@ struct AppTabsView: View {
     
     // Manager global de las ofrendas
     @StateObject private var ofrendasManager = OfrendasManager()
+    @StateObject private var calaveritasStore = CalaveritasStore()
     
     @Environment(\.scenePhase) private var scenePhase
     private let elementos = OfrendaCatalog.elementos
@@ -47,12 +48,20 @@ struct AppTabsView: View {
             Tab("Mi ofrenda", systemImage: "heart", value: .miOfrenda) {
                 ListaMisOfrendasView(
                     renderSession: renderSession,
+                    isActive: tab == .miOfrenda && scenePhase == .active,
                     onSalir: { tab = .ofrenda }
+                )
+            }
+            Tab("Calaveritas", systemImage: "pencil.and.outline", value: .calaveritas) {
+                CalaveritasLiterariasView(
+                    isActive: tab == .calaveritas && scenePhase == .active,
+                    onPersonalizar: { tab = .miOfrenda }
                 )
             }
         }
         // 1. INYECTAMOS EL MANAGER A TODA LA APP
         .environmentObject(ofrendasManager)
+        .environmentObject(calaveritasStore)
         .onChange(of: elementoSeleccionado?.id) { _, id in
             if let id { elementosVisitados.insert(id) }
         }

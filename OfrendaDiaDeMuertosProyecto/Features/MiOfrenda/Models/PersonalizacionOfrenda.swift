@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PersonalizacionOfrenda: Identifiable, Codable {
+struct PersonalizacionOfrenda: Identifiable, Codable, Equatable {
     var id = UUID() //Es el identificador para cada ofrenda se usa UUID para el anexo automatico
     //var foto: UIImage? = nil a ver si no lo rompo
     var marcoRetrato: MarcoOfrenda = .izquierdo
@@ -25,9 +25,11 @@ struct PersonalizacionOfrenda: Identifiable, Codable {
     
     //Lo cambie porque ahora depende de los marcos usando esta id
     
+    /// Son los datos obligatorios del flujo; las fotos y los demás gustos son opcionales.
     var estaCompleta: Bool {
-            !nombre.isEmpty && !comidaFavorita.isEmpty
-        }
+        !nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !comidaFavorita.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
 }
 

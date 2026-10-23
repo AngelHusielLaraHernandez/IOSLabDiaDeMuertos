@@ -16,26 +16,20 @@ struct MiOfrendaFinalView: View {
     let onEditarGustos: () -> Void
     let onCambiarFoto: () -> Void
     let onVolver: () -> Void
-    let onTerminar: () -> Void // <-- NUEVO PARÁMETRO
+    let onTerminar: () -> Void
     
     @EnvironmentObject var ofrendasManager: OfrendasManager
-    // @Environment(\.dismiss) private var dismiss // <-- YA NO ES NECESARIO
     
     @State private var loadState: ModelLoadState = .loading
-    @State private var calaverita: String?
-    @State private var mostrarCalaverita = false
     @State private var editorMarcos: EditorMarcos?
     @State private var errorFoto: String?
-    @State private var mostrarPetalos = false
     
-    // ... (las variables de colores y el init se mantienen igual) ...
     private let colorFondo = AppTheme.background
     private let colorTarjeta = AppTheme.surface
     private let colorAcento = AppTheme.accent
     private let colorTextoSec = AppTheme.secondaryText
 
     private var descripcionSubtitulo: String {
-        // ... igual ...
         var partes: [String] = []
         if !personalizacion.comidaFavorita.isEmpty { partes.append(personalizacion.comidaFavorita.lowercased()) }
         if !personalizacion.musicaFavorita.isEmpty { partes.append(personalizacion.musicaFavorita.lowercased()) }
@@ -51,7 +45,6 @@ struct MiOfrendaFinalView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     FlowNavigationBar(onVolver: onVolver)
                     
-                    // ... (resto del código de la vista de la ofrenda y gustos) ...
                     VStack(alignment: .leading, spacing: 6) {
                         Text("SUS GUSTOS, SU HISTORIA")
                             .font(.caption.weight(.bold)).tracking(0.8)
@@ -127,75 +120,32 @@ struct MiOfrendaFinalView: View {
                     }
                     .padding(.horizontal, 24)
                     
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("SUS RECUERDOS, HECHOS VERSOS")
-                            .font(.caption.weight(.bold)).tracking(0.6)
-                            .foregroundColor(colorAcento)
-                        
-                        if mostrarCalaverita, let calaverita {
-                            Text(calaverita.formatearCalaverita(colorAcento: colorAcento))
-                                .font(.body).italic().foregroundColor(.white).lineSpacing(5).transition(.opacity)
-                                .environment(\.openURL, OpenURLAction { url in
-                                    if url.scheme == "cempasuchil" {
-                                        withAnimation { mostrarPetalos = true }
-                                        return .handled
-                                    }
-                                    return .systemAction
-                                })
-                        } else {
-                            Text("Un poema humorístico y tradicional escrito especialmente con sus gustos y recuerdos.")
-                                .font(.subheadline).foregroundColor(colorTextoSec)
-                        }
-                        
-                        VStack(spacing: 10) {
-                            Button {
-                                withAnimation(.easeInOut) {
-                                    calaverita = CalaveritaGenerator.generar(para: personalizacion)
-                                    mostrarCalaverita = true
-                                }
-                            } label: {
-                                Text(mostrarCalaverita ? "Generar otra calaverita" : "Generar calaverita literaria")
-                                    .font(.headline).foregroundColor(.black)
-                                    .frame(maxWidth: .infinity).padding(.vertical, 8)
-                            }
-                            .ofrendaPrimaryAction()
-                            
-                            if mostrarCalaverita {
-                                Button { onEditarGustos() } label: {
-                                    Text("Editar gustos").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
-                                }
-                                .ofrendaSecondaryAction()
-                            }
-                        }
-                        .padding(.top, 4)
-                    }
-                    .padding(20)
-                    .background(RoundedRectangle(cornerRadius: 20).fill(colorTarjeta.opacity(0.75)))
-                    .padding(.horizontal, 24).padding(.bottom, 16)
-                    
-                    // BOTÓN TERMINAR ACTUALIZADO
+                    Text("Al guardar, podrás crear y conservar sus versos en la pestaña Calaveritas.")
+                        .font(.subheadline)
+                        .foregroundStyle(colorTextoSec)
+                        .padding(.horizontal, 24)
+
                     Button {
+                        let guardada: Bool
                         if ofrendasManager.ofrendas.contains(where: { $0.id == personalizacion.id }) {
-                            ofrendasManager.actualizarOfrenda(personalizacion)
+                            guardada = ofrendasManager.actualizarOfrenda(personalizacion)
                         } else {
-                            ofrendasManager.agregarOfrenda(personalizacion)
+                            guardada = ofrendasManager.agregarOfrenda(personalizacion)
                         }
-                        onTerminar() // <-- Llamamos a la nueva clausura
+                        if guardada { onTerminar() }
                     } label: {
-                        Text("Terminar")
+                        Text("Guardar ofrenda")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                     }
                     .ofrendaPrimaryAction()
+                    .disabled(!personalizacion.estaCompleta)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 32)
                 }
             }.recortaIlustraciones()
 
-            if mostrarPetalos {
-                PetalosCempasuchilView { mostrarPetalos = false }.ignoresSafeArea()
-            }
         }
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
@@ -203,6 +153,12 @@ struct MiOfrendaFinalView: View {
         .sheet(item: $editorMarcos) { editor in
             MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco).ofrendaSheet(detents: [.large])
         }
+        .alert("No se pudo guardar la ofrenda", isPresented: Binding(
+            get: { ofrendasManager.mensajeError != nil },
+            set: { if !$0 { ofrendasManager.mensajeError = nil } }
+        )) {
+            Button("Entendido", role: .cancel) { ofrendasManager.mensajeError = nil }
+        } message: { Text(ofrendasManager.mensajeError ?? "") }
         .alert("No se pudo mostrar la foto", isPresented: Binding(
             get: { errorFoto != nil }, set: { if !$0 { errorFoto = nil } }
         )) {
@@ -211,7 +167,6 @@ struct MiOfrendaFinalView: View {
     }
 }
 
-// ... (Las estructuras MiniTarjeta, PetalosCempasuchilView, PetaloData y la extensión String.formatearCalaverita se quedan exactamente igual) ...
 // MARK: - Mini Tarjeta Component
 private struct MiniTarjeta: View {
     let titulo: String
@@ -233,84 +188,5 @@ private struct MiniTarjeta: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.7)))
-    }
-}
-
-// MARK: - Animación de Pétalos de Cempasúchil
-private struct PetalosCempasuchilView: View {
-    let onTerminar: () -> Void
-    @State private var animar = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    @State private var petalos = (0..<20).map { _ in
-        PetaloData(
-            x: Double.random(in: 0.05...0.95),
-            retraso: Double.random(in: 0...0.4),
-            duracion: Double.random(in: 1.8...2.5),
-            tamano: CGFloat.random(in: 18...30),
-            rotacion: Double.random(in: -180...180)
-        )
-    }
-
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                ForEach(petalos) { p in
-                    Capsule()
-                        .fill(LinearGradient(colors: [AppTheme.accent, Color.orange], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: p.tamano * 0.55, height: p.tamano)
-                        .rotationEffect(.degrees(animar && !reduceMotion ? p.rotacion + 360 : p.rotacion))
-                        .position(
-                            x: proxy.size.width * p.x,
-                            y: reduceMotion ? proxy.size.height * 0.3 : (animar ? proxy.size.height + 50 : -50)
-                        )
-                        .opacity(animar ? 0.95 : 0)
-                        .animation(
-                            .easeOut(duration: reduceMotion ? 0.2 : p.duracion).delay(reduceMotion ? 0 : p.retraso),
-                            value: animar
-                        )
-                }
-            }
-        }
-        .allowsHitTesting(false)
-        .task {
-            animar = true
-            let duracion = reduceMotion ? 0.4 : (petalos.map { $0.duracion + $0.retraso }.max() ?? 2.9) + 0.1
-            do { try await Task.sleep(for: .seconds(duracion)) }
-            catch { return }
-            guard !Task.isCancelled else { return }
-            onTerminar()
-        }
-    }
-}
-
-private struct PetaloData: Identifiable {
-    let id = UUID()
-    let x: Double
-    let retraso: Double
-    let duracion: Double
-    let tamano: CGFloat
-    let rotacion: Double
-}
-
-// MARK: - Formateador de Texto de Calaverita
-private extension String {
-    func formatearCalaverita(colorAcento: Color) -> AttributedString {
-        var options = AttributedString.MarkdownParsingOptions()
-        options.interpretedSyntax = .inlineOnlyPreservingWhitespace
-
-        guard var attrString = try? AttributedString(markdown: self, options: options) else {
-            return AttributedString(self)
-        }
-
-        for run in attrString.runs {
-            if run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
-                attrString[run.range].foregroundColor = colorAcento
-                attrString[run.range].font = Font.body.bold().italic()
-                attrString[run.range].link = URL(string: "cempasuchil://flores")
-            }
-        }
-
-        return attrString
     }
 }

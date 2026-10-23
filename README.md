@@ -41,13 +41,14 @@ Este documento describe lo que tenemos implementado actualmente. Cuando una part
 <a id="estado-actual"></a>
 ## 1. Qué hace actualmente la aplicación
 
-Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG y JavaScript. Primero se cruza el umbral y después se entra a la ofrenda. Al terminar ese recorrido aparecen tres pestañas:
+Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG y JavaScript. Primero se cruza el umbral y después se entra a la ofrenda. Al terminar ese recorrido aparecen cuatro pestañas:
 
 | Pestaña | Qué encontramos ahí |
 | --- | --- |
 | **Ofrenda** | El altar 3D, sus controles de movimiento y los botones flotantes que abren las historias. |
 | **Historias** | Lista de los 13 elementos para abrir su significado, historia e inspección 3D, aunque estén ocultos en el altar personal. |
-| **Mi ofrenda** | El flujo opcional para elegir una fotografía, escribir un nombre, agregar gustos y ver una propuesta personalizada. |
+| **Mi ofrenda** | Crear y editar las ofrendas, sus fotos, gustos y elementos 3D. |
+| **Calaveritas** | Generar versos para una ofrenda guardada, conservarlos y abrir la colección de calaveritas. |
 
 Tenemos **13 elementos registrados**: Flores, Retrato, Velas, Papel, Agua y sal, Calaveritas, Pan, Comida, Caña de azúcar, Frutas, Incienso, Cigarro y Tequila. Los ocho primeros pertenecen a la vista general. Los cinco últimos aparecen al acercar la cámara a un factor de 0.9 o menor, si su objeto está en el encuadre y cabe su etiqueta.
 
@@ -59,7 +60,7 @@ Los gustos se utilizan para mostrar sugerencias escritas y completar una plantil
 
 En la ofrenda principal también tenemos el botón Fotos y selección directa de los marcos visibles. Podemos mostrar uno o dos; al conservar uno, se centra y se oculta el otro, sin borrar su fotografía. Cada uno admite una foto con encuadre propio; sus copias se guardan localmente y se recuperan al abrir de nuevo la app.
 
-El perfil, el progreso de lectura y los versos se mantienen en memoria mientras vive su estado en la aplicación. Todavía no tenemos un guardado del perfil conectado a SwiftData, archivos, una cuenta o un servicio remoto.
+Las ofrendas se guardan en `mis_ofrendas.json`. Las calaveritas que guardamos desde su nueva pestaña se conservan en `mis_calaveritas.json`, con su persona y fecha. El poema recién generado sigue siendo un borrador hasta tocar Guardar calaverita. El progreso de lectura permanece en memoria. No necesitamos una cuenta ni un servicio remoto.
 
 <a id="abrir-proyecto"></a>
 ## 2. Cómo abrirla y qué configuración estamos usando
@@ -208,14 +209,25 @@ OfrendaDiaDeMuertosProyecto/
 │   │   │           ├── InciensoView.swift
 │   │   │           ├── CigarroView.swift
 │   │   │           └── TequilaView.swift
+│   │   ├── CalaveritasLiterarias/
+│   │   │   ├── Models/
+│   │   │   │   └── CalaveritaGuardada.swift
+│   │   │   ├── Services/
+│   │   │   │   ├── CalaveritaGenerator.swift
+│   │   │   │   └── CalaveritasStore.swift
+│   │   │   └── Views/
+│   │   │       ├── CalaveritasLiterariasView.swift
+│   │   │       ├── CalaveritasGuardadasView.swift
+│   │   │       └── CalaveritaTextoView.swift
 │   │   └── MiOfrenda/
 │   │       ├── Models/
 │   │       │   ├── ConfiguracionElementosOfrenda.swift
 │   │       │   └── PersonalizacionOfrenda.swift
 │   │       ├── Services/
 │   │       │   ├── ElementosOfrendaStore.swift
-│   │       │   └── CalaveritaGenerator.swift
+│   │       │   └── OfrendasManager.swift
 │   │       └── Views/
+│   │           ├── ListaMisOfrendasView.swift
 │   │           ├── OfrendaPersonalizadaFlowView.swift
 │   │           ├── PersonalizarRetratoView.swift
 │   │           ├── PersonalizarElementosView.swift
@@ -254,7 +266,7 @@ OfrendaDiaDeMuertosProyecto/
 
 **Features** separa la aplicación por sus secciones. Dentro de Ofrenda tenemos más carpetas porque ahí conviven información cultural, interfaz, cámara, materiales y carga del modelo.
 
-**Models** describe datos y estados. **Data** contiene valores concretos del catálogo. **Views** dibuja la interfaz. **ThreeD** integra RealityKit y los gestos. **Services**, en MiOfrenda, guarda la generación local del poema.
+**Models** describe datos y estados. **Data** contiene valores concretos del catálogo. **Views** dibuja la interfaz. **ThreeD** integra RealityKit y los gestos. **Services** contiene la lógica de cada sección: MiOfrenda guarda los perfiles y CalaveritasLiterarias genera y conserva los poemas.
 
 **Resources** contiene archivos que la app debe encontrar en ejecución. Cambiar un Swift no sustituye la necesidad de incluir el USDZ o el HTML.
 
@@ -302,7 +314,8 @@ La vista previa del Canvas abre `AppTabsView` directamente. Esto nos permite tra
 | Coordenadas de las etiquetas | `OfrendaView.swift` mediante `OfrendaViewportState` | Distribución de botones en 2D. |
 | Giro, zoom y cámara | Coordinadores de los visores 3D | RealityKit y reconocimiento de gestos. |
 | Sección de una tarjeta | La plantilla o `CalaveritasView.swift` | Selector de Historia, Significado, Indagar, etc. |
-| Calaverita generada visible | `MiOfrendaFinalView.swift` | Resultado de la combinación aleatoria de estrofas locales. |
+| Calaverita generada visible | `CalaveritasLiterariasView.swift` | Borrador creado con el último perfil guardado. |
+| Colección de calaveritas | `CalaveritasStore.swift` | Poemas conservados en `mis_calaveritas.json`. |
 
 Para entender el código, `@State` indica que esa vista conserva un valor. `@Binding` permite trabajar sobre un valor que pertenece a otra vista. Por ejemplo, Mi ofrenda recibe el perfil como binding y lo modifica sin crear otro perfil independiente.
 
@@ -366,9 +379,9 @@ Ese es el Canvas que debemos abrir para revisar la interfaz con el modelo real. 
 
 **Archivo:** [App/AppTabsView.swift](OfrendaDiaDeMuertosProyecto/App/AppTabsView.swift)
 
-Es el punto donde se unen Ofrenda, Historias y Mi ofrenda. El enum privado `AppTab` identifica las tres pestañas sin depender del texto que ve el usuario.
+Es el punto donde se unen Ofrenda, Historias, Mi ofrenda y Calaveritas. El enum privado `AppTab` identifica las cuatro pestañas sin depender del texto que ve el usuario.
 
-La vista conserva `tab`, `elementoSeleccionado`, `elementosVisitados`, `personalizacion` y los almacenes observables `fotosMarcos` y `elementosStore`. Además obtiene los elementos de `OfrendaCatalog.elementos`.
+La vista conserva la pestaña, el elemento seleccionado, los visitados, la sesión 3D y las instancias de `OfrendasManager` y `CalaveritasStore`. Los dos almacenes se entregan como objetos del entorno. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. Además obtiene el catálogo de `OfrendaCatalog.elementos`.
 
 `elementosStore` carga la selección persistida y se comparte con ambos recorridos. Si se oculta un elemento que estuviera seleccionado, cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El nombre del perfil también se pasa al encabezado principal mientras vive ese perfil.
 
@@ -1037,7 +1050,7 @@ Si más adelante se quiere mostrar una historia adaptada al perfil, habrá que p
 <a id="archivos-personalizacion"></a>
 ## 14. Personalización: Mi ofrenda
 
-Esta parte es opcional dentro de la aplicación. Podemos recorrer el altar y abrir sus historias sin crear un perfil. Cuando entramos a Mi ofrenda, el flujo sí tiene requisitos para avanzar: fotografía y nombre en el retrato, y comida favorita en gustos.
+Esta parte es opcional dentro de la aplicación. Podemos recorrer el altar y abrir sus historias sin crear un perfil. Cuando entramos a Mi ofrenda, pedimos nombre y comida favorita para guardar los parámetros. Las fotos pueden conservar las imágenes de ejemplo; subir una foto propia sigue siendo opcional.
 
 El recorrido está organizado así:
 
@@ -1049,7 +1062,9 @@ flowchart TD
     A --> D[Gustos y recuerdos]
     D --> E[Sugerencias]
     E --> F[Mi ofrenda final]
-    F --> G[Calaverita literaria]
+    F --> G[Guardar ofrenda]
+    G --> I[Pestaña Calaveritas]
+    I --> J[Generar y guardar versos]
     F --> D
     F --> H[Cambiar fotografía]
     H --> C
@@ -1065,7 +1080,7 @@ Define `PersonalizacionOfrenda` con fotografía, nombre, comida favorita, músic
 
 `marcoRetrato` indica qué foto corresponde a la persona de este perfil. La imagen de `foto` se sincroniza con ese marco en el almacén compartido. Seleccionar el marco derecho no reemplaza la imagen del izquierdo.
 
-`estaCompleta` comprueba foto y nombre. Las vistas también tienen sus validaciones; el flujo puede conservar una foto de ejemplo y pide un nombre para continuar, además de comida en el paso de gustos.
+`estaCompleta` comprueba nombre y comida favorita después de quitar espacios y saltos de línea. Las vistas también tienen sus validaciones; el flujo puede conservar una foto de ejemplo y pide un nombre para continuar, además de comida en el paso de gustos. Esta validación se aplica a los parámetros guardados antes de habilitar Calaveritas.
 
 El archivo también contiene `Aficion`, con las cinco opciones Jardinería, Cocina, Lectura, Costura y Café. Música tiene su propio campo para escribir una canción o género y ya no se duplica como afición. También define `PasoPersonalizacion` con retrato, ajusteFoto, gustos, sugerencias, elementos y resultado.
 
@@ -1073,7 +1088,7 @@ El perfil completo todavía vive en memoria. La persistencia de fotos de los mar
 
 ### 38. CalaveritaGenerator.swift
 
-**Archivo:** [Features/MiOfrenda/Services/CalaveritaGenerator.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Services/CalaveritaGenerator.swift)
+**Archivo:** [Features/CalaveritasLiterarias/Services/CalaveritaGenerator.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Services/CalaveritaGenerator.swift)
 
 Contiene `CalaveritaGenerator.generar(para:)`. Recibe una `PersonalizacionOfrenda` y devuelve un `String` con tres estrofas.
 
@@ -1091,7 +1106,7 @@ Cuando un dato está vacío, utiliza los siguientes valores:
 
 La comida, la música, la afición y el recuerdo se convierten a minúsculas al incorporarse a los versos. El nombre conserva el texto escrito. Si seleccionamos varias aficiones, toma la primera después de ordenarlas alfabéticamente; no necesariamente la primera que tocamos.
 
-El botón Generar otra calaverita vuelve a sortear las estrofas. Puede repetirse una combinación porque el sorteo no lleva un historial de poemas. Los datos se marcan con `**` para resaltarlos en el resultado. `escaparMarkdown` conserva como texto literal los caracteres especiales escritos por el usuario, de modo que un gusto no se convierta en un enlace o formato introducido accidentalmente.
+El botón Generar otra vuelve a sortear las estrofas. El argumento opcional `evitando` recibe el poema visible: si el sorteo coincide con él, cambia la estrofa inicial. No se repite inmediatamente esa versión, aunque una combinación más antigua sí puede volver a aparecer. Los datos se marcan con `**` para resaltarlos en el resultado. `escaparMarkdown` conserva como texto literal los caracteres especiales escritos por el usuario, de modo que un gusto no se convierta en un enlace o formato introducido accidentalmente.
 
 Este servicio no modifica la foto ni el modelo 3D. Su responsabilidad termina al devolver el texto.
 
@@ -1196,11 +1211,9 @@ La presentación utiliza `EditorMarcos` mediante `.sheet(item:)`, para que la ho
 
 Solo monta el visor si la pestaña y la escena están activas. Al salir conserva su espacio y suspende el altar; la sesión mantiene el mismo visor y modelo preparados para el siguiente montaje.
 
-Las cuatro `MiniTarjeta` se acomodan en una cuadrícula de dos columnas y muestran comida, música, primera afición ordenada y recuerdo. El poema usa `CalaveritaGenerator` al pulsar el botón, sin generación remota.
+Las cuatro `MiniTarjeta` se acomodan en una cuadrícula de dos columnas y muestran comida, música, primera afición ordenada y recuerdo. Esta pantalla ya no genera versos. Guardar ofrenda confirma los datos mediante `OfrendasManager`, informa un fallo de escritura y termina el flujo solamente cuando se guardó correctamente. La generación ahora está en Calaveritas.
 
-`formatearCalaverita` interpreta únicamente formato Markdown en línea y conserva los saltos de verso. Resalta los datos en naranja, negritas y cursivas, y les asigna el enlace interno `cempasuchil://flores`. El manejador `openURL` intercepta ese enlace para mostrar pétalos, sin abrir otra aplicación.
-
-`PetalosCempasuchilView` usa 20 pétalos dibujados con formas nativas y gradiente naranja, sin el glifo de una flor. Conserva sus identidades en `@State`, con tamaños, posiciones, retrasos y duraciones variados. Su tarea de cierre se cancela al retirar la vista y espera a que termine el pétalo más lento. Con Reducir movimiento utiliza una aparición breve sin caída ni giro. La capa permite que los toques sigan llegando a los controles inferiores.
+La lectura con formato y la animación de pétalos se trasladaron a `CalaveritaTextoView`, compartido por el generador y la colección.
 
 El resultado y el altar principal muestran las mismas fotos. Ya no existe un montaje independiente del retrato con `foto.usdz`. Los fallos de textura se comunican a la interfaz; el resumen conserva `ModelLoadState` y muestra «Cargando modelo 3D…» mientras prepara el altar. También retira su ancla al abrir el editor de marcos.
 
@@ -2121,3 +2134,83 @@ Contiene los 19 símbolos SVG dibujados para la aplicación: cempasúchil, retra
 Es la hoja que abre la flecha junto a 0 de 13 elementos. Presenta Por descubrir con círculos vacíos y Ya explorados con checks. Esos checks reflejan las historias que realmente se abrieron; no son interruptores para completar el recorrido manualmente. `AppTabsView` registra también las historias abiertas desde Historias, y el progreso del altar cuenta únicamente las categorías visibles.
 
 La lista recibe el catálogo visible, el conjunto de visitados, el número de categorías ocultas y si el modelo está listo para enfocar. Al tocar una fila guarda la selección, cierra la hoja y solicita el mismo mini zoom y la tarjeta que usaríamos desde el altar. El contenido se desplaza, admite los tamaños medio y grande de la sheet y usa las ilustraciones HTML compartidas. Si no hay categorías visibles, explica cómo activarlas; las historias de los elementos ocultos permanecen disponibles en Historias.
+
+
+## 29. Calaveritas literarias en su propia pestaña
+
+Ahora los versos tienen su apartado. Mi ofrenda se ocupa de la personalización y de guardar sus parámetros; Calaveritas utiliza esa versión guardada para escribir. Así podemos crear varias versiones y conservar las que nos gusten sin volver a pasar por todas las pantallas del altar.
+
+### Cómo se desbloquea
+
+La pestaña siempre se puede abrir. Si no hay una ofrenda guardada con **nombre y comida favorita**, muestra el bloqueo y el botón Personalizar mi ofrenda. No genera un poema con el nombre de respaldo. Las fotos, la música, las aficiones y el recuerdo siguen siendo opcionales; no se exige una fotografía personal para escribir.
+
+Una ofrenda anterior que ya tenga esos dos datos también desbloquea la sección. No hay que volver a crearla. Si hay varias, el selector permite decidir para quién escribir. Los cambios pendientes de un formulario no se usan hasta guardar esa ofrenda.
+
+### Recorrido de los versos
+
+1. Guardamos la ofrenda desde el resultado de la personalización.
+2. Abrimos Calaveritas y elegimos una de las ofrendas disponibles.
+3. Generar calaverita crea un borrador con las plantillas locales que ya usábamos.
+4. Guardar calaverita conserva esa versión. El botón confirma Calaverita guardada y evita duplicarla.
+5. Generar otra cambia el borrador visible; los poemas guardados permanecen en la colección.
+6. Guardadas abre una sheet nativa con la lista. Desde ahí podemos entrar a cada poema y volver a leerlo completo.
+
+Cambiar el perfil elegido o guardar nuevos parámetros retira el borrador anterior para no guardar versos asociados a otra persona por accidente. Si editamos o eliminamos después una ofrenda, las calaveritas que ya guardamos conservan su destinatario, fecha y texto original. Guardadas sigue accesible aunque la generación vuelva a quedar bloqueada.
+
+### 69. CalaveritaGuardada.swift
+
+**Archivo:** [CalaveritaGuardada.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Models/CalaveritaGuardada.swift)
+
+Representa una versión del poema. Guarda su UUID, el UUID de la ofrenda, el nombre de la persona, el texto con formato y la fecha de creación. Es `Codable`, por lo que se conserva como JSON. No depende de que siga existiendo el altar para poder leerse.
+
+### 70. CalaveritasStore.swift
+
+**Archivo:** [CalaveritasStore.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Services/CalaveritasStore.swift)
+
+Es el almacén observable de la colección. `AppTabsView` conserva una sola instancia y la comparte con la pestaña y la hoja. `guardar` escribe primero el archivo con reemplazo atómico y después actualiza la lista. Si falla, mantiene el borrador y comunica que puede reintentarse. No muestra una confirmación que no llegó al disco.
+
+La colección se escribe en Documentos, dentro de `mis_calaveritas.json`, con las versiones recientes al inicio. No duplica el mismo texto para la misma ofrenda. `cargar` recupera los poemas al iniciar y al abrir Guardadas. Un archivo ilegible se conserva y bloquea nuevas escrituras hasta poder leerlo; nunca se reemplaza silenciosamente por una colección vacía.
+
+El inicializador admite una URL distinta para ejecutar las pruebas con archivos temporales, sin tocar las calaveritas de la app.
+
+### 71. CalaveritasLiterariasView.swift
+
+**Archivo:** [CalaveritasLiterariasView.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Views/CalaveritasLiterariasView.swift)
+
+Contiene el estado bloqueado, la selección de ofrenda, el borrador y sus acciones de generar, guardar y generar otra. Consulta `ofrendasParaCalaveritas`, que viene de los perfiles efectivamente guardados. La sheet de Guardadas se puede abrir en ambos estados. El selector y la navegación usan componentes nativos; conserva la paleta morada y naranja y los controles de cristal del proyecto.
+
+La sección no monta otro visor de RealityKit ni vuelve a cargar el USDZ. La ilustración propia reutiliza la capa HTML existente y se suspende cuando la pestaña o la escena no están activas, o cuando se abre la colección.
+
+### 72. CalaveritasGuardadasView.swift
+
+**Archivo:** [CalaveritasGuardadasView.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Views/CalaveritasGuardadasView.swift)
+
+Presenta la colección en una sheet con NavigationStack. Cada fila muestra persona, fecha y el inicio del poema. `CalaveritaGuardadaDetalleView`, privada dentro del archivo, abre la versión completa. La lista vacía explica cómo guardar la primera. Los errores de lectura permiten reintentar sin borrar el archivo original.
+
+### 73. CalaveritaTextoView.swift
+
+**Archivo:** [CalaveritaTextoView.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Views/CalaveritaTextoView.swift)
+
+Comparte la misma lectura entre borradores y guardados. Interpreta Markdown en línea conservando los saltos de verso, resalta los datos personales y mantiene la animación de pétalos del resultado anterior. El enlace interno de los datos resaltados se maneja dentro de la app. No abre sitios externos. La animación respeta Reducir movimiento y su tarea se cancela al retirar la vista.
+
+### 74. OfrendasManager.swift y el guardado del perfil
+
+**Archivo:** [OfrendasManager.swift](OfrendaDiaDeMuertosProyecto/Features/MiOfrenda/Services/OfrendasManager.swift)
+
+`ofrendas` contiene los valores que puede editar el formulario. `ofrendasGuardadas` es una copia de los que llegaron correctamente a `mis_ofrendas.json`. `ofrendasParaCalaveritas` filtra esa copia mediante `estaCompleta`, que valida nombre y comida después de quitar espacios y saltos de línea.
+
+Agregar, actualizar y eliminar construyen la nueva colección a partir de la versión guardada. Guardar una ofrenda no confirma de paso la edición pendiente de otra. Agregar y actualizar devuelven un Bool; MiOfrendaFinalView cierra el recorrido solamente si el guardado tiene éxito. El formato JSON de los perfiles anteriores se conserva.
+
+### Pruebas de esta sección
+
+**Archivos:** [CalaveritasRegression.swift](Tests/CalaveritasRegression.swift) y [probar-calaveritas.sh](Scripts/probar-calaveritas.sh).
+
+El script compila los mismos modelos y servicios de la aplicación y ejecuta las comprobaciones en un simulador iOS abierto. Usa archivos temporales independientes. Revisa perfiles incompletos y con espacios, diferencias entre editar y guardar, varias ofrendas, fallos de escritura, reapertura, duplicados, conservación de poemas al eliminar un altar, archivo dañado y versiones distintas del poema visible.
+
+Para ejecutarlo desde la raíz del proyecto:
+
+```bash
+Scripts/probar-calaveritas.sh
+```
+
+Con varios simuladores abiertos se puede elegir uno con `TASK_SIMULATOR_UDID`. Si Xcode está en otra ubicación, el script respeta `DEVELOPER_DIR`. Estas pruebas comprueban datos y reglas; la navegación, el encuadre y el tamaño de letra se revisan también con la app ejecutándose.
