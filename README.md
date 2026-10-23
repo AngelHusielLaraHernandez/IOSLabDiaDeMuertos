@@ -46,7 +46,7 @@ Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG 
 | Pestaña | Qué encontramos ahí |
 | --- | --- |
 | **Ofrenda** | El altar 3D, sus controles de movimiento y los botones flotantes que abren las historias. |
-| **Historias** | Lista de los 13 elementos para abrir su significado, historia e inspección 3D, aunque estén ocultos en el altar personal. |
+| **Historias** | Elementos y celebraciones: 13 historias con contexto geográfico, tres celebraciones monumentales y progreso persistente con desbloqueos. |
 | **Mi ofrenda** | Crear y editar las ofrendas, sus fotos, gustos y elementos 3D. |
 | **Calaveritas** | Generar versos para una ofrenda guardada, conservarlos y abrir la colección de calaveritas. |
 
@@ -60,7 +60,7 @@ Los gustos se utilizan para mostrar sugerencias escritas y completar una plantil
 
 En la ofrenda principal también tenemos el botón Fotos y selección directa de los marcos visibles. Podemos mostrar uno o dos; al conservar uno, se centra y se oculta el otro, sin borrar su fotografía. Cada uno admite una foto con encuadre propio; sus copias se guardan localmente y se recuperan al abrir de nuevo la app.
 
-Las ofrendas se guardan en `mis_ofrendas.json`. Las calaveritas que guardamos desde su nueva pestaña se conservan en `mis_calaveritas.json`, con su persona y fecha. El poema recién generado sigue siendo un borrador hasta tocar Guardar calaverita. El progreso de lectura permanece en memoria. No necesitamos una cuenta ni un servicio remoto.
+Las ofrendas se guardan en `mis_ofrendas.json`. Las calaveritas que guardamos desde su nueva pestaña se conservan en `mis_calaveritas.json`, con su persona y fecha. El poema recién generado sigue siendo un borrador hasta tocar Guardar calaverita. El recorrido de historias abiertas se conserva localmente con identificadores estables; desbloquea celebraciones al llegar a 3, 6 y 13 elementos. No necesitamos una cuenta ni un servicio remoto.
 
 <a id="abrir-proyecto"></a>
 ## 2. Cómo abrirla y qué configuración estamos usando
@@ -381,7 +381,7 @@ Ese es el Canvas que debemos abrir para revisar la interfaz con el modelo real. 
 
 Es el punto donde se unen Ofrenda, Historias, Mi ofrenda y Calaveritas. El enum privado `AppTab` identifica las cuatro pestañas sin depender del texto que ve el usuario.
 
-La vista conserva la pestaña, el elemento seleccionado, los visitados, la sesión 3D y las instancias de `OfrendasManager` y `CalaveritasStore`. Los dos almacenes se entregan como objetos del entorno. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. Además obtiene el catálogo de `OfrendaCatalog.elementos`.
+La vista conserva la pestaña, el elemento seleccionado, la sesión 3D y las instancias de `OfrendasManager`, `CalaveritasStore` y `ProgresoRecorridoStore`. Los tres almacenes se entregan como objetos del entorno. El último conserva los elementos visitados entre arranques. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. Además obtiene el catálogo de `OfrendaCatalog.elementos`.
 
 `elementosStore` carga la selección persistida y se comparte con ambos recorridos. Si se oculta un elemento que estuviera seleccionado, cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El nombre del perfil también se pasa al encabezado principal mientras vive ese perfil.
 
@@ -1668,7 +1668,7 @@ Para investigar un cierre debemos conservar el mensaje de error o el reporte cor
 
 Esta sección nos ayuda a diferenciar lo que funciona de lo que todavía tendríamos que implementar.
 
-- El perfil personalizado y el progreso no se guardan entre arranques.
+- El progreso didáctico se guarda entre arranques en `ProgresoRecorridoStore`; el perfil personalizado se administra por separado en `OfrendasManager`.
 - `Item.swift` no representa una persistencia terminada de Mi ofrenda.
 - Las sugerencias son texto local basado en reglas y no reorganizan automáticamente los objetos 3D.
 - La calaverita personalizada combina estrofas locales al azar; puede repetirse una combinación y no utiliza generación remota.
@@ -1680,7 +1680,7 @@ Esta sección nos ayuda a diferenciar lo que funciona de lo que todavía tendrí
 - El recurso 3D sigue siendo considerable en geometría y texturas. Las optimizaciones del visor no equivalen a una nueva optimización de la malla.
 - La selección de fotografía de Mi ofrenda todavía no muestra un mensaje específico cuando falla su carga. El editor de los marcos principales sí presenta errores.
 - El resultado personalizado muestra carga y error del modelo, y comunica también errores de textura.
-- La suite de pruebas auxiliares no forma parte del repositorio.
+- Las pruebas de catálogo, progreso y desbloqueos están en `Tests/TradicionesRegression.swift`; se ejecutan con `Scripts/probar-tradiciones.sh`. No sustituyen las pruebas visuales y de rendimiento en dispositivos físicos.
 - Falta completar la validación en los dispositivos físicos y en cada versión de Xcode del equipo.
 
 No todos estos puntos son errores del recorrido actual. Algunos describen el alcance que tenemos por ahora y las decisiones que necesitaríamos tomar si se amplía el proyecto.
@@ -2214,3 +2214,51 @@ Scripts/probar-calaveritas.sh
 ```
 
 Con varios simuladores abiertos se puede elegir uno con `TASK_SIMULATOR_UDID`. Si Xcode está en otra ubicación, el script respeta `DEVELOPER_DIR`. Estas pruebas comprueban datos y reglas; la navegación, el encuadre y el tamaño de letra se revisan también con la app ejecutándose.
+
+
+## 30. Tradición en México, celebraciones y mapas
+
+Ahora cada elemento conecta su historia con un lugar representativo. Esta relación no afirma que el objeto haya nacido únicamente ahí: en el altar conviven prácticas regionales, historias compartidas y decisiones de cada familia. Las 13 fichas tienen un vínculo, aunque varias comparten San Andrés Mixquic porque se apoyan en el mismo registro local documentado.
+
+En Indagar encontramos primero la cronología y después Tradición en México. Ahí aparecen localidad, contexto, vista previa, Explorar lugar, Cómo llegar y fuentes. La ficha especial de Calaveritas también lo incorpora sin alterar sus cuatro secciones. Toluca se relaciona con las calaveritas de dulce, no se presenta como el origen de la poesía.
+
+Historias conserva Elementos y añade Celebraciones mediante un selector nativo. El catálogo incluye Megaofrenda UNAM, Altares de Huaquechula y Valle de Catrinas. El nombre general permite reunir altares y esculturas sin tratarlos como si fueran la misma expresión cultural.
+
+### Archivos de la nueva sección
+
+| Archivo, dentro de Features/Tradiciones | Responsabilidad |
+| --- | --- |
+| `Models/LugarCultural.swift` | Define lugar, coordenadas de referencia, fuentes, vínculo con un elemento y celebración. La edición, la fecha de revisión y el umbral de historias están separados de la tradición permanente. |
+| `Data/TradicionesCatalog.swift` | Contiene diez puntos de referencia, las asociaciones de los 13 elementos y las tres celebraciones. Los textos y enlaces se revisaron el 23 de octubre de 2026. Aquí se actualizan sedes, programas y avisos de futuras temporadas. |
+| `Services/MapasCulturales.swift` | Administra la presentación de un destino, los tres medios de transporte y las miniaturas de MapKit. La caché es únicamente en memoria, con un límite de 6 MB y 12 imágenes. |
+| `Services/ProgresoRecorridoStore.swift` | Guarda los identificadores de historias abiertas en UserDefaults, bajo `ofrenda.recorrido.v1`. Admite alias de títulos, ignora claves desconocidas y evita sumar visitas repetidas. |
+| `Views/TarjetaLugarView.swift` | Muestra la ficha geográfica dentro de Indagar o del detalle de una celebración. La miniatura se solicita al aparecer la ficha; una falla no elimina la descripción ni las acciones. También contiene el menú compartido de rutas. |
+| `Views/ExploradorLugarView.swift` | Abre un mapa a pantalla completa con Mapa, Satélite y Vista de calle cuando Look Around encuentra imágenes. Permite centrar y abrir una ruta. Cancela las solicitudes al retirarse y suspende la vista durante el segundo plano. |
+| `Views/CelebracionesView.swift` | Muestra el recorrido, los tres desbloqueos y sus fichas. El detalle separa historia, dato documentado, edición y acceso. Las historias comunes nunca quedan bloqueadas. |
+| `Views/MapaTradicionesView.swift` | Al completar el recorrido muestra los diez lugares del catálogo en un mapa. El mapa general se retira mientras se explora un destino para no mantener dos mapas interactivos dibujándose. |
+
+### Cómo se guarda el recorrido
+
+`AppTabsView` conserva `ProgresoRecorridoStore` y lo comparte en el entorno. Abrir una tarjeta desde el altar o desde Historias marca su elemento. Los checks y el contador existentes reciben los mismos nombres que usaban, mientras el almacenamiento utiliza IDs como `flores`, `aguaSal` o `cana`. Cambiar de altar o de perfil no borra el recorrido didáctico.
+
+Una visita significa **abrir una historia**, no comprobar que alguien la leyó o aprendió su contenido. Las revisitas no suman. Los desbloqueos son: 3 elementos para UNAM, 6 para Huaquechula y 13 para Valle de Catrinas. Con 13 aparece Guardián de la Tradición y el mapa de lugares del catálogo. Si hay objetos ocultos en un altar, sus historias siguen disponibles en Elementos.
+
+### Rendimiento, conexión y rutas
+
+El detalle de un elemento conserva la misma sesión RealityKit. Mientras se abre el explorador, `TarjetaDetalleElementoView` pasa `isActive = false` al objeto e inactiva sus ilustraciones HTML. `Elemento3DView` retira su ancla, pausa el giro y oculta el ARView prestado; al cerrar el mapa lo reactiva. Al desmontar el detalle restaura la visibilidad antes de devolver el visor. No se crea otro motor 3D para las celebraciones.
+
+Las listas de celebraciones no contienen mapas activos. Las miniaturas se solicitan con MKMapSnapshotter y conservan el encuadre completo. El explorador usa una sola vista interactiva: Map o LookAroundPreview. La vista satelital puede solicitar relieve e inclinación, pero su disponibilidad depende de Apple y de cada lugar. Una imagen de calle no garantiza que se vea una ofrenda temporal. En tamaños de accesibilidad, los paneles inferiores de ambos mapas se desplazan dentro de una zona del 42 % de la altura disponible, conservando espacio para explorar el mapa.
+
+Los textos, los enlaces y el recorrido están disponibles localmente. Mapas, imágenes y páginas oficiales requieren conexión. Si no se obtiene una miniatura o una escena de calle, la interfaz lo explica y permite seguir consultando la referencia. La caché no es una descarga de mapas para uso sin conexión.
+
+Cómo llegar abre Apple Maps con el destino y el medio seleccionado. Nuestra app no solicita ubicación ni calcula rutas; Apple Maps administra el origen, los permisos que necesite y la cobertura de transporte. Las coordenadas del catálogo son referencias de localidades o recintos, no accesos a viviendas o a todas las instalaciones. Cada ficha lo aclara y enlaza los avisos correspondientes.
+
+### Contenido por edición
+
+La ficha UNAM 2026 utiliza la sede anunciada en Universum y la cita del 31 de octubre a las 11:00 h; remite al programa para la duración completa. Huaquechula describe la tradición sin inventar un listado de casas abiertas para 2026. Valle de Catrinas distingue las piezas del municipio de las que se exponen fuera de él. Janitzio enlaza además el aviso oficial de acceso de la temporada. Estos datos necesitan una revisión editorial al preparar una edición posterior.
+
+No se incorporaron como hechos las comparaciones sin comprobar de 120,000 plantas, panes de 30 metros ni un supuesto número de flores del modelo. Los datos destacados incluyen su fuente y periodo; se pueden ampliar cuando exista documentación suficiente.
+
+### Comprobaciones
+
+`Tests/TradicionesRegression.swift` prueba los archivos reales del catálogo y del recorrido con un UserDefaults independiente. Comprueba reapertura, visitas repetidas, alias, claves desconocidas, vínculos para los 13 elementos, umbrales de desbloqueo y correspondencia de los medios de transporte. Se ejecuta con `Scripts/probar-tradiciones.sh` en un simulador iOS abierto. La cobertura de imágenes y las rutas disponibles son respuestas de MapKit y se revisan también con la aplicación en ejecución.

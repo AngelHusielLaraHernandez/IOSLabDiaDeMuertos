@@ -12,11 +12,12 @@ struct TarjetaDetalleElementoView: View {
     let renderSession: OfrendaRenderSession
     let fotosMarcos: FotosMarcosStore
     var textoBotonCerrar = "Volver a la ofrenda"
+    @StateObject private var exploracion = ExploracionGeografica()
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                Elemento3DView(elemento: elemento, fotosMarcos: fotosMarcos, renderSession: renderSession)
+                Elemento3DView(elemento: elemento, fotosMarcos: fotosMarcos, renderSession: renderSession, isActive: exploracion.lugar == nil)
                     .frame(height: min(220, max(140, geometry.size.height * 0.29)))
                     .padding(.horizontal, 24)
                     .padding(.top, 16)
@@ -24,7 +25,10 @@ struct TarjetaDetalleElementoView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .ilustracionesOfrenda()
+        .background(AppTheme.background.ignoresSafeArea())
+        .ilustracionesOfrenda(activa: exploracion.lugar == nil)
+        .environmentObject(exploracion)
+        .fullScreenCover(item: $exploracion.lugar) { lugar in ExploradorLugarView(lugar: lugar) }
     }
 
     @ViewBuilder private var contenido: some View {

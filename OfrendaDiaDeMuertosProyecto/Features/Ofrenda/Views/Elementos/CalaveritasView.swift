@@ -99,6 +99,10 @@ struct CalaveritasView: View {
                                 }
                             }
                         }
+                        if let vinculo = TradicionesCatalog.vinculo(para: "Calaveritas") {
+                            TarjetaLugarView(lugar: vinculo.lugar, contexto: vinculo.contexto)
+                            Text(vinculo.lugar.avisoVisita).font(.footnote).foregroundStyle(AppTheme.secondaryText)
+                        }
                     }
 
                 }

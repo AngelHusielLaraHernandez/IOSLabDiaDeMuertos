@@ -34,11 +34,12 @@ struct ElementSheetHeader: View {
 struct SheetSectionPicker: View {
     let secciones: [String]
     @Binding var seleccion: Int
+    var titulo = "Sección del elemento"
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
-            Picker("Sección del elemento", selection: $seleccion) {
+            Picker(titulo, selection: $seleccion) {
                 ForEach(secciones.indices, id: \.self) { indice in
                     Text(secciones[indice]).tag(indice)
                 }
@@ -46,7 +47,7 @@ struct SheetSectionPicker: View {
             .pickerStyle(.menu)
             .ofrendaSecondaryAction()
         } else {
-            Picker("Sección del elemento", selection: $seleccion) {
+            Picker(titulo, selection: $seleccion) {
                 ForEach(secciones.indices, id: \.self) { indice in
                     Text(secciones[indice]).tag(indice)
                 }

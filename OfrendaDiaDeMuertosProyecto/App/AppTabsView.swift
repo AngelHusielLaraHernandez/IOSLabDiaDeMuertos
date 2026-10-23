@@ -15,7 +15,10 @@ struct AppTabsView: View {
     @State private var renderSession = OfrendaRenderSession()
     @State private var tab: AppTab = .ofrenda
     @State private var elementoSeleccionado: ElementoOfrenda?
-    @State private var elementosVisitados: Set<String> = []
+    @StateObject private var recorrido = ProgresoRecorridoStore()
+    private var elementosVisitados: Binding<Set<String>> {
+        Binding(get: { recorrido.nombresVisitados }, set: { recorrido.registrar(nombres: $0) })
+    }
     
     // Manager global de las ofrendas
     @StateObject private var ofrendasManager = OfrendasManager()
@@ -30,7 +33,7 @@ struct AppTabsView: View {
                 OfrendaPrincipalTabView(
                     renderSession: renderSession,
                     isActive: tab == .ofrenda && scenePhase == .active,
-                    elementosVisitados: $elementosVisitados,
+                    elementosVisitados: elementosVisitados,
                     elementoSeleccionado: $elementoSeleccionado,
                     onPersonalizar: { tab = .miOfrenda },
                     ofrendas: ofrendasManager.ofrendas
@@ -62,8 +65,9 @@ struct AppTabsView: View {
         // 1. INYECTAMOS EL MANAGER A TODA LA APP
         .environmentObject(ofrendasManager)
         .environmentObject(calaveritasStore)
+        .environmentObject(recorrido)
         .onChange(of: elementoSeleccionado?.id) { _, id in
-            if let id { elementosVisitados.insert(id) }
+            if let id { recorrido.visitar(nombre: id) }
         }
         .tint(AppTheme.accent)
         .preferredColorScheme(.dark)
