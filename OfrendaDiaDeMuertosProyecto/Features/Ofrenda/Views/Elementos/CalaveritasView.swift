@@ -19,43 +19,18 @@ struct CalaveritasView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ElementSheetHeader(icono: .calaveritas, subtitulo: "Versos y dulces", titulo: "Calaveritas")
-            SheetSectionPicker(secciones: ["Literaria", "De azúcar", "Historia", "Indagar"], seleccion: $seccionActiva)
+            ElementSheetHeader(icono: .calaveritas, subtitulo: "Dulce tradición", titulo: "Calaveritas de Azúcar")
+            SheetSectionPicker(secciones: ["Significado", "Elaboración", "Historia"], seleccion: $seccionActiva)
+            
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if seccionActiva == 0 {
-                        // LITERARIA (Texto exacto de tu captura de Figma)
-                        Text("La Calaca jardinera")
-                            .font(.title3.weight(.bold))
-                            .foregroundColor(.white)
-
-                        Text("La Calaca fue al jardín\ncon su lista y su sombrero;\ndijo: «Aquí vengo por fin,\npero riego lo primero».")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.9))
-                            .lineSpacing(5)
-                            .padding(14)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: 14).fill(colorTarjeta.opacity(0.6)))
-
-                        Text("Entre flores y alegría,\nse olvidó de su misión;\ny al llegar el nuevo día,\nse marchó con un botón.")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.9))
-                            .lineSpacing(5)
-                            .padding(14)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: 14).fill(colorTarjeta.opacity(0.6)))
-
-                        Text("Las calaveritas literarias recuerdan con humor, rima y afecto las aficiones de quienes queremos.")
-                            .font(.footnote)
-                            .foregroundColor(colorTextoSecundario)
-
-                    } else if seccionActiva == 1 {
-                        // DE AZÚCAR
+                        // SIGNIFICADO Y SIMBOLISMO
                         Text("Dulzura con nombre propio")
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
 
-                        Text("Elaboradas con azúcar, amaranto o chocolate, las calaveritas decoradas con alfeñique de colores nos invitan a mirar la muerte con cercanía y dulzura.")
+                        Text("Elaboradas tradicionalmente con azúcar, amaranto o chocolate, las calaveritas decoradas con alfeñique de colores nos invitan a mirar la muerte con cercanía, ironía y dulzura.")
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
@@ -65,32 +40,42 @@ struct CalaveritasView: View {
                             .foregroundColor(.white)
                             .padding(.top, 4)
 
-                        Text("Llevan escrito un nombre en la frente y se colocan en el altar o se regalan entre familiares y amigos como símbolo de afecto y memoria.")
+                        Text("Suelen llevar escrito un nombre en la frente en papel metalizado. Se colocan en el altar para honrar a los difuntos o se regalan a personas queridas en vida como un recordatorio de nuestra propia mortalidad.")
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
-
-                    } else if seccionActiva == 2 {
-                        // HISTORIA
-                        Text("¿De dónde vienen?")
+                            
+                    } else if seccionActiva == 1 {
+                        // ELABORACIÓN Y TIPOS
+                        Text("Arte del Alfeñique")
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
 
-                        Text("Recordar con una sonrisa es parte esencial del Día de Muertos. Desde el periodo virreinal hasta los impresos del siglo XIX, el arte popular transformó la figura de la calavera en verso y dulce.")
+                        Text("El alfeñique es una técnica de origen árabe introducida por los españoles, moldeada con clara de huevo, limón y azúcar canela. En lugares como Toluca o Puebla, esta artesanía se ha transmitido por generaciones.")
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
 
-                        Text("Así, las familias mexicanas entrelazan el alfeñique artesanal con los versos rimados que celebran las anécdotas de cada persona.")
+                        Text("Variedades populares")
+                            .font(.headline.weight(.bold))
+                            .foregroundColor(.white)
+                            .padding(.top, 4)
+
+                        Text("• **Chocolate:** Muy populares entre niños y jóvenes.\n• **Amaranto:** Endulzadas con miel de agave o piloncillo, de origen prehispánico.\n• **Gomita y Gelatina:** Variantes modernas integradas al altar actual.")
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
 
                     } else {
-                        // INDAGAR
-                        Text("Su camino hasta el altar")
+                        // HISTORIA
+                        Text("Raíces e Historia")
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
+
+                        Text("Su antecedente prehispánico es el *Tzompantli*, un altar de cráneos reales dedicado a los dioses. Durante la época colonial, las autoridades prohibieron el uso de huesos y la tradición se transformó en figuras modeladas de azúcar.")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.88))
+                            .lineSpacing(4)
 
                         VStack(spacing: 12) {
                             ForEach(hitos) { hito in
@@ -100,12 +85,12 @@ struct CalaveritasView: View {
                             }
                         }
                     }
-
                 }
                 .padding(.top, 4)
                 .padding(.bottom, 16)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            
             Button { dismiss() } label: {
                 Text(textoBotonCerrar)
                     .frame(maxWidth: .infinity)
@@ -115,7 +100,7 @@ struct CalaveritasView: View {
         }
         .padding(24)
         .sheet(isPresented: $mostrarFuentes) {
-            VistaFuentesElemento(nombreElemento: "Calaveritas", hitos: hitos)
+            VistaFuentesElemento(nombreElemento: "Calaveritas de Azúcar", hitos: hitos)
                 .ofrendaSheet()
         }
     }

@@ -2,8 +2,6 @@
 //  TarjetaDetalleElementoView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
-//  Created by Angel Lara on 16/10/26.
-//
 
 import SwiftUI
 
@@ -11,38 +9,61 @@ struct TarjetaDetalleElementoView: View {
     let elemento: ElementoOfrenda
     let renderSession: OfrendaRenderSession
     let fotosMarcos: FotosMarcosStore
-    var textoBotonCerrar = "Volver a la ofrenda"
+    let textoBotonCerrar: String
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                Elemento3DView(elemento: elemento, fotosMarcos: fotosMarcos, renderSession: renderSession)
-                    .frame(height: min(220, max(140, geometry.size.height * 0.29)))
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                contenido
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: 0) {
+            // 1. Mostrar el modelo 3D para todos los elementos EXCEPTO la calaverita literaria.
+            // Como la calaverita literaria no tiene un modelo 3D en el archivo USDZ,
+            // simplemente omitimos el visor para ella.
+            if elemento.nombre != "Calaveritas literarias" {
+                Elemento3DView(
+                    elemento: elemento,
+                    fotosMarcos: fotosMarcos,
+                    renderSession: renderSession
+                )
+                .frame(height: 260)
+                .padding(.top, 20)
+                .padding(.horizontal, 20)
+            }
+            
+            // 2. Enrutador a la vista específica según el nombre del elemento
+            switch elemento.nombre {
+            case "Calaveritas":
+                CalaveritasView(textoBotonCerrar: textoBotonCerrar)
+                
+            case "Calaveritas literarias":
+                CalaveritaLiterariaView(textoBotonCerrar: textoBotonCerrar)
+                
+            case "Agua y sal":
+                AguaYSalView(textoBotonCerrar: textoBotonCerrar)
+                
+            case "Caña de azúcar":
+                CanaDeAzucarView(textoBotonCerrar: textoBotonCerrar)
+                
+            case "Cigarro":
+                CigarroView(textoBotonCerrar: textoBotonCerrar)
+                
+            default:
+                // Vista genérica de respaldo para los demás elementos
+                PlantillaTarjetaElementoView(
+                    icono: elemento.icono,
+                    subtituloCabecera: "En el altar",
+                    nombreElemento: elemento.nombre,
+                    tituloHistoria: elemento.tituloHistoria,
+                    parrafoHistoria1: elemento.descripcionHistoria,
+                    parrafoHistoria2: "",
+                    preguntaReflexion: "¿Qué representa este elemento para ti?",
+                    tituloSignificado: "¿Por qué está aquí?",
+                    parrafoSignificado1: elemento.significado,
+                    subtituloSignificado2: "",
+                    parrafoSignificado2: "",
+                    notaSignificado: "",
+                    hitos: [],
+                    textoBotonCerrar: textoBotonCerrar
+                )
             }
         }
-        .ilustracionesOfrenda()
-    }
-
-    @ViewBuilder private var contenido: some View {
-        switch elemento.nombre {
-        case "Flores", "Cempasúchil": FloresView(textoBotonCerrar: textoBotonCerrar)
-        case "Velas": VelasView(textoBotonCerrar: textoBotonCerrar)
-        case "Agua y sal": AguaYSalView(textoBotonCerrar: textoBotonCerrar)
-        case "Pan", "Pan de muerto": PanDeMuertoView(textoBotonCerrar: textoBotonCerrar)
-        case "Comida": ComidaView(textoBotonCerrar: textoBotonCerrar)
-        case "Retrato": RetratoView(textoBotonCerrar: textoBotonCerrar)
-        case "Papel", "Papel picado": PapelView(textoBotonCerrar: textoBotonCerrar)
-        case "Calaveritas": CalaveritasView(textoBotonCerrar: textoBotonCerrar)
-        case "Caña de azúcar": CanaDeAzucarView(textoBotonCerrar: textoBotonCerrar)
-        case "Frutas": FrutasView(textoBotonCerrar: textoBotonCerrar)
-        case "Incienso": InciensoView(textoBotonCerrar: textoBotonCerrar)
-        case "Cigarro": CigarroView(textoBotonCerrar: textoBotonCerrar)
-        case "Tequila": TequilaView(textoBotonCerrar: textoBotonCerrar)
-        default: FloresView(textoBotonCerrar: textoBotonCerrar)
-        }
+        .background(AppTheme.background.ignoresSafeArea())
     }
 }

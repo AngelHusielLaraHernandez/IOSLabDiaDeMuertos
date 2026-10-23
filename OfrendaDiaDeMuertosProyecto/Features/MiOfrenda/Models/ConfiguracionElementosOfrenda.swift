@@ -90,7 +90,7 @@ enum GrupoElementoOfrenda: String, CaseIterable, Identifiable, Sendable {
         case "Velas": .velas
         case "Papel", "Papel picado": .papel
         case "Agua y sal": .agua
-        case "Calaveritas": .calaveritas
+        case "Calaveritas", "Calaveritas literarias": .calaveritas 
         case "Pan", "Pan de muerto": .pan
         case "Comida": .comida
         case "Caña de azúcar": .cana

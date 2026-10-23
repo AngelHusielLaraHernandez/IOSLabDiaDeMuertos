@@ -104,6 +104,7 @@ private extension String {
                 attrString[run.range].foregroundColor = colorAcento
                 attrString[run.range].font = Font.body.bold().italic()
                 attrString[run.range].link = URL(string: "cempasuchil://flores")
+                attrString[run.range].underlineStyle = Text.LineStyle(pattern: .solid, color: colorAcento)
             }
         }
 

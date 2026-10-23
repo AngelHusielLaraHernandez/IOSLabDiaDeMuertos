@@ -53,6 +53,15 @@ enum OfrendaCatalog {
             anclaNormalizada: SIMD3<Float>(0.24, 0.38, 0.15)
         ),
         ElementoOfrenda(
+            nombre: "Calaveritas literarias",
+            icono: .calaveritaLiteraria,
+            tituloHistoria: "Calaveritas literarias",
+            descripcionHistoria: "Versos con humor y afecto para recordar.",
+            significado: "La sátira y la rima como homenaje.",
+            anclaNormalizada: SIMD3<Float>(x: 0.30, y: 0.30, z: 0.20),
+            entidadesAncla: []
+        ),
+        ElementoOfrenda(
             nombre: "Pan", icono: .pan,
             tituloHistoria: "El aroma de la cocina",
             descripcionHistoria: "El pan de muerto se comparte como símbolo de fraternidad y cariño.",

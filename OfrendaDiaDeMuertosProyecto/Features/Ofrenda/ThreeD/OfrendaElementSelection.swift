@@ -17,6 +17,7 @@ enum OfrendaElementSelection {
         case "Papel", "Papel picado": ["papel__001"]
         case "Agua y sal": ["bebidas__002", "bebidas__003"]
         case "Calaveritas": ["calaveras__001"]
+        case "Calaveritas literarias": []
         case "Pan", "Pan de muerto": ["pan__001"]
         case "Comida": ["comida__001"]
         case "Caña de azúcar": ["comida__012"]
