@@ -28,23 +28,26 @@ struct CelebracionesView: View {
                     if recorrido.desbloqueada(celebracion) { seleccion = celebracion }
                     else { bloqueo = celebracion }
                 } label: {
-                    HStack(alignment: .top, spacing: 16) {
-                        Image(systemName: celebracion.simbolo)
-                            .font(.title2).foregroundStyle(AppTheme.accent)
-                            .frame(width: 48, height: 48)
-                            .background(.white.opacity(0.08), in: .circle)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(celebracion.nombre).font(.headline)
-                            Text(celebracion.lugar.region).font(.caption).foregroundStyle(AppTheme.accent)
-                            Text(celebracion.resumen).font(.subheadline).foregroundStyle(AppTheme.secondaryText)
-                            if !recorrido.desbloqueada(celebracion) {
-                                Label("Explora \(celebracion.historiasRequeridas) historias para desbloquear", systemImage: "lock")
-                                    .font(.caption).foregroundStyle(AppTheme.accent)
+                    VStack(alignment: .leading, spacing: 16) {
+                        FotografiaCulturalView(lugar: celebracion.lugar, altura: 180, incluirCredito: false)
+                        HStack(alignment: .top, spacing: 16) {
+                            Image(systemName: celebracion.simbolo)
+                                .font(.title2).foregroundStyle(AppTheme.accent)
+                                .frame(width: 48, height: 48)
+                                .background(.white.opacity(0.08), in: .circle)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(celebracion.nombre).font(.headline)
+                                Text(celebracion.lugar.region).font(.caption).foregroundStyle(AppTheme.accent)
+                                Text(celebracion.resumen).font(.subheadline).foregroundStyle(AppTheme.secondaryText)
+                                if !recorrido.desbloqueada(celebracion) {
+                                    Label("Explora \(celebracion.historiasRequeridas) historias para desbloquear", systemImage: "lock")
+                                        .font(.caption).foregroundStyle(AppTheme.accent)
+                                }
                             }
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(AppTheme.secondaryText)
                         }
-                        Spacer(minLength: 0)
-                        Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(AppTheme.secondaryText)
                     }
                     .padding(16).frame(maxWidth: .infinity, alignment: .leading)
                     .ofrendaSurface()
@@ -89,6 +92,7 @@ private struct CelebracionDetalleView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    FotografiaCulturalView(lugar: celebracion.lugar, altura: 230)
                     Text(celebracion.nombre).font(.largeTitle.bold())
                     Text(celebracion.resumen).font(.title3).foregroundStyle(AppTheme.secondaryText)
                     Text(celebracion.historia).lineSpacing(4)
@@ -104,7 +108,7 @@ private struct CelebracionDetalleView: View {
                         .frame(minHeight: 44)
                     Text("Revisión editorial: \(celebracion.verificadoEl)")
                         .font(.footnote).foregroundStyle(AppTheme.secondaryText)
-                    TarjetaLugarView(lugar: celebracion.lugar)
+                    TarjetaLugarView(lugar: celebracion.lugar, mostrarFotografia: false)
                     Text(celebracion.lugar.avisoVisita).font(.footnote).foregroundStyle(AppTheme.secondaryText)
                 }
                 .padding(24).frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)

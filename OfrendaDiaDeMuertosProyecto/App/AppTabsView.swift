@@ -98,7 +98,7 @@ private struct OfrendaPrincipalTabView: View {
 
     @State private var elementosStore: ElementosOfrendaStore
     @State private var fotosMarcos: FotosMarcosStore
-    private let elementos = OfrendaCatalog.elementos
+    private let elementos = OfrendaCatalog.elementosDelAltar
 
     init(renderSession: OfrendaRenderSession,
          isActive: Bool,

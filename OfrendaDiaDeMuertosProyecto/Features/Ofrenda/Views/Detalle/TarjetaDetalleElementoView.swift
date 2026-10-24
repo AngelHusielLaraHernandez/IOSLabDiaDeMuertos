@@ -17,10 +17,12 @@ struct TarjetaDetalleElementoView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                Elemento3DView(elemento: elemento, fotosMarcos: fotosMarcos, renderSession: renderSession, isActive: exploracion.lugar == nil)
-                    .frame(height: min(220, max(140, geometry.size.height * 0.29)))
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
+                if elemento.esElementoDelAltar {
+                    Elemento3DView(elemento: elemento, fotosMarcos: fotosMarcos, renderSession: renderSession, isActive: exploracion.lugar == nil)
+                        .frame(height: min(220, max(140, geometry.size.height * 0.29)))
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                }
                 contenido
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -41,6 +43,7 @@ struct TarjetaDetalleElementoView: View {
         case "Retrato": RetratoView(textoBotonCerrar: textoBotonCerrar)
         case "Papel", "Papel picado": PapelView(textoBotonCerrar: textoBotonCerrar)
         case "Calaveritas": CalaveritasView(textoBotonCerrar: textoBotonCerrar)
+        case "Calaveritas literarias": CalaveritaLiterariaView(textoBotonCerrar: textoBotonCerrar)
         case "Caña de azúcar": CanaDeAzucarView(textoBotonCerrar: textoBotonCerrar)
         case "Frutas": FrutasView(textoBotonCerrar: textoBotonCerrar)
         case "Incienso": InciensoView(textoBotonCerrar: textoBotonCerrar)

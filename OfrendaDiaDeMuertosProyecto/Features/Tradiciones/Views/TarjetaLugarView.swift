@@ -10,6 +10,7 @@ import SwiftUI
 struct TarjetaLugarView: View {
     let lugar: LugarCultural
     var contexto: String? = nil
+    var mostrarFotografia = true
     @EnvironmentObject private var exploracion: ExploracionGeografica
     @State private var imagen: UIImage?
     @State private var cargando = true
@@ -21,6 +22,7 @@ struct TarjetaLugarView: View {
             Text(lugar.nombre).font(.headline).foregroundStyle(AppTheme.accent)
             Text(lugar.region).font(.subheadline).foregroundStyle(AppTheme.secondaryText)
             Text(contexto ?? lugar.descripcion).font(.body).lineSpacing(4)
+            if mostrarFotografia { FotografiaCulturalView(lugar: lugar) }
             Group {
                 if let imagen {
                     Image(uiImage: imagen).resizable().scaledToFit()

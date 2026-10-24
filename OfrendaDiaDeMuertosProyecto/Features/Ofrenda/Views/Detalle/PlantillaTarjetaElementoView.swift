@@ -25,7 +25,7 @@ struct PlantillaTarjetaElementoView: View {
     let parrafoSignificado2: String
     let notaSignificado: String
 
-    // Pestaña 3: Indagar (Línea del tiempo y fuentes)
+    // Mapa precede a Conocer más, que reúne la línea del tiempo y las fuentes.
     let hitos: [HitoHistorico]
     var textoBotonCerrar: String = "Volver a la ofrenda"
 
@@ -38,7 +38,7 @@ struct PlantillaTarjetaElementoView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ElementSheetHeader(icono: icono, subtitulo: subtituloCabecera, titulo: nombreElemento)
-            SheetSectionPicker(secciones: ["Historia", "Significado", "Indagar"], seleccion: $seccionActiva)
+            SheetSectionPicker(secciones: ["Historia", "Significado", "Mapa", "Conocer más"], seleccion: $seccionActiva)
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if seccionActiva == 0 {
@@ -90,8 +90,10 @@ struct PlantillaTarjetaElementoView: View {
                             .font(.footnote)
                             .foregroundColor(colorTextoSecundario)
 
+                    } else if seccionActiva == 2 {
+                        MapaElementoView(nombreElemento: nombreElemento)
                     } else {
-                        // INDAGAR (Línea del tiempo)
+                        // CONOCER MÁS (Línea del tiempo)
                         Text("Su camino hasta el altar")
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
@@ -118,11 +120,6 @@ struct PlantillaTarjetaElementoView: View {
                         }
                         .buttonStyle(.glass)
 
-                        if let vinculo = TradicionesCatalog.vinculo(para: nombreElemento) {
-                            TarjetaLugarView(lugar: vinculo.lugar, contexto: vinculo.contexto)
-                            Text(vinculo.lugar.avisoVisita)
-                                .font(.footnote).foregroundStyle(AppTheme.secondaryText)
-                        }
                     }
 
                 }

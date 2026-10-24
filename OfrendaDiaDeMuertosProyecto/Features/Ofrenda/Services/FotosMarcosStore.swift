@@ -103,6 +103,26 @@ final class FotosMarcosStore {
         }
     }
 
+    /// Las fotos se escriben al confirmar su encuadre; Guardar confirma también la disposición.
+    @discardableResult
+    func confirmarGuardado() async -> Bool {
+        guard haCargado, !cargando, !guardandoConfiguracion else {
+            mensajeError = "No se han podido recuperar los marcos. Cierra y vuelve a abrir las fotografías antes de guardar."
+            return false
+        }
+        guardandoConfiguracion = true
+        defer { guardandoConfiguracion = false }
+        do {
+            let datos = try JSONEncoder().encode(configuracion)
+            try await archivos.guardarConfiguracion(datos)
+            mensajeError = nil
+            return true
+        } catch {
+            mensajeError = "No se pudieron confirmar los marcos. Tus fotografías se conservan; vuelve a pulsar Guardar."
+            return false
+        }
+    }
+
     private static func cargarEjemplos() -> [MarcoOfrenda: FotoMarco] {
         var resultado: [MarcoOfrenda: FotoMarco] = [:]
         for marco in MarcoOfrenda.allCases {

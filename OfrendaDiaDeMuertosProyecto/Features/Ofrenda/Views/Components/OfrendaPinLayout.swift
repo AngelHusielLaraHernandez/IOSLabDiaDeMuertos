@@ -63,7 +63,7 @@ enum OfrendaPinLayout {
             }
         }
         var placed: [String: Placement] = [:]
-        var occupied = [resetRect(in: size)] + reservedRects
+        var occupied = reservedRects
         for pin in visible {
             if placed.count == limit(for: zoomFactor) { break }
             let width = min(pin.width, size.width - 2 * margin)
@@ -103,11 +103,10 @@ enum OfrendaPinLayout {
         guard !pins.isEmpty else { return [:] }
         let width = min(pins.map(\.width).max() ?? 84, size.width - margin * 2)
         let columns = max(1, Int((size.width - margin * 2 + gap) / (width + gap)))
-        let desiredRows = Int(ceil(Double(pins.count + 1 + reservedRects.count) / Double(columns)))
+        let desiredRows = Int(ceil(Double(pins.count + reservedRects.count) / Double(columns)))
         let fittingRows = max(1, Int((size.height - margin * 2 + gap) / (44 + gap)))
         let rows = min(desiredRows, fittingRows)
         guard CGFloat(rows) * 44 + CGFloat(max(0, rows - 1)) * gap <= size.height - margin * 2 else { return [:] }
-        let reset = resetRect(in: size).insetBy(dx: -gap / 2, dy: -gap / 2)
         var slots: [CGPoint] = []
         for row in 0..<rows {
             let y = rows == 1 ? size.height / 2 : 34 + CGFloat(row) * (size.height - 68) / CGFloat(rows - 1)
@@ -115,7 +114,7 @@ enum OfrendaPinLayout {
                 let x = columns == 1 ? size.width / 2 : margin + width / 2 + CGFloat(column) * (size.width - margin * 2 - width) / CGFloat(columns - 1)
                 let center = CGPoint(x: x, y: y)
                 let rect = Placement(center: center, width: width).rect
-                if !rect.intersects(reset), !reservedRects.contains(where: { $0.intersects(rect.insetBy(dx: -gap / 2, dy: -gap / 2)) }) {
+                if !reservedRects.contains(where: { $0.intersects(rect.insetBy(dx: -gap / 2, dy: -gap / 2)) }) {
                     slots.append(center)
                 }
             }
@@ -129,10 +128,6 @@ enum OfrendaPinLayout {
             result[pin.id] = Placement(center: slots.remove(at: index), width: min(pin.width, width))
         }
         return result
-    }
-
-    private static func resetRect(in size: CGSize) -> CGRect {
-        CGRect(x: size.width - 68, y: 8, width: 60, height: 60)
     }
 
     private static func distance(_ a: CGPoint, _ b: CGPoint) -> CGFloat {

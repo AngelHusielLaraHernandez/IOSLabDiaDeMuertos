@@ -18,8 +18,8 @@ struct OfrendaView: View {
     @Binding var elementoSeleccionado: ElementoOfrenda?
     let onPersonalizar: () -> Void
     @State private var mostrarRecorrido = false
+    @State private var mostrarFechas = false
     @State private var pendienteDelRecorrido: ElementoOfrenda?
-    @State private var resetToken = 0
     @State private var loadState: ModelLoadState = .loading
     @State private var viewport = OfrendaViewportState()
     @State private var focusRequest: OfrendaFocusRequest?
@@ -61,7 +61,7 @@ struct OfrendaView: View {
             }
         }
         .task { await fotosMarcos.cargar() }
-        .ilustracionesOfrenda(activa: isActive && !mostrarRecorrido && editorMarcos == nil && elementoSeleccionado == nil)
+        .ilustracionesOfrenda(activa: isActive && !mostrarRecorrido && !mostrarFechas && editorMarcos == nil && elementoSeleccionado == nil)
         .sheet(isPresented: $mostrarRecorrido, onDismiss: {
             guard let elemento = pendienteDelRecorrido else { return }
             pendienteDelRecorrido = nil
@@ -110,9 +110,6 @@ struct OfrendaView: View {
                 Text("Cada objeto, una historia.")
                     .font(.largeTitle.bold())
                     .fixedSize(horizontal: false, vertical: true)
-                Text(elementosVisibles.isEmpty ? "Elige qué objetos añadir desde Mi ofrenda." : "Acerca la ofrenda para descubrir más objetos y sus historias.")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.secondaryText)
                 Button { mostrarRecorrido = true } label: {
                     VStack(alignment: .leading, spacing: 7) {
                         HStack(spacing: 10) {
@@ -136,8 +133,11 @@ struct OfrendaView: View {
             .padding(.horizontal, 24)
             .padding(.top, 8)
 
+            CalendarioOfrendaView(activo: isActive, mostrarFechas: $mostrarFechas)
+                .padding(.horizontal, 24)
+
             GeometryReader { geometry in
-                let paused = elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || !isActive
+                let paused = elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || mostrarFechas || !isActive
                 let projections = paused ? [:] : viewport.positions
                 let photoControls = MarcoPhotoControls.placements(paused ? [:] : viewport.frameProjections, in: geometry.size)
                 let pins = OfrendaPinLayout.place(
@@ -159,7 +159,7 @@ struct OfrendaView: View {
                     if isActive || elementoSeleccionado != nil {
                         OfrendaInteractive3DView(
                             elementos: elementos,
-                            resetToken: resetToken,
+                            resetToken: 0,
                             viewport: $viewport,
                             focusRequest: focusRequest,
                             reduceMotion: reduceMotion,
@@ -182,7 +182,7 @@ struct OfrendaView: View {
                             },
                             configuracionMarcos: fotosMarcos.configuracion,
                             seleccionElementos: seleccionElementos,
-                            isObscured: elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || !isActive,
+                            isObscured: elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || mostrarFechas || !isActive,
                             renderSession: renderSession
                         )
                     }
@@ -232,17 +232,6 @@ struct OfrendaView: View {
                     ) { marco in
                         editorMarcos = EditorMarcos(marco: marco)
                     }
-                    VStack {
-                        HStack {
-                            Spacer()
-                            GlassIconButton(systemImage: "arrow.counterclockwise", label: "Restablecer vista 3D") {
-                                focusRequest = nil
-                                resetToken += 1
-                            }
-                        }
-                        Spacer()
-                    }
-                    .padding(16)
                     if case .loading = loadState {
                         ProgressView("Cargando modelo 3D…")
                             .padding(20)

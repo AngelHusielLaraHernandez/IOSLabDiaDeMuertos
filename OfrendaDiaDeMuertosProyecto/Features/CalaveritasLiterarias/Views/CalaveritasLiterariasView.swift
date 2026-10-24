@@ -16,6 +16,7 @@ struct CalaveritasLiterariasView: View {
     @State private var idOfrenda: UUID?
     @State private var calaverita: CalaveritaGuardada?
     @State private var mostrandoGuardadas = false
+    @State private var calaveritaAGuardar: CalaveritaGuardada?
 
     private var ofrendasDisponibles: [PersonalizacionOfrenda] { ofrendasManager.ofrendasParaCalaveritas }
     private var ofrenda: PersonalizacionOfrenda? {
@@ -49,13 +50,16 @@ struct CalaveritasLiterariasView: View {
                         .accessibilityIdentifier("calaveritas.guardadas")
                 }
             }
-            .ilustracionesOfrenda(activa: isActive && !mostrandoGuardadas)
+            .ilustracionesOfrenda(activa: isActive && !mostrandoGuardadas && calaveritaAGuardar == nil)
             .sheet(isPresented: $mostrandoGuardadas) {
                 CalaveritasGuardadasView()
                     .ofrendaSheet(detents: [.large])
             }
+            .sheet(item: $calaveritaAGuardar) { poema in
+                GuardarCalaveritaView(calaverita: poema).ofrendaSheet(detents: [.large])
+            }
             .alert("Tus calaveritas", isPresented: Binding(
-                get: { calaveritasStore.mensajeError != nil && !mostrandoGuardadas },
+                get: { calaveritasStore.mensajeError != nil && !mostrandoGuardadas && calaveritaAGuardar == nil },
                 set: { if !$0 { calaveritasStore.mensajeError = nil } }
             )) {
                 Button("Entendido", role: .cancel) { calaveritasStore.mensajeError = nil }
@@ -116,17 +120,29 @@ struct CalaveritasLiterariasView: View {
             .padding(20)
             .ofrendaSurface()
 
-            Button {
-                calaveritasStore.guardar(calaverita)
-            } label: {
-                Label(calaveritasStore.contiene(calaverita) ? "Calaverita guardada" : "Guardar calaverita",
-                      systemImage: calaveritasStore.contiene(calaverita) ? "checkmark" : "bookmark")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+            if let guardada = calaveritasStore.versionGuardada(de: calaverita) {
+                Label("Guardada como «\(guardada.tituloVisible)»", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("calaveritas.confirmacionGuardado")
+            } else {
+                Button {
+                    calaveritaAGuardar = calaverita
+                } label: {
+                    Label("Guardar calaverita", systemImage: "bookmark")
+                        .frame(maxWidth: .infinity).padding(.vertical, 6)
+                }
+                .ofrendaPrimaryAction()
+                .accessibilityIdentifier("calaveritas.guardar")
             }
-            .ofrendaPrimaryAction()
-            .disabled(calaveritasStore.contiene(calaverita))
-            .accessibilityIdentifier("calaveritas.guardar")
+
+            ShareLink(item: (calaveritasStore.versionGuardada(de: calaverita) ?? calaverita).textoParaCompartir) {
+                Label("Compartir calaverita", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .ofrendaSecondaryAction()
+            .accessibilityIdentifier("calaveritas.compartir")
 
             Button("Generar otra", systemImage: "arrow.clockwise") { generar(para: ofrenda) }
                 .frame(maxWidth: .infinity, minHeight: 44)
@@ -139,7 +155,7 @@ struct CalaveritasLiterariasView: View {
             }
         } else {
             VStack(alignment: .leading, spacing: 16) {
-                IlustracionOfrendaView(tipo: .calaveritas, tamano: 104)
+                IlustracionOfrendaView(tipo: .calaveritaLiteraria, tamano: 104)
                 Text("Una calaverita para \(ofrenda.nombre)")
                     .font(.title3.bold())
                 Text("Sus gustos inspiran un poema con humor y cariño. Genera distintas versiones y guarda tus favoritas.")

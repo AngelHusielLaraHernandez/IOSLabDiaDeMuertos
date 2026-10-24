@@ -70,7 +70,7 @@ struct HistoriasView: View {
 
                                 // Título y subtítulo
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(elemento.nombre)
+                                    Text(elemento.nombreVisible)
                                         .font(.headline)
                                         .foregroundColor(.white)
 

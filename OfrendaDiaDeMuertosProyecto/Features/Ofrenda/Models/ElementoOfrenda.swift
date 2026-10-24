@@ -10,6 +10,8 @@ import simd
 
 struct ElementoOfrenda: Identifiable {
     var id: String { nombre }
+    /// El identificador histórico se conserva aunque se aclare el nombre mostrado.
+    var nombreVisible: String { nombre == "Calaveritas" ? "Calaveritas de azúcar" : nombre }
     let nombre: String
     let icono: IlustracionOfrenda
     let tituloHistoria: String
@@ -21,5 +23,7 @@ struct ElementoOfrenda: Identifiable {
     var entidadesAncla: [String] = []
     /// Los detalles pequeños se descubren al acercar la cámara (un factor menor acerca).
     var zoomMaximoEtiqueta: Float = 2.5
+    /// Los temas de lectura adicionales no crean anclas 3D ni aumentan el recorrido físico.
+    var esElementoDelAltar = true
 }
 

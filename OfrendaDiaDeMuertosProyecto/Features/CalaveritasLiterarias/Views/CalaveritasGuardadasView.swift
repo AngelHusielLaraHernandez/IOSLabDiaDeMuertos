@@ -25,20 +25,26 @@ struct CalaveritasGuardadasView: View {
                     }
                 } else {
                     List(store.calaveritas) { calaverita in
-                        NavigationLink {
-                            CalaveritaGuardadaDetalleView(calaverita: calaverita)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Para \(calaverita.nombrePersona)").font(.headline)
-                                Text(calaverita.fechaCreacion, format: .dateTime.day().month(.wide).year().hour().minute())
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.secondaryText)
-                                Text(vistaPrevia(calaverita.texto))
-                                    .font(.subheadline)
-                                    .foregroundStyle(AppTheme.secondaryText)
-                                    .lineLimit(2)
+                        HStack(alignment: .center, spacing: 12) {
+                            NavigationLink {
+                                CalaveritaGuardadaDetalleView(calaverita: calaverita)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(calaverita.tituloVisible).font(.headline)
+                                    Text("Para \(calaverita.nombrePersona)")
+                                        .font(.subheadline).foregroundStyle(AppTheme.accent)
+                                    Text(calaverita.fechaCreacion, format: .dateTime.day().month(.wide).year().hour().minute())
+                                        .font(.caption).foregroundStyle(AppTheme.secondaryText)
+                                    Text(vistaPrevia(calaverita.texto))
+                                        .font(.subheadline).foregroundStyle(AppTheme.secondaryText).lineLimit(2)
+                                }.padding(.vertical, 8)
                             }
-                            .padding(.vertical, 8)
+                            ShareLink(item: calaverita.textoParaCompartir) {
+                                Image(systemName: "square.and.arrow.up")
+                                    .frame(minWidth: 44, minHeight: 44)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel("Compartir \(calaverita.tituloVisible)")
                         }
                         .listRowBackground(AppTheme.surface.opacity(0.72))
                     }
@@ -77,14 +83,21 @@ private struct CalaveritaGuardadaDetalleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                Text(calaverita.tituloVisible).font(.title2.bold())
                 Text("Para \(calaverita.nombrePersona)")
-                    .font(.title2.bold())
+                    .font(.headline).foregroundStyle(AppTheme.accent)
                 Text(calaverita.fechaCreacion, format: .dateTime.day().month(.wide).year())
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.secondaryText)
                 CalaveritaTextoView(texto: calaverita.texto)
                     .padding(20)
                     .ofrendaSurface()
+                ShareLink(item: calaverita.textoParaCompartir) {
+                    Label("Compartir calaverita", systemImage: "square.and.arrow.up")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .ofrendaSecondaryAction()
+                .accessibilityIdentifier("calaveritas.guardadaCompartir")
             }
             .padding(24)
             .frame(maxWidth: 640, alignment: .leading)

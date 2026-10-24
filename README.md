@@ -46,13 +46,13 @@ Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG 
 | Pestaña | Qué encontramos ahí |
 | --- | --- |
 | **Ofrenda** | El altar 3D, sus controles de movimiento y los botones flotantes que abren las historias. |
-| **Historias** | Elementos y celebraciones: 13 historias con contexto geográfico, tres celebraciones monumentales y progreso persistente con desbloqueos. |
+| **Historias** | Elementos y celebraciones: 14 temas —los 13 grupos del altar y las calaveritas literarias—, tres celebraciones monumentales y progreso persistente del recorrido físico. |
 | **Mi ofrenda** | Crear y editar las ofrendas, sus fotos, gustos y elementos 3D. |
 | **Calaveritas** | Generar versos para una ofrenda guardada, conservarlos y abrir la colección de calaveritas. |
 
-Tenemos **13 elementos registrados**: Flores, Retrato, Velas, Papel, Agua y sal, Calaveritas, Pan, Comida, Caña de azúcar, Frutas, Incienso, Cigarro y Tequila. Los ocho primeros pertenecen a la vista general. Los cinco últimos aparecen al acercar la cámara a un factor de 0.9 o menor, si su objeto está en el encuadre y cabe su etiqueta.
+Tenemos **13 grupos físicos del altar**: Flores, Retrato, Velas, Papel, Agua y sal, Calaveritas de azúcar, Pan, Comida, Caña de azúcar, Frutas, Incienso, Cigarro y Tequila. Los ocho primeros pertenecen a la vista general. Los cinco últimos aparecen al acercar la cámara a un factor de 0.9 o menor, si su objeto está en el encuadre y cabe su etiqueta.
 
-Cada uno tiene su tarjeta. En doce casos usamos las secciones **Historia, Significado e Indagar**. En Calaveritas tenemos una vista particular con **Literaria, De azúcar, Historia e Indagar**, porque ahí se reúnen los versos y el significado de las calaveritas de dulce.
+Cada grupo tiene su tarjeta. Doce utilizan **Historia, Significado, Conocer más y Mapa**. Calaveritas de azúcar tiene **Significado, Elaboración, Historia, Conocer más y Mapa**. Las calaveritas literarias tienen una ficha independiente en Historias con **Ejemplo, Origen, Estructura y Conocer más**, sin otro objeto 3D.
 
 La personalización es opcional para recorrer la aplicación. Si decidimos entrar a ese flujo, la interfaz permite conservar la foto de ejemplo y pide nombre para continuar desde el retrato, y una comida favorita para pasar de gustos a sugerencias. Las aficiones y el recuerdo compartido complementan esa información.
 
@@ -202,6 +202,7 @@ OfrendaDiaDeMuertosProyecto/
 │   │   │           ├── PapelView.swift
 │   │   │           ├── AguaYSalView.swift
 │   │   │           ├── CalaveritasView.swift
+│   │   │           ├── CalaveritaLiterariaView.swift
 │   │   │           ├── PanDeMuertoView.swift
 │   │   │           ├── ComidaView.swift
 │   │   │           ├── CanaDeAzucarView.swift
@@ -313,7 +314,7 @@ La vista previa del Canvas abre `AppTabsView` directamente. Esto nos permite tra
 | Paso de personalización | `OfrendaPersonalizadaFlowView.swift` | Retrato, ajuste, gustos, sugerencias, elementos y resultado. |
 | Coordenadas de las etiquetas | `OfrendaView.swift` mediante `OfrendaViewportState` | Distribución de botones en 2D. |
 | Giro, zoom y cámara | Coordinadores de los visores 3D | RealityKit y reconocimiento de gestos. |
-| Sección de una tarjeta | La plantilla o `CalaveritasView.swift` | Selector de Historia, Significado, Indagar, etc. |
+| Sección de una tarjeta | La plantilla o `CalaveritasView.swift` | Selector de Historia, Significado, Conocer más, etc. |
 | Calaverita generada visible | `CalaveritasLiterariasView.swift` | Borrador creado con el último perfil guardado. |
 | Colección de calaveritas | `CalaveritasStore.swift` | Poemas conservados en `mis_calaveritas.json`. |
 
@@ -381,11 +382,11 @@ Ese es el Canvas que debemos abrir para revisar la interfaz con el modelo real. 
 
 Es el punto donde se unen Ofrenda, Historias, Mi ofrenda y Calaveritas. El enum privado `AppTab` identifica las cuatro pestañas sin depender del texto que ve el usuario.
 
-La vista conserva la pestaña, el elemento seleccionado, la sesión 3D y las instancias de `OfrendasManager`, `CalaveritasStore` y `ProgresoRecorridoStore`. Los tres almacenes se entregan como objetos del entorno. El último conserva los elementos visitados entre arranques. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. Además obtiene el catálogo de `OfrendaCatalog.elementos`.
+La vista conserva la pestaña, el elemento seleccionado, la sesión 3D y las instancias de `OfrendasManager`, `CalaveritasStore` y `ProgresoRecorridoStore`. Los tres almacenes se entregan como objetos del entorno. El último conserva los elementos visitados entre arranques. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. `AppTabsView` obtiene el catálogo completo de `OfrendaCatalog.elementos`; `OfrendaPrincipalTabView` utiliza `elementosDelAltar`, que conserva los 13 grupos físicos.
 
 `OfrendaPrincipalTabView` carga la selección persistida del altar elegido. Cada flujo de edición recibe almacenes propios para el ID de su perfil. Si se oculta un elemento que estuviera seleccionado, se cierra su detalle. Los errores de lectura o escritura tienen un aviso con opción de guardar de nuevo. El encabezado principal recibe el nombre del perfil confirmado en `ofrendasGuardadas`.
 
-El conjunto de visitados alimenta el progreso del altar; solo se cuentan las categorías que siguen visibles. Historias recibe el catálogo completo y el binding del elemento seleccionado. Al tocar una tarjeta abre la misma hoja del altar; su botón inferior dice Volver a historias y conserva esa pestaña al cerrar.
+El conjunto de visitados alimenta el progreso del altar; solo se cuentan las categorías que siguen visibles. Historias recibe el catálogo completo de 14 temas y el binding del elemento seleccionado. Al tocar una tarjeta abre la hoja compartida; la ficha literaria no monta un objeto 3D ni incrementa el recorrido físico. El botón inferior dice Volver a historias y conserva esa pestaña al cerrar.
 
 El `TabView` es nativo. La hoja de detalle también se presenta aquí mediante `.sheet(item:)`. Las tarjetas del altar usan alturas de 82 % y pantalla completa para dejar espacio al ejemplar 3D sobre el contenido. Conservan el texto Volver a la ofrenda.
 
@@ -434,11 +435,11 @@ Si queremos modificar el estilo de todos los botones principales o el indicador 
 
 Contiene dos componentes que comparten las tarjetas.
 
-`ElementSheetHeader` recibe icono, subtítulo y título. Coloca el botón de cerrar y usa `dismiss` del entorno para cerrar la presentación actual. El título está marcado como encabezado para accesibilidad y el icono decorativo no se lee como otro dato.
+`ElementSheetHeader` recibe icono, subtítulo y título. Normalmente coloca el botón de cerrar mediante `dismiss`. Si recibe `onGuardar`, presenta Guardar con el estilo principal y admite `guardarDeshabilitado`; en tamaños de accesibilidad coloca esa acción debajo de la cabecera. El título está marcado como encabezado para accesibilidad y el icono decorativo no se lee como otro dato.
 
-`SheetSectionPicker` recibe un arreglo de secciones y un binding al índice seleccionado. Con tamaños normales muestra un control segmentado. Con tamaños de texto de accesibilidad utiliza un menú, para que los títulos no queden comprimidos en una sola fila.
+`SheetSectionPicker` recibe un arreglo de secciones y un binding al índice seleccionado. Muestra un control segmentado con hasta cuatro opciones y tamaños normales. Utiliza un menú cuando hay más de cuatro opciones o se emplea texto de accesibilidad.
 
-Los componentes reciben información; no eligen qué texto histórico debe tener Flores o Calaveritas. Esa separación permite reutilizarlos aunque una tarjeta tenga tres secciones y otra tenga cuatro.
+Los componentes reciben información; no eligen qué texto histórico debe tener Flores o Calaveritas. Esa separación permite reutilizarlos con las cuatro secciones de la plantilla y las cinco de la ficha de azúcar.
 
 ### 7. PhotoProcessor.swift
 
@@ -502,9 +503,9 @@ Si el HTML no aparece en el bundle, el archivo no dibuja una pantalla de error p
 
 **Archivo:** [Features/Historias/Views/HistoriasView.swift](OfrendaDiaDeMuertosProyecto/Features/Historias/Views/HistoriasView.swift)
 
-`HistoriasView` recibe `elementos` y el binding `elementoSeleccionado`. Dibuja el encabezado Historias de la ofrenda y una tarjeta por objeto, con icono, nombre, subtítulo temático y flecha. `subtituloPara` agrupa los objetos por guiar el camino, recibir con cariño, compartir la mesa y mantener la memoria.
+`HistoriasView` recibe `elementos` y el binding `elementoSeleccionado`. Dibuja el encabezado Historias de la ofrenda y una tarjeta por tema, con icono, nombre, subtítulo temático y flecha. `subtituloPara` agrupa los objetos por guiar el camino, recibir con cariño, compartir la mesa y mantener la memoria.
 
-Al tocar una tarjeta actualiza la selección compartida de `AppTabsView`; la hoja muestra las mismas secciones culturales y el objeto 3D que usamos desde el altar. La lista conserva los 13 elementos aunque algunos estén ocultos en la personalización. `OfrendaAssets.cloneElement` activa únicamente la copia de inspección; no cambia la visibilidad del objeto original ni guarda otra selección.
+Al tocar una tarjeta actualiza la selección compartida de `AppTabsView`. La lista conserva los 13 grupos físicos aunque algunos estén ocultos en la personalización y añade Calaveritas literarias como lectura independiente. Las fichas físicas muestran el mismo objeto 3D del altar; la literaria presenta únicamente su contenido cultural. `OfrendaAssets.cloneElement` activa solo la copia de inspección y no cambia la visibilidad del original ni guarda otra selección.
 
 Las historias, los significados y las cronologías de los objetos siguen disponibles al tocar sus referencias sobre el altar. Por eso no vaciamos las vistas compartidas de detalle ni los datos de Ofrenda: también los necesita la pantalla principal.
 
@@ -517,7 +518,7 @@ Las historias, los significados y las cronologías de los objetos siguen disponi
 
 Define la información básica de un elemento: `nombre`, `icono`, `tituloHistoria`, `descripcionHistoria`, `significado` y `anclaNormalizada`. También declara `entidadesAncla` y `zoomMaximoEtiqueta`, con valores predeterminados para los elementos existentes.
 
-Su `id` se calcula a partir del nombre. Ese identificador conecta la lista, las visitas, el anclaje 3D y la selección de la tarjeta.
+Su `id` se calcula a partir de `nombre`. Ese identificador conecta la lista, las visitas, el anclaje 3D y la selección de la tarjeta. `nombreVisible` permite mostrar Calaveritas de azúcar conservando el ID histórico Calaveritas. `esElementoDelAltar` distingue los grupos físicos de los temas adicionales y vale `true` de forma predeterminada.
 
 `anclaNormalizada` es un `SIMD3<Float>` que ubica el punto de interés dentro de las dimensiones del altar. No es una coordenada en píxeles de la pantalla.
 
@@ -559,7 +560,7 @@ Los estados son comparables para evitar publicaciones repetidas. `OfrendaFocusRe
 
 **Archivo:** [Features/Ofrenda/Data/OfrendaCatalog.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Data/OfrendaCatalog.swift)
 
-Es la fuente de los trece elementos del recorrido. Define el arreglo estático `elementos` con sus resúmenes y anclajes.
+Define el arreglo estático `elementos` con 14 temas: los 13 grupos físicos y Calaveritas literarias. `elementosDelAltar` filtra `esElementoDelAltar` para entregar únicamente los grupos con representación 3D. La ficha literaria no añade ancla visible ni aumenta el recorrido físico.
 
 | Nombre usado como ID | Ancla normalizada X, Y, Z |
 | --- | --- |
@@ -596,11 +597,11 @@ Los textos resumidos del catálogo y los párrafos largos de cada tarjeta están
 
 **Archivo:** [Features/Ofrenda/Data/CalaveritasHistoria.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Data/CalaveritasHistoria.swift)
 
-Extiende `OfrendaCatalog` con el arreglo estático `historiaCalaveritas`.
+Extiende `OfrendaCatalog` con dos arreglos estáticos: `historiaCalaveritas` e `historiaCalaveritasLiterarias`.
 
-El contenido actual agrupa tres momentos: alfeñique y figuras de azúcar, versos satíricos e impresos del siglo XIX, y la tradición actual que reúne dulzura e ingenio para recordar.
+La cronología de azúcar contiene Figuras de azúcar y Artesanía que se comparte. La literaria contiene La sátira en verso y La calavera en los impresos. Cada recorrido conserva sus propias fuentes institucionales con URL.
 
-`CalaveritasView` utiliza esos hitos en Indagar y después los entrega a `VistaFuentesElemento`. Aquí corresponde editar la cronología de esa tarjeta y sus referencias escritas.
+`CalaveritasView` y `CalaveritaLiterariaView` utilizan sus respectivos hitos en Conocer más y los entregan a `VistaFuentesElemento`. Aquí corresponde editar ambas cronologías y sus referencias.
 
 Las referencias son las que tenemos cargadas en el código. Para una entrega académica debemos completar su revisión bibliográfica; que se muestren en una tarjeta no equivale a que la aplicación consulte o verifique esas fuentes.
 
@@ -813,13 +814,14 @@ Al recibir otro UUID de fotografía, la escena actualiza su textura. No hace fal
 
 **Archivo:** [Features/Ofrenda/Views/OfrendaView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/OfrendaView.swift)
 
-Es la pantalla SwiftUI de la pestaña Ofrenda. Aquí se unen el encabezado, el progreso, el visor 3D, los botones flotantes, restablecer, las fotos de los marcos y el acceso opcional a personalizar.
+Es la pantalla SwiftUI de la pestaña Ofrenda. Aquí se unen el encabezado, el progreso, el visor 3D, los botones flotantes, las fotos de los marcos y el acceso opcional a personalizar.
 
 Recibe el catálogo, `isActive`, los bindings del progreso y la selección, y `onPersonalizar`.
 
+La vista principal ya no muestra el texto de acercar la ofrenda ni el botón de restablecer, para dejar más altura disponible al modelo. El doble toque conserva la opción de recuperar el encuadre inicial.
+
 Sus estados principales son:
 
-- `resetToken`, para enviar una orden de restablecer.
 - `loadState`, para la carga y sus errores.
 - `viewport`, con posiciones y zoom recibidos del coordinador.
 - `focusRequest`, para identificar el elemento que se está enfocando.
@@ -834,7 +836,7 @@ El `GlassEffectContainer` utiliza spacing de 4, mientras el layout reserva una s
 
 Al tocar un botón se crea una solicitud de enfoque. Todavía no se abre inmediatamente la tarjeta. Cuando el coordinador termina y devuelve el ID correcto, la vista marca el elemento como visitado y actualiza `elementoSeleccionado`.
 
-Cuando se cierra la hoja, se limpia la solicitud. Esa actualización llega al representable y se recupera el encuadre anterior. El botón de restablecer limpia la solicitud y aumenta el token para recuperar el estado inicial.
+Cuando se cierra la hoja, se limpia la solicitud. Esa actualización llega al representable y se recupera el encuadre anterior.
 
 Si la pestaña deja de estar activa, se limpian el viewport y la solicitud y se prepara otra vez el estado de carga. Los botones permanecen deshabilitados durante la carga o mientras se está completando una selección.
 
@@ -863,13 +865,13 @@ Es un máximo. Si faltan anclajes visibles o no cabe una posición válida, pued
 
 Antes de colocarlos, filtra cada `Pin` por su `zoomMaximo`. Los detalles pequeños no ocupan espacio en la vista general. Al acercar sigue priorizando las referencias próximas al centro y el elemento seleccionado. Si una etiqueta no cabe, intenta la siguiente candidata hasta completar el límite.
 
-Para cada pin propone posiciones cercanas, respeta los bordes y rechaza las que invaden otro rectángulo o el área del botón de restablecer. La separación de referencia es **16 puntos**, con margen exterior de **12 puntos**.
+Para cada pin propone posiciones cercanas, respeta los bordes y rechaza las que invaden otro rectángulo o las áreas reservadas a los controles de las fotos. La separación de referencia es **16 puntos**, con margen exterior de **12 puntos**.
 
 En acercamientos limita el desplazamiento de una etiqueta respecto a su ancla para que no termine apuntando a una zona demasiado lejana. Si no encuentra lugar, la omite.
 
 `gridPlacement` es una alternativa de distribución para la vista general. Solo se utiliza si consigue mostrar más etiquetas que la distribución previa. No sirve para traer de regreso los puntos que ya fueron filtrados por estar fuera de pantalla.
 
-`resetRect` reserva el control superior y `distance` compara distancias al cuadrado.
+Las reservas corresponden a los controles de las fotos; `distance` compara distancias al cuadrado.
 
 Si queremos modificar cuántas etiquetas aparecen al acercar, los umbrales están aquí. Si queremos mover el punto real de un objeto en el altar, corresponde cambiar su ancla en el catálogo.
 
@@ -880,7 +882,7 @@ Si queremos modificar cuántas etiquetas aparecen al acercar, los umbrales está
 
 **Archivo:** [Features/Ofrenda/Views/Detalle/TarjetaDetalleElementoView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Detalle/TarjetaDetalleElementoView.swift)
 
-Elige qué tarjeta presentar a partir de `elemento.nombre`. Recibe el elemento, `fotosMarcos` y el texto del botón de regreso. Encima del contenido sitúa `Elemento3DView`, con una altura de entre 140 y 220 puntos según la hoja. El router sigue eligiendo la tarjeta educativa debajo de ese visor.
+Elige qué tarjeta presentar a partir de `elemento.nombre`. Recibe el elemento, `fotosMarcos` y el texto del botón de regreso. Cuando `esElementoDelAltar` es verdadero, sitúa encima `Elemento3DView`, con una altura de entre 140 y 220 puntos según la hoja. Calaveritas literarias abre su ficha propia sin montar ese visor.
 
 El switch contempla los nombres del catálogo y algunos equivalentes: Flores o Cempasúchil, Papel o Papel picado, y Pan o Pan de muerto. Los demás casos llevan a sus vistas específicas.
 
@@ -894,13 +896,14 @@ Esta vista no presenta por sí misma otra hoja. Es el contenido que `AppTabsView
 
 **Archivo:** [Features/Ofrenda/Views/Detalle/PlantillaTarjetaElementoView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Detalle/PlantillaTarjetaElementoView.swift)
 
-Es la estructura compartida para siete tarjetas. Recibe icono, subtítulo de cabecera, nombre, textos de Historia, textos de Significado, pregunta o reflexión, nota e hitos.
+Es la estructura compartida de las fichas físicas generales. Recibe icono, subtítulo de cabecera, nombre, textos de Historia, textos de Significado, pregunta o reflexión, nota e hitos.
 
-Conserva `seccionActiva` y `mostrarFuentes`. El selector tiene tres opciones:
+Conserva `seccionActiva` y `mostrarFuentes`. El selector tiene cuatro opciones:
 
 1. **Historia:** título, dos párrafos y reflexión.
 2. **Significado:** explicación principal, segundo subtítulo, segundo párrafo y nota.
-3. **Indagar:** título del recorrido histórico, tarjetas de hitos y acceso a fuentes.
+3. **Conocer más:** título del recorrido histórico, tarjetas de hitos y acceso a fuentes.
+4. **Mapa:** referencia geográfica, vista previa y acciones de exploración y rutas mediante `MapaElementoView`.
 
 El texto extenso está dentro de un `ScrollView`. El encabezado y el botón de cerrar se mantienen como partes de la estructura vertical.
 
@@ -908,7 +911,7 @@ Los botones de fuente activan una segunda hoja con `VistaFuentesElemento`. Actua
 
 El botón inferior utiliza `dismiss` y el texto recibido desde la ruta. Desde Historias puede decir Volver a historias y desde el altar Volver a la ofrenda.
 
-Si cambiamos esta plantilla, cambian las siete tarjetas que la usan. Calaveritas tiene su propia estructura y debe revisarse por separado.
+Si cambiamos esta plantilla, cambian las fichas que la usan. Las dos fichas de calaveritas tienen estructuras propias y deben revisarse por separado.
 
 ### 27. TarjetaHitoTimeline.swift
 
@@ -937,7 +940,7 @@ Si la fuente tiene `url`, se muestra un `Link` con su nombre y el icono de enlac
 <a id="archivos-elementos"></a>
 ## 13. Contenido de cada elemento del altar
 
-En estos archivos tenemos la parte educativa. Doce utilizan la plantilla compartida y uno, Calaveritas, conserva una estructura particular.
+En estos archivos tenemos la parte educativa. Doce fichas físicas utilizan la plantilla compartida. Calaveritas de azúcar y Calaveritas literarias conservan estructuras particulares; la segunda es un tema de lectura sin representación 3D.
 
 Los textos largos están definidos en Swift. La revisión del contenido se hace editando estos datos; actualmente no se cargan desde JSON ni desde una API.
 
@@ -947,7 +950,7 @@ Los textos largos están definidos en Swift. La revisión del contenido se hace 
 
 Presenta la tarjeta con el nombre **Cempasúchil**, aunque el identificador del catálogo es Flores. Recibe únicamente `textoBotonCerrar` y completa la plantilla.
 
-En Historia aparece Un camino de pétalos. Significado reúne la función de guía, el aroma, el color y la explicación del nombre de la flor. Indagar contiene los momentos Cultivo y usos rituales, Senderos de bienvenida y Una tradición viva.
+En Historia aparece Un camino de pétalos. Significado reúne la función de guía, el aroma, el color y la explicación del nombre de la flor. Conocer más contiene los momentos Cultivo y usos rituales, Senderos de bienvenida y Una tradición viva.
 
 Cada hito incluye una fuente escrita. Este archivo define ese contenido, pero no carga los ramos 3D ni les aplica texturas. Si una flor del modelo se ve mal, debemos revisar el recurso y los materiales del visor.
 
@@ -959,7 +962,7 @@ Si cambiamos el título o el resumen de la historia, también conviene revisar e
 
 Explica el retrato como identidad y presencia de la persona recordada. La historia se titula Una sonrisa conocida.
 
-Utiliza la plantilla con sus tres secciones. La cronología recorre Objetos y prendas de identidad, La fotografía en México y El corazón de la ofrenda personal.
+Utiliza la plantilla con sus cuatro secciones. La cronología recorre Objetos y prendas de identidad, La fotografía en México y El corazón de la ofrenda personal.
 
 La tarjeta explica el significado cultural de colocar una imagen. Las fotos del altar se editan desde Fotos mediante `MarcosFotosView`; la foto del perfil opcional sigue su propio flujo de Mi ofrenda.
 
@@ -971,7 +974,7 @@ Esta separación permite leer sobre el retrato sin que sea obligatorio personali
 
 Presenta Una luz para volver. Los textos desarrollan la guía, la fe y la esperanza asociadas a la flama, junto con prácticas regionales.
 
-Sus hitos son El fuego ceremonial, Cirios y cerería tradicional y Luz para recordar. Las referencias de esos hitos acompañan la lectura de Indagar.
+Sus hitos son El fuego ceremonial, Cirios y cerería tradicional y Luz para recordar. Las referencias de esos hitos acompañan la lectura de Conocer más.
 
 Este archivo no controla las luces de RealityKit. Cambiar un párrafo de Velas no modifica la intensidad de las llamas, y cambiar una luz no corrige el texto cultural.
 
@@ -1005,22 +1008,23 @@ Si más adelante se deciden separar, el cambio abarca catálogo, anclajes, selec
 
 **Archivo:** [Features/Ofrenda/Views/Elementos/CalaveritasView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Elementos/CalaveritasView.swift)
 
-Es la tarjeta particular que conserva las dos funciones de las calaveritas.
+Es la ficha de Calaveritas de azúcar. Conserva el ID Calaveritas para el objeto y el recorrido del altar.
 
 Su selector presenta:
 
 | Sección | Qué muestra |
 | --- | --- |
-| Literaria | El ejemplo fijo La Calaca jardinera y una explicación del uso de humor y rima. |
-| De azúcar | Los textos de elaboración, decoración y nombres de las calaveritas de dulce. |
-| Historia | El contexto que relaciona los versos y el alfeñique. |
-| Indagar | Los hitos de `OfrendaCatalog.historiaCalaveritas` y sus fuentes. |
+| Significado | El simbolismo, los nombres y el afecto asociados a las figuras de dulce. |
+| Elaboración | La técnica del alfeñique y sus variedades de azúcar, chocolate y amaranto. |
+| Historia | Su incorporación a la celebración y a las ferias del alfeñique. |
+| Conocer más | Los hitos de `OfrendaCatalog.historiaCalaveritas` y sus fuentes. |
+| Mapa | La referencia de Toluca mediante `MapaElementoView`. |
 
-Conserva `seccionActiva` y `mostrarFuentes`. Reutiliza el encabezado, el selector y la tarjeta de hitos, pero construye su contenido sin pasar por `PlantillaTarjetaElementoView`.
+Conserva `seccionActiva` y `mostrarFuentes`. Reutiliza el encabezado, el selector y las tarjetas de hitos sin pasar por `PlantillaTarjetaElementoView`. Sus cinco opciones se presentan como menú.
 
-Su poema de ejemplo es estático. No cambia al editar los gustos de Mi ofrenda. El poema personalizado se genera en otra ruta mediante `CalaveritaGenerator`.
+`CalaveritaLiterariaView.swift` contiene la ficha literaria independiente, con Ejemplo, Origen, Estructura y Conocer más. Su ejemplo La Calaca jardinera es estático y utiliza `CalaveritaTextoView`; el poema personalizado se genera en la pestaña Calaveritas mediante `CalaveritaGenerator`. La ficha literaria usa `historiaCalaveritasLiterarias` y no monta un visor 3D.
 
-Si queremos agregar otra sección o cambiar la presentación de Literaria, trabajamos aquí. Si queremos editar los hitos y sus referencias, revisamos `CalaveritasHistoria.swift`.
+**Ficha literaria:** [CalaveritaLiterariaView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Elementos/CalaveritaLiterariaView.swift)
 
 ### 35. PanDeMuertoView.swift
 
@@ -1331,7 +1335,6 @@ Los dos cargan el altar, pero no representan exactamente el mismo flujo. Los cam
 | Pellizcar | Acercar o alejar la cámara dentro del rango permitido. |
 | Arrastrar con dos dedos | Desplazar el encuadre horizontal y verticalmente. |
 | Doble toque | Recuperar el encuadre inicial. |
-| Botón de restablecer del altar principal | Solicitar el reinicio del visor interactivo. |
 | Tocar un botón flotante | Enfocar ese elemento y después abrir su tarjeta. |
 
 El giro horizontal se limita a ±65°. La inclinación vertical se limita entre −8° y 22°. Con esto mantenemos el altar dentro de una vista frontal y lateral controlada, para evitar una vuelta completa hacia atrás.
@@ -1377,7 +1380,7 @@ Los elementos no se quitan del catálogo ni de Historias. Solo cambia cuántos b
 
 Además del máximo, el algoritmo exige que el anclaje esté dentro del área visible y que el botón encuentre una posición sin invadir a los demás. Por eso podemos ver menos que el máximo de la tabla.
 
-En la vista general se intenta conservar el conjunto completo. Al acercarnos se da prioridad al elemento seleccionado y a los puntos próximos al centro. Se reserva espacio para el botón de restablecer y se busca una separación de 16 puntos entre etiquetas.
+En la vista general se intenta conservar el conjunto completo. Al acercarnos se da prioridad al elemento seleccionado y a los puntos próximos al centro. Se respetan las áreas de los controles de las fotos y se busca una separación de 16 puntos entre etiquetas.
 
 Los puntos fuera de pantalla no se fuerzan al borde. Para leer un elemento que no tiene botón visible podemos alejar la cámara o entrar desde Historias.
 
@@ -1435,7 +1438,7 @@ Esta tabla sirve para ubicar primero la responsabilidad y después revisar las c
 | Pestañas o sheet principal | `AppTabsView.swift` | Selección compartida, visitas y actividad de escenas. |
 | Resumen, nombre o anclaje de un elemento | `OfrendaCatalog.swift` | Router de tarjetas y posiciones sobre el USDZ actual. |
 | Historia o significado de un elemento | Su archivo en `Views/Elementos` | Coherencia con el resumen del catálogo. |
-| Plantilla de siete tarjetas | `PlantillaTarjetaElementoView.swift` | `CalaveritasView` tiene composición propia. |
+| Plantilla de siete tarjetas | `PlantillaTarjetaElementoView.swift` | Las fichas de azúcar y literaria tienen composición propia. |
 | Línea de tiempo general | `TarjetaHitoTimeline.swift` | Datos de hitos y callback a las fuentes. |
 | Fuentes documentales | `HistoriaElemento.swift` y datos de cada vista | `VistaFuentesElemento`; las fuentes con URL muestran un enlace y las demás conservan su texto. |
 | Separación y cantidad de etiquetas | `OfrendaPinLayout.swift` | Anchos calculados por `OfrendaView` y distintos tamaños del visor. |
@@ -1603,12 +1606,12 @@ Si usamos el proyecto local, cambiamos el argumento de `-project` por `ProyectoL
 | Trece elementos | Ocho referencias generales y cinco de detalle; cada una abre su tarjeta correspondiente. |
 | Enfoque | Hay un acercamiento breve antes de presentar la tarjeta. |
 | Cierre | Vuelve al encuadre anterior y recupera las etiquetas que correspondan. |
-| Acercamiento | La cantidad de botones disminuye y no invade el control de restablecer. |
+| Acercamiento | La cantidad de botones disminuye y respeta los controles de las fotos. |
 | Giro | No permite dar la vuelta completa para ver la parte trasera. |
 | Gestos | Funcionan rotación, desplazamiento, pellizco y doble toque en un dispositivo táctil. |
-| Historias | Los 13 elementos abren su hoja y modelo; un objeto oculto se puede inspeccionar sin reactivarlo en la ofrenda. |
+| Historias | Los 14 temas abren su ficha; los 13 físicos incluyen modelo y el literario no monta 3D. Un objeto oculto se puede inspeccionar sin reactivarlo en la ofrenda. |
 | Tarjetas | Se pueden leer todas sus secciones con texto normal y texto de accesibilidad. |
-| Indagar | La línea de tiempo abre las fuentes y permite regresar al elemento. |
+| Conocer más | La línea de tiempo abre las fuentes y permite regresar al elemento. |
 | Calaveritas | Se distinguen el recorrido literario y el de azúcar. |
 | Personalización | Valida nombre, foto y comida en el paso correspondiente. |
 | Fotografía | Elegir, ajustar, confirmar y cancelar conservan el comportamiento esperado. |
@@ -1765,7 +1768,7 @@ Ahora podemos colocar una fotografía distinta en cada uno de los dos marcos del
 2. Elige Agregar foto o Cambiar foto.
 3. Selecciona una imagen con el selector nativo.
 4. Mueve la foto y ajusta el acercamiento con el slider o los botones de menos y más.
-5. Confirma con Usar esta foto y cierra la hoja para verla en el altar.
+5. Confirma con Usar esta foto y después toca Guardar en la hoja de fotografías para volver al altar.
 
 También podemos ajustar de nuevo o restablecer cada foto. Cancelar no sustituye la imagen anterior. Las dos superficies tienen proporción **15:17**, medida en el hueco interior. La imagen conserva su proporción y no cubre el borde.
 
@@ -1788,6 +1791,8 @@ Al inicializarse carga dos retratos de ejemplo del bundle y los encuadra al tama
 `cargar()` combina las fotos predeterminadas con los JPEG personalizados que existan en Application Support. Cada marco se resuelve por separado.
 
 `guardar(_:en:)` codifica y escribe la foto de manera atómica; después actualiza el diccionario y el UUID que reciben los visores. Si falla el disco, se conserva la foto anterior.
+
+`confirmarGuardado()` exige que la carga haya terminado y que no se esté guardando otra disposición. Escribe de forma atómica la configuración actual y devuelve si se confirmó correctamente. Las fotografías ya se escriben al confirmar su encuadre; esta confirmación permite cerrar la hoja mediante Guardar. Si falla, conserva las fotos y comunica el error.
 
 `restablecer(_:)` elimina únicamente la copia personalizada y vuelve al retrato de ejemplo. El marco no queda vacío ni se borra el original de la fototeca.
 
@@ -1817,9 +1822,9 @@ Es la hoja con las opciones de fotografía. Su selector muestra un retrato centr
 
 El retrato seleccionado lleva borde naranja y un check. Debajo del selector aparece Editando: Marco 1 o Marco 2, con su posición izquierda o derecha. La tarjeta inferior contiene únicamente las acciones de ese marco: elegir fotografía, ajustar encuadre y, si es personalizada, restablecerla. No duplicamos las fotos en otra lista de tarjetas. La selección capturada al abrir PhotosPicker o AjusteFotoView conserva el destino aunque termine de cargar más tarde.
 
-Utiliza `PhotosPicker`, decodificación asíncrona con `PhotoProcessor` y una sheet de `AjusteFotoView` con proporción 15:17. Confirmar solicita el guardado en el almacén compartido; cancelar conserva la foto anterior.
+Utiliza `PhotosPicker`, decodificación asíncrona con `PhotoProcessor` y una sheet de `AjusteFotoView` con proporción 15:17. Usar esta foto solicita el guardado de la imagen en el almacén compartido; cancelar el encuadre conserva la foto anterior.
 
-Las acciones se bloquean mientras una operación está en curso. Los errores de selección y guardado tienen un aviso visible. La actualización de la foto se refleja en todos los visores que reciben el almacén.
+El encabezado presenta Guardar con el acento amarillo de las acciones principales. La acción espera a que terminen la carga, la selección, el encuadre y las escrituras; llama a `confirmarGuardado()` y cierra solamente si tiene éxito. Durante esas operaciones se bloquean las acciones y el cierre interactivo. Un fallo mantiene la hoja abierta y muestra el error. La actualización de la foto se refleja en todos los visores que reciben el almacén.
 
 ### 49. PhotoCropGeometry.swift
 
@@ -1896,7 +1901,7 @@ La vista general mantiene un máximo de ocho referencias. Al llegar a un factor 
 
 Los conectores siguen el punto de la malla y las áreas de fotos y sus botones se reservan. Seleccionar una referencia conserva el pequeño acercamiento previo a abrir su `.sheet`; cerrarla recupera el encuadre anterior.
 
-Las cinco tarjetas usan `PlantillaTarjetaElementoView`: Historia, Significado e Indagar. Sus cronologías distinguen antecedentes del producto y registros documentales de la costumbre. Una publicación de 1993 o 2011 no significa que ese año comenzara a colocarse el elemento en los altares. Los significados cambian entre regiones y familias.
+Las cinco tarjetas usan `PlantillaTarjetaElementoView`: Historia, Significado, Mapa y Conocer más. Sus cronologías distinguen antecedentes del producto y registros documentales de la costumbre. Una publicación de 1993 o 2011 no significa que ese año comenzara a colocarse el elemento en los altares. Los significados cambian entre regiones y familias.
 
 ### 51. CanaDeAzucarView.swift
 
@@ -2111,7 +2116,7 @@ La comprobación visual en simulador revisa los cambios inmediatos de flores, ve
 
 **Archivo:** [Core/DesignSystem/IlustracionOfrenda.swift](OfrendaDiaDeMuertosProyecto/Core/DesignSystem/IlustracionOfrenda.swift)
 
-Define las 19 identidades de las ilustraciones propias. Las 13 categorías de la ofrenda tienen un dibujo distinto; música, lectura, costura, café, recuerdos y fuentes completan las otras tarjetas. `ElementoOfrenda.icono`, `Aficion.icono`, los grupos de personalización y los encabezados usan este enum. Ya no se guardan emojis como iconos de la interfaz.
+Define las 20 identidades de las ilustraciones propias. Las 13 categorías físicas de la ofrenda y el tema de calaveritas literarias tienen dibujos diferenciados; música, lectura, costura, café, recuerdos y fuentes completan las otras tarjetas. `ElementoOfrenda.icono`, `Aficion.icono`, los grupos de personalización y los encabezados usan este enum. Ya no se guardan emojis como iconos de la interfaz.
 
 ### 67. IlustracionOfrendaView.swift
 
@@ -2125,7 +2130,7 @@ El coordinador carga `ofrenda-ilustraciones.html` desde el bundle con un almacé
 
 **Recurso:** [Resources/Web/ofrenda-ilustraciones.html](OfrendaDiaDeMuertosProyecto/Resources/Web/ofrenda-ilustraciones.html)
 
-Contiene los 19 símbolos SVG dibujados para la aplicación: cempasúchil, retrato, vela, papel picado, agua, calaverita decorada, pan, comida, caña, frutas, copal, cigarro, tequila y las ilustraciones de gustos. Usa la paleta naranja, crema, morado y turquesa. CSS anima la llama, las hojas, el agua, el humo, el vapor y los destellos con movimientos suaves. `setIcons` reutiliza los nodos, actualiza posiciones y recortes, y retira los que ya no se necesitan. `setActive`, la visibilidad del documento y Reducir movimiento detienen las animaciones. No descarga imágenes, fuentes, scripts ni otros recursos de la red.
+Contiene los 20 símbolos SVG dibujados para la aplicación: cempasúchil, retrato, vela, papel picado, agua, calaverita decorada, calaverita literaria, pan, comida, caña, frutas, copal, cigarro, tequila y las ilustraciones de gustos. Usa la paleta naranja, crema, morado y turquesa. CSS anima la llama, las hojas, el agua, el humo, el vapor y los destellos con movimientos suaves. `setIcons` reutiliza los nodos, actualiza posiciones y recortes, y retira los que ya no se necesitan. `setActive`, la visibilidad del documento y Reducir movimiento detienen las animaciones. No descarga imágenes, fuentes, scripts ni otros recursos de la red.
 
 ### 68. RecorridoOfrendaView.swift
 
@@ -2151,9 +2156,9 @@ Una ofrenda anterior que ya tenga esos dos datos también desbloquea la sección
 1. Guardamos la ofrenda desde el resultado de la personalización.
 2. Abrimos Calaveritas y elegimos una de las ofrendas disponibles.
 3. Generar calaverita crea un borrador con las plantillas locales que ya usábamos.
-4. Guardar calaverita conserva esa versión. El botón confirma Calaverita guardada y evita duplicarla.
+4. Guardar calaverita pregunta el nombre de la versión. Solo confirma el guardado después de escribir el archivo, mostrando Guardada como junto al nombre elegido. Un título repetido se corrige antes de guardar.
 5. Generar otra cambia el borrador visible; los poemas guardados permanecen en la colección.
-6. Guardadas abre una sheet nativa con la lista. Desde ahí podemos entrar a cada poema y volver a leerlo completo.
+6. Guardadas abre una sheet nativa con la lista. Desde ahí podemos entrar a cada poema y volver a leerlo completo. Cada fila y el detalle tienen Compartir; el generador también comparte el texto sin salir a Guardadas.
 
 Cambiar el perfil elegido o guardar nuevos parámetros retira el borrador anterior para no guardar versos asociados a otra persona por accidente. Si editamos o eliminamos después una ofrenda, las calaveritas que ya guardamos conservan su destinatario, fecha y texto original. Guardadas sigue accesible aunque la generación vuelva a quedar bloqueada.
 
@@ -2161,15 +2166,15 @@ Cambiar el perfil elegido o guardar nuevos parámetros retira el borrador anteri
 
 **Archivo:** [CalaveritaGuardada.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Models/CalaveritaGuardada.swift)
 
-Representa una versión del poema. Guarda su UUID, el UUID de la ofrenda, el nombre de la persona, el texto con formato y la fecha de creación. Es `Codable`, por lo que se conserva como JSON. No depende de que siga existiendo el altar para poder leerse.
+Representa una versión del poema. Guarda su UUID, el UUID de la ofrenda, el nombre de la persona, el texto con formato, la fecha de creación y el título elegido al guardar. `titulo` es opcional para leer los archivos anteriores. `textoPlano` conserva los versos y quita los marcadores Markdown; `textoParaCompartir` añade el título. Es `Codable`, por lo que se conserva como JSON. No depende de que siga existiendo el altar para poder leerse.
 
 ### 70. CalaveritasStore.swift
 
 **Archivo:** [CalaveritasStore.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Services/CalaveritasStore.swift)
 
-Es el almacén observable de la colección. `AppTabsView` conserva una sola instancia y la comparte con la pestaña y la hoja. `guardar` escribe primero el archivo con reemplazo atómico y después actualiza la lista. Si falla, mantiene el borrador y comunica que puede reintentarse. No muestra una confirmación que no llegó al disco.
+Es el almacén observable de la colección. `AppTabsView` conserva una sola instancia y la comparte con la pestaña y la hoja. `guardar(_:conNombre:)` valida un nombre de 1 a 80 caracteres, normaliza espacios y evita títulos repetidos, sin distinguir mayúsculas ni acentos. Escribe primero el archivo con reemplazo atómico y después actualiza la lista. Si falla, mantiene el borrador y comunica que puede reintentarse. No muestra una confirmación que no llegó al disco.
 
-La colección se escribe en Documentos, dentro de `mis_calaveritas.json`, con las versiones recientes al inicio. No duplica el mismo texto para la misma ofrenda. `cargar` recupera los poemas al iniciar y al abrir Guardadas. Un archivo ilegible se conserva y bloquea nuevas escrituras hasta poder leerlo; nunca se reemplaza silenciosamente por una colección vacía.
+La colección se escribe en Documentos, dentro de `mis_calaveritas.json`, con las versiones recientes al inicio. No duplica el mismo texto para la misma ofrenda. `cargar` recupera los poemas al iniciar y al abrir Guardadas. Si un poema antiguo no tiene título, asigna Para seguido del nombre y un número cuando hace falta distinguir versiones, conservando UUID, texto y fecha. Leer ese archivo no lo sobrescribe. `nombreSugerido` propone un título libre y `versionGuardada` recupera el título confirmado para compartirlo también desde el generador. Un archivo ilegible se conserva y bloquea nuevas escrituras hasta poder leerlo; nunca se reemplaza silenciosamente por una colección vacía.
 
 El inicializador admite una URL distinta para ejecutar las pruebas con archivos temporales, sin tocar las calaveritas de la app.
 
@@ -2177,21 +2182,21 @@ El inicializador admite una URL distinta para ejecutar las pruebas con archivos 
 
 **Archivo:** [CalaveritasLiterariasView.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Views/CalaveritasLiterariasView.swift)
 
-Contiene el estado bloqueado, la selección de ofrenda, el borrador y sus acciones de generar, guardar y generar otra. Consulta `ofrendasParaCalaveritas`, que viene de los perfiles efectivamente guardados. La sheet de Guardadas se puede abrir en ambos estados. El selector y la navegación usan componentes nativos; conserva la paleta morada y naranja y los controles de cristal del proyecto.
+Contiene el estado bloqueado, la selección de ofrenda, el borrador y sus acciones de generar, nombrar, guardar, compartir y generar otra. Consulta `ofrendasParaCalaveritas`, que viene de los perfiles efectivamente guardados. La sheet de Guardadas se puede abrir en ambos estados. El selector y la navegación usan componentes nativos; conserva la paleta morada y naranja y los controles de cristal del proyecto.
 
-La sección no monta otro visor de RealityKit ni vuelve a cargar el USDZ. La ilustración propia reutiliza la capa HTML existente y se suspende cuando la pestaña o la escena no están activas, o cuando se abre la colección.
+La sección no monta otro visor de RealityKit ni vuelve a cargar el USDZ. La ilustración propia reutiliza la capa HTML existente y se suspende cuando la pestaña o la escena no están activas, o cuando se abre la colección o el formulario de nombre.
 
 ### 72. CalaveritasGuardadasView.swift
 
 **Archivo:** [CalaveritasGuardadasView.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Views/CalaveritasGuardadasView.swift)
 
-Presenta la colección en una sheet con NavigationStack. Cada fila muestra persona, fecha y el inicio del poema. `CalaveritaGuardadaDetalleView`, privada dentro del archivo, abre la versión completa. La lista vacía explica cómo guardar la primera. Los errores de lectura permiten reintentar sin borrar el archivo original.
+Presenta la colección en una sheet con NavigationStack. Cada fila muestra título, persona, fecha y el inicio del poema, con un botón independiente para compartir. El detalle también comparte la versión completa como texto. `CalaveritaGuardadaDetalleView`, privada dentro del archivo, abre la versión completa. La lista vacía explica cómo guardar la primera. Los errores de lectura permiten reintentar sin borrar el archivo original.
 
 ### 73. CalaveritaTextoView.swift
 
 **Archivo:** [CalaveritaTextoView.swift](OfrendaDiaDeMuertosProyecto/Features/CalaveritasLiterarias/Views/CalaveritaTextoView.swift)
 
-Comparte la misma lectura entre borradores y guardados. Interpreta Markdown en línea conservando los saltos de verso, resalta los datos personales y mantiene la animación de pétalos del resultado anterior. El enlace interno de los datos resaltados se maneja dentro de la app. No abre sitios externos. La animación respeta Reducir movimiento y su tarea se cancela al retirar la vista.
+Comparte la misma lectura entre borradores y guardados. Interpreta Markdown en línea conservando los saltos de verso, resalta los fragmentos en negrita con el acento naranja, cursiva y subrayado y mantiene la animación de pétalos del resultado anterior. El enlace interno de los datos resaltados se maneja dentro de la app. No abre sitios externos. La animación respeta Reducir movimiento y su tarea se cancela al retirar la vista.
 
 ### 74. OfrendasManager.swift y el guardado del perfil
 
@@ -2218,9 +2223,9 @@ Con varios simuladores abiertos se puede elegir uno con `TASK_SIMULATOR_UDID`. S
 
 ## 30. Tradición en México, celebraciones y mapas
 
-Ahora cada elemento conecta su historia con un lugar representativo. Esta relación no afirma que el objeto haya nacido únicamente ahí: en el altar conviven prácticas regionales, historias compartidas y decisiones de cada familia. Las 13 fichas tienen un vínculo, aunque varias comparten San Andrés Mixquic porque se apoyan en el mismo registro local documentado.
+Ahora cada elemento conecta su historia con un lugar representativo. Esta relación no afirma que el objeto haya nacido únicamente ahí: en el altar conviven prácticas regionales, historias compartidas y decisiones de cada familia. Las 13 fichas de los grupos físicos tienen un vínculo, aunque varias comparten San Andrés Mixquic porque se apoyan en el mismo registro local documentado.
 
-En Indagar encontramos primero la cronología y después Tradición en México. Ahí aparecen localidad, contexto, vista previa, Explorar lugar, Cómo llegar y fuentes. La ficha especial de Calaveritas también lo incorpora sin alterar sus cuatro secciones. Toluca se relaciona con las calaveritas de dulce, no se presenta como el origen de la poesía.
+En Conocer más encontramos la cronología y las fuentes documentales. La opción Mapa aparece antes de Conocer más y reúne Tradición en México, la localidad, el contexto, la vista previa, Explorar lugar y Cómo llegar. La ficha de calaveritas de azúcar también separa ambos recorridos. Toluca se relaciona con las calaveritas de dulce, no se presenta como el origen de la poesía.
 
 Historias conserva Elementos y añade Celebraciones mediante un selector nativo. El catálogo incluye Megaofrenda UNAM, Altares de Huaquechula y Valle de Catrinas. El nombre general permite reunir altares y esculturas sin tratarlos como si fueran la misma expresión cultural.
 
@@ -2229,13 +2234,14 @@ Historias conserva Elementos y añade Celebraciones mediante un selector nativo.
 | Archivo, dentro de Features/Tradiciones | Responsabilidad |
 | --- | --- |
 | `Models/LugarCultural.swift` | Define lugar, coordenadas de referencia, fuentes, vínculo con un elemento y celebración. La edición, la fecha de revisión y el umbral de historias están separados de la tradición permanente. |
-| `Data/TradicionesCatalog.swift` | Contiene diez puntos de referencia, las asociaciones de los 13 elementos y las tres celebraciones. Los textos y enlaces se revisaron el 23 de octubre de 2026. Aquí se actualizan sedes, programas y avisos de futuras temporadas. |
+| `Data/TradicionesCatalog.swift` | Contiene nueve puntos de referencia, las asociaciones de los 13 elementos y las tres celebraciones. Los textos y enlaces se revisaron el 23 de octubre de 2026. Aquí se actualizan sedes, programas y avisos de futuras temporadas. |
 | `Services/MapasCulturales.swift` | Administra la presentación de un destino, los tres medios de transporte y las miniaturas de MapKit. La caché es únicamente en memoria, con un límite de 6 MB y 12 imágenes. |
 | `Services/ProgresoRecorridoStore.swift` | Guarda los identificadores de historias abiertas en UserDefaults, bajo `ofrenda.recorrido.v1`. Admite alias de títulos, ignora claves desconocidas y evita sumar visitas repetidas. |
-| `Views/TarjetaLugarView.swift` | Muestra la ficha geográfica dentro de Indagar o del detalle de una celebración. La miniatura se solicita al aparecer la ficha; una falla no elimina la descripción ni las acciones. También contiene el menú compartido de rutas. |
+| `Views/TarjetaLugarView.swift` | Muestra la ficha geográfica dentro de Mapa o del detalle de una celebración. Añade una fotografía cultural con pie y crédito; en Celebración no la repite porque ya aparece en la cabecera. La miniatura se solicita al aparecer la ficha; una falla no elimina la descripción ni las acciones. También contiene el menú compartido de rutas. |
+| `Views/MapaElementoView.swift` | Presenta el vínculo geográfico de una ficha solo al elegir Mapa, con su contexto, aviso y `TarjetaLugarView`; mantiene la cronología y las fuentes en Conocer más. |
 | `Views/ExploradorLugarView.swift` | Abre un mapa a pantalla completa con Mapa, Satélite y Vista de calle cuando Look Around encuentra imágenes. Permite centrar y abrir una ruta. Cancela las solicitudes al retirarse y suspende la vista durante el segundo plano. |
-| `Views/CelebracionesView.swift` | Muestra el recorrido, los tres desbloqueos y sus fichas. El detalle separa historia, dato documentado, edición y acceso. Las historias comunes nunca quedan bloqueadas. |
-| `Views/MapaTradicionesView.swift` | Al completar el recorrido muestra los diez lugares del catálogo en un mapa. El mapa general se retira mientras se explora un destino para no mantener dos mapas interactivos dibujándose. |
+| `Views/CelebracionesView.swift` | Muestra el recorrido, los tres desbloqueos y sus fichas con fotografías visibles incluso antes de desbloquear. El detalle separa historia, dato documentado, edición y acceso. Las historias comunes nunca quedan bloqueadas. |
+| `Views/MapaTradicionesView.swift` | Al completar el recorrido muestra los nueve lugares del catálogo en un mapa. El mapa general se retira mientras se explora un destino para no mantener dos mapas interactivos dibujándose. |
 
 ### Cómo se guarda el recorrido
 
@@ -2245,11 +2251,11 @@ Una visita significa **abrir una historia**, no comprobar que alguien la leyó o
 
 ### Rendimiento, conexión y rutas
 
-El detalle de un elemento conserva la misma sesión RealityKit. Mientras se abre el explorador, `TarjetaDetalleElementoView` pasa `isActive = false` al objeto e inactiva sus ilustraciones HTML. `Elemento3DView` retira su ancla, pausa el giro y oculta el ARView prestado; al cerrar el mapa lo reactiva. Al desmontar el detalle restaura la visibilidad antes de devolver el visor. No se crea otro motor 3D para las celebraciones.
+El detalle de un elemento físico conserva la misma sesión RealityKit. Mientras se abre el explorador, `TarjetaDetalleElementoView` pasa `isActive = false` al objeto e inactiva sus ilustraciones HTML. `Elemento3DView` retira su ancla, pausa el giro y oculta el ARView prestado; al cerrar el mapa lo reactiva. Al desmontar el detalle restaura la visibilidad antes de devolver el visor. No se crea otro motor 3D para las celebraciones.
 
 Las listas de celebraciones no contienen mapas activos. Las miniaturas se solicitan con MKMapSnapshotter y conservan el encuadre completo. El explorador usa una sola vista interactiva: Map o LookAroundPreview. La vista satelital puede solicitar relieve e inclinación, pero su disponibilidad depende de Apple y de cada lugar. Una imagen de calle no garantiza que se vea una ofrenda temporal. En tamaños de accesibilidad, los paneles inferiores de ambos mapas se desplazan dentro de una zona del 42 % de la altura disponible, conservando espacio para explorar el mapa.
 
-Los textos, los enlaces y el recorrido están disponibles localmente. Mapas, imágenes y páginas oficiales requieren conexión. Si no se obtiene una miniatura o una escena de calle, la interfaz lo explica y permite seguir consultando la referencia. La caché no es una descarga de mapas para uso sin conexión.
+Los textos, los enlaces y el recorrido están disponibles localmente. Las nueve fotografías culturales optimizadas están incluidas en la app y se ven sin conexión. Los mapas, las imágenes de MapKit y las páginas oficiales requieren conexión. Si no se obtiene una miniatura o una escena de calle, la interfaz lo explica y permite seguir consultando la referencia. La caché no es una descarga de mapas para uso sin conexión.
 
 Cómo llegar abre Apple Maps con el destino y el medio seleccionado. Nuestra app no solicita ubicación ni calcula rutas; Apple Maps administra el origen, los permisos que necesite y la cobertura de transporte. Las coordenadas del catálogo son referencias de localidades o recintos, no accesos a viviendas o a todas las instalaciones. Cada ficha lo aclara y enlaza los avisos correspondientes.
 
@@ -2272,3 +2278,61 @@ El selector flotante de la pantalla principal se retiró. En Mis ofrendas encont
 `AppTabsView` comparte esa selección con el altar. `OfrendaPrincipalTabView` recibe el ID y el nombre elegidos, sin mantener un selector propio. Crea los almacenes de elementos y fotos para ese mismo ID. El encabezado muestra Ofrenda general cuando no hay un perfil elegido. `versionPrincipal` cambia al elegir otro perfil o al guardar cambios en el que está activo, para recuperar sus recursos. Se conserva la misma `OfrendaRenderSession`: la selección no crea otro motor 3D ni descarga otra copia del modelo. Las hojas que se abren desde el altar también reciben sus fotografías; las de Historias usan las del recorrido general.
 
 `ListaMisOfrendasView` usa una lista nativa con selección y edición separadas, etiquetas accesibles y un estado vacío que conserva la opción general. `OfrendaPersonalizadaFlowView.onGuardar` permite volver a esta lista después de guardar, mientras `onSalir` conserva la salida del flujo. Las pruebas de `CalaveritasRegression.swift` comprueban elección única, reapertura, borradores sin guardar, IDs inválidos, actualización de la activa, eliminación, elección dañada y fallos de escritura, además de las reglas del generador.
+
+
+## 32. Calaveritas separadas, mapas y guardado de fotografías
+
+Recuperamos las dos lecturas: Calaveritas de azúcar conserva el objeto del altar, su elaboración y sus referencias; Calaveritas literarias tiene una ficha propia en Historias con ejemplo, origen, estructura y Conocer más. `ElementoOfrenda.esElementoDelAltar` y `OfrendaCatalog.elementosDelAltar` mantienen el altar y su recorrido en 13 grupos: la lectura literaria no inventa otro modelo ni suma una visita física.
+
+`CalaveritaTextoView` conserva el texto naranja, la negrita, la cursiva y el subrayado de los datos marcados con Markdown. Se utiliza en los versos generados y guardados. Sus enlaces mantienen el acento del proyecto y la animación de pétalos respeta Reducir movimiento.
+
+En las fichas, Conocer más contiene la línea del tiempo y las fuentes. Mapa es una opción independiente que monta `MapaElementoView`, con la ubicación asociada y las acciones existentes de exploración y rutas. No se solicita la miniatura del mapa al consultar la cronología. El selector nativo pasa a menú cuando hay más de cuatro opciones o se usa texto de accesibilidad.
+
+`MarcosFotosView` reemplaza la X por Guardar, con el acento amarillo de los botones principales. El botón espera a que terminen la carga, el encuadre y las escrituras. `FotosMarcosStore.confirmarGuardado()` confirma la disposición en disco antes de cerrar; si falla, conserva la hoja abierta y presenta el error. Las fotografías siguen guardándose al confirmar el encuadre y se comparten con el altar y su vista previa.
+
+
+## 33. Fotografías, fechas para recordar y nombres de calaveritas
+
+Ahora Celebraciones muestra fotografías reales de la Megaofrenda UNAM, los altares blancos de Huaquechula y las catrinas de Atlixco. En Mapa, la ficha del lugar agrega una foto de su tradición antes de la miniatura geográfica. El pie distingue imágenes de archivo, escenas de la localidad y el punto de referencia del mapa; una foto de otra edición no confirma que ese altar siga instalado o abierto al público. Agua y sal se vincula con Huaquechula: la referencia anterior mostraba producción de sal, no una ofrenda documentada para visitar.
+
+### 75. FotografiaCultural.swift
+
+**Archivo:** `Features/Tradiciones/Models/FotografiaCultural.swift`.
+
+Define el identificador, archivo, pie, descripción para VoiceOver, crédito, publicación original y licencia cuando está indicada. `FotografiasCulturales` lee una sola vez `fotografias-creditos.json` del bundle y relaciona cada fotografía con el ID del lugar. No sustituye una foto que falta por una escena genérica de otra localidad.
+
+### 76. FotografiasCulturalesLoader.swift
+
+**Archivo:** `Features/Tradiciones/Services/FotografiasCulturalesLoader.swift`.
+
+Es un actor que lee y decodifica las imágenes fuera del hilo principal. Usa ImageIO para limitar la resolución a 1100 píxeles en el lado mayor y una caché de hasta cinco imágenes y 12 MB de coste decodificado. Las tareas comprueban cancelación antes y después de decodificar. El paquete de nueve JPEG ocupa aproximadamente 1.4 MB; no se descargan originales grandes mientras se utiliza el altar.
+
+### 77. FotografiaCulturalView.swift
+
+**Archivo:** `Features/Tradiciones/Views/FotografiaCulturalView.swift`.
+
+Reutiliza el encuadre, carga, estado no disponible y descripción accesible en las celebraciones y fichas geográficas. Muestra el pie y permite abrir Fotografía y fuente para consultar autor, publicación y licencia. Las tarjetas de Celebraciones conservan el crédito como texto para evitar botones anidados y no bloquear la atribución detrás de las historias necesarias. El detalle muestra la información completa. No se añade un mapa interactivo a cada tarjeta.
+
+**Recursos:** `Resources/Photos/tradicion-*.jpg` y `Resources/Photos/fotografias-creditos.json`. El manifiesto incluye URL de la fotografía original, publicación, autor o fuente editorial, fecha de consulta, licencia indicada, adaptación y tamaño. Las fotografías de Commons conservan sus atribuciones y enlaces CC BY-SA; los otros créditos identifican a sus autores o entidades editoriales. Cambiar una fotografía implica actualizar el archivo y sus metadatos juntos. El mapa y el relato no deben atribuir un origen exclusivo a una costumbre compartida.
+
+### 78. CalendarioMuertos.swift
+
+**Archivo:** `Features/Ofrenda/Models/CalendarioMuertos.swift`.
+
+`ConmemoracionMuertos` reúne Mascotas, Niñas y niños y Adultos. Las fechas de referencia son 27 de octubre, 1 de noviembre y 2 de noviembre; la explicación enlaza el calendario de VisitMéxico y aclara que las prácticas cambian por región y familia. `cuenta(desde:zonaHoraria:)` recibe la fecha, utiliza calendario gregoriano y cuenta días civiles en la zona del teléfono, sin dividir segundos entre 86400. Devuelve Hoy durante toda la conmemoración y pasa a su siguiente fecha anual después de terminarla. El año siguiente aparece en la fecha corta cuando corresponde.
+
+### 79. CalendarioOfrendaView.swift
+
+**Archivo:** `Features/Ofrenda/Views/CalendarioOfrendaView.swift`.
+
+Muestra tres cuentas compactas sobre el altar. Su TimelineView se actualiza cada minuto solo mientras la pestaña y la escena están activas; los avisos de cambio significativo de hora, día y zona horaria actualizan el cálculo, y regresar a primer plano toma la fecha actual. Ese reloj pertenece a la vista del calendario y no publica cambios de estado en la sesión 3D. Con texto de accesibilidad, las tres columnas pasan a filas. Al tocar el calendario abre la sheet de fechas; `OfrendaView` pausa el visor y sus ilustraciones mientras está abierta, recuperándolos al cerrar.
+
+### 80. GuardarCalaveritaView.swift
+
+**Archivo:** `Features/CalaveritasLiterarias/Views/GuardarCalaveritaView.swift`.
+
+Es el formulario nativo del nombre: propone uno libre, explica cómo distinguir versiones y muestra la cuenta de caracteres. Un campo vacío, más de 80 caracteres o un nombre ya utilizado deshabilitan Guardar y explican el motivo. Cancelar vuelve al mismo borrador. Ante un fallo de escritura se mantiene el formulario y el poema para reintentar; solo cierra cuando `CalaveritasStore` confirma el archivo. Compartir utiliza ShareLink y texto legible, conservando los saltos entre versos y estrofas, tanto desde la generación como desde cada fila y detalle de Guardadas.
+
+### Pruebas de esta integración
+
+`Scripts/probar-calaveritas.sh` comprueba los nombres, duplicados, migración de títulos antiguos sin pérdida de datos, persistencia y texto compartido. `Scripts/probar-tradiciones.sh` añade cobertura de los nueve recursos, sus créditos y relación con los destinos; copia las fotos al directorio temporal de la prueba antes de ejecutarla. `Scripts/probar-calendario.sh` compila `Tests/CalendarioRegression.swift`: comprueba Hoy, singular, cambios de año, años bisiestos, zona horaria y horario de verano con fechas fijas. Ningún script necesita cambiar el reloj del teléfono ni escribir las colecciones de la app. La revisión visual de estas novedades se realiza en iPhone; no se ha probado en iPad en esta etapa.

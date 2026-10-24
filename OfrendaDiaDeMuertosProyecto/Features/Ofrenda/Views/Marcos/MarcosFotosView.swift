@@ -10,6 +10,7 @@ import PhotosUI
 
 /// Edita las fotos que comparten el altar y su propuesta personalizada.
 struct MarcosFotosView: View {
+    @Environment(\.dismiss) private var dismiss
     let store: FotosMarcosStore
     var marcoInicial: MarcoOfrenda?
     @State private var marcoElegido: MarcoOfrenda = .izquierdo
@@ -17,9 +18,10 @@ struct MarcosFotosView: View {
     @State private var pickerItem: PhotosPickerItem?
     @State private var ajuste: AjusteMarco?
     @State private var procesando = false
+    @State private var confirmando = false
     @State private var errorSeleccion: String?
 
-    private var ocupado: Bool { procesando || store.cargando || store.guardandoConfiguracion || pickerAbierto || ajuste != nil }
+    private var ocupado: Bool { confirmando || procesando || store.cargando || store.guardandoConfiguracion || pickerAbierto || ajuste != nil }
     private var errorPresentado: Binding<Bool> {
         Binding(
             get: { errorSeleccion != nil || store.mensajeError != nil },
@@ -29,7 +31,8 @@ struct MarcosFotosView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ElementSheetHeader(icono: .retrato, subtitulo: "RECUERDOS EN TU ALTAR", titulo: "Tus fotografías.")
+            ElementSheetHeader(icono: .retrato, subtitulo: "RECUERDOS EN TU ALTAR", titulo: "Tus fotografías.",
+                               onGuardar: guardarYCerrar, guardarDeshabilitado: ocupado)
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
                 .padding(.bottom, 8)
@@ -41,7 +44,7 @@ struct MarcosFotosView: View {
                         .font(.footnote)
                         .foregroundStyle(AppTheme.secondaryText)
                     if ocupado {
-                        ProgressView("Preparando fotografía…")
+                        ProgressView(confirmando ? "Guardando cambios…" : "Preparando fotografía…")
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -50,7 +53,7 @@ struct MarcosFotosView: View {
         }
         .background(AppTheme.background.ignoresSafeArea())
         .ilustracionesOfrenda(activa: ajuste == nil && !pickerAbierto)
-        .interactiveDismissDisabled(procesando)
+        .interactiveDismissDisabled(ocupado)
         .photosPicker(isPresented: $pickerAbierto, selection: $pickerItem, matching: .images)
         .task {
             await store.cargar()
@@ -106,6 +109,15 @@ struct MarcosFotosView: View {
             }
         } message: {
             Text(errorSeleccion ?? store.mensajeError ?? "")
+        }
+    }
+
+    private func guardarYCerrar() {
+        guard !ocupado else { return }
+        confirmando = true
+        Task { @MainActor in
+            defer { confirmando = false }
+            if await store.confirmarGuardado() { dismiss() }
         }
     }
 
