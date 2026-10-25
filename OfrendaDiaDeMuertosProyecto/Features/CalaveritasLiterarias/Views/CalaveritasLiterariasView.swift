@@ -13,9 +13,11 @@ struct CalaveritasLiterariasView: View {
     let isActive: Bool
     let onPersonalizar: () -> Void
 
+    @State private var marcoPersona: MarcoOfrenda = .izquierdo
     @State private var idOfrenda: UUID?
     @State private var calaverita: CalaveritaGuardada?
     @State private var mostrandoGuardadas = false
+    @State private var calaveritaAGuardar: CalaveritaGuardada?
 
     private var ofrendasDisponibles: [PersonalizacionOfrenda] { ofrendasManager.ofrendasParaCalaveritas }
     private var ofrenda: PersonalizacionOfrenda? {
@@ -28,6 +30,7 @@ struct CalaveritasLiterariasView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     Text("Sus recuerdos, hechos versos.")
                         .font(.title2.bold())
+                        .objetivoGuiaContextual("calaveritas.preparacion")
                     if let ofrenda {
                         generador(para: ofrenda)
                     } else {
@@ -40,6 +43,11 @@ struct CalaveritasLiterariasView: View {
             }
             .recortaIlustraciones()
             .background(AppTheme.background.ignoresSafeArea())
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                AyudaGuiaContextualButton()
+                    .padding(.trailing, 24)
+                    .padding(.vertical, 8)
+            }
             .navigationTitle("Calaveritas")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -49,20 +57,28 @@ struct CalaveritasLiterariasView: View {
                         .accessibilityIdentifier("calaveritas.guardadas")
                 }
             }
-            .ilustracionesOfrenda(activa: isActive && !mostrandoGuardadas)
+            .ilustracionesOfrenda(activa: isActive && !mostrandoGuardadas && calaveritaAGuardar == nil)
             .sheet(isPresented: $mostrandoGuardadas) {
                 CalaveritasGuardadasView()
                     .ofrendaSheet(detents: [.large])
             }
+            .sheet(item: $calaveritaAGuardar) { poema in
+                GuardarCalaveritaView(calaverita: poema).ofrendaSheet(detents: [.large])
+            }
             .alert("Tus calaveritas", isPresented: Binding(
-                get: { calaveritasStore.mensajeError != nil && !mostrandoGuardadas },
+                get: { calaveritasStore.mensajeError != nil && !mostrandoGuardadas && calaveritaAGuardar == nil },
                 set: { if !$0 { calaveritasStore.mensajeError = nil } }
             )) {
                 Button("Entendido", role: .cancel) { calaveritasStore.mensajeError = nil }
             } message: { Text(calaveritasStore.mensajeError ?? "") }
             .onAppear(perform: seleccionarOfrendaDisponible)
             .onChange(of: ofrendasManager.ofrendasGuardadas) { _, _ in seleccionarOfrendaDisponible() }
-            .onChange(of: ofrenda) { _, _ in calaverita = nil }
+            .onChange(of: ofrenda) { _, nueva in
+                calaverita = nil
+                marcoPersona = nueva?.retratos?.visibles.first ?? .izquierdo
+            }
+            .onChange(of: marcoPersona) { _, _ in calaverita = nil }
+            .guiaContextual(.generador)
         }
     }
 
@@ -76,7 +92,7 @@ struct CalaveritasLiterariasView: View {
                 .font(.title3.bold())
             Text("Guarda una ofrenda con el nombre de la persona y su comida favorita para empezar a escribir.")
                 .foregroundStyle(AppTheme.secondaryText)
-            Text("La música, los pasatiempos y un recuerdo compartido le darán un toque más personal. Son opcionales.")
+            Text("Con dos marcos, guarda dos nombres y dos músicas diferentes. Los pasatiempos y el recuerdo se comparten.")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.secondaryText)
             Button("Personalizar mi ofrenda", action: onPersonalizar)
@@ -94,12 +110,21 @@ struct CalaveritasLiterariasView: View {
         VStack(alignment: .leading, spacing: 12) {
             Picker("Ofrenda", selection: $idOfrenda) {
                 ForEach(ofrendasDisponibles) { perfil in
-                    Text(perfil.nombre).tag(Optional(perfil.id))
+                    Text(perfil.nombresResumen).tag(Optional(perfil.id))
                 }
             }
             .pickerStyle(.menu)
             .tint(AppTheme.accent)
             .accessibilityIdentifier("calaveritas.ofrenda")
+            if let retratos = ofrenda.retratos, retratos.visibles.count == 2 {
+                Picker("Persona", selection: $marcoPersona) {
+                    ForEach(retratos.visibles) { marco in
+                        Text(retratos.persona(en: marco).primerNombre).bold().tag(marco)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("calaveritas.persona")
+            }
             Text("Usaremos sus gustos y recuerdos guardados. Puedes cambiarlos en Mi ofrenda.")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.secondaryText)
@@ -116,17 +141,29 @@ struct CalaveritasLiterariasView: View {
             .padding(20)
             .ofrendaSurface()
 
-            Button {
-                calaveritasStore.guardar(calaverita)
-            } label: {
-                Label(calaveritasStore.contiene(calaverita) ? "Calaverita guardada" : "Guardar calaverita",
-                      systemImage: calaveritasStore.contiene(calaverita) ? "checkmark" : "bookmark")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+            if let guardada = calaveritasStore.versionGuardada(de: calaverita) {
+                Label("Guardada como «\(guardada.tituloVisible)»", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.accent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("calaveritas.confirmacionGuardado")
+            } else {
+                Button {
+                    calaveritaAGuardar = calaverita
+                } label: {
+                    Label("Guardar calaverita", systemImage: "bookmark")
+                        .frame(maxWidth: .infinity).padding(.vertical, 6)
+                }
+                .ofrendaPrimaryAction()
+                .accessibilityIdentifier("calaveritas.guardar")
             }
-            .ofrendaPrimaryAction()
-            .disabled(calaveritasStore.contiene(calaverita))
-            .accessibilityIdentifier("calaveritas.guardar")
+
+            ShareLink(item: (calaveritasStore.versionGuardada(de: calaverita) ?? calaverita).textoParaCompartir) {
+                Label("Compartir calaverita", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .ofrendaSecondaryAction()
+            .accessibilityIdentifier("calaveritas.compartir")
 
             Button("Generar otra", systemImage: "arrow.clockwise") { generar(para: ofrenda) }
                 .frame(maxWidth: .infinity, minHeight: 44)
@@ -139,8 +176,8 @@ struct CalaveritasLiterariasView: View {
             }
         } else {
             VStack(alignment: .leading, spacing: 16) {
-                IlustracionOfrendaView(tipo: .calaveritas, tamano: 104)
-                Text("Una calaverita para \(ofrenda.nombre)")
+                IlustracionOfrendaView(tipo: .calaveritaLiteraria, tamano: 104)
+                Text("Una calaverita para \(Text(ofrenda.paraCalaverita(marco: marcoPersona).nombre).bold().foregroundColor(AppTheme.accent))")
                     .font(.title3.bold())
                 Text("Sus gustos inspiran un poema con humor y cariño. Genera distintas versiones y guarda tus favoritas.")
                     .foregroundStyle(AppTheme.secondaryText)
@@ -160,7 +197,8 @@ struct CalaveritasLiterariasView: View {
     }
 
     private func generar(para ofrenda: PersonalizacionOfrenda) {
-        let texto = CalaveritaGenerator.generar(para: ofrenda, evitando: calaverita?.texto)
-        calaverita = CalaveritaGuardada(para: ofrenda, texto: texto)
+        let persona = ofrenda.paraCalaverita(marco: marcoPersona)
+        let texto = CalaveritaGenerator.generar(para: persona, evitando: calaverita?.texto)
+        calaverita = CalaveritaGuardada(para: persona, texto: texto)
     }
 }

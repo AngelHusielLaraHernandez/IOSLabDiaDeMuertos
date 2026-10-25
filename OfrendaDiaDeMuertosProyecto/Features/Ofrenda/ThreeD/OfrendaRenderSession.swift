@@ -45,6 +45,30 @@ final class OfrendaRenderSession {
         return activeRenderer
     }
 
+    /// Usa el único motor de la sesión y permite cancelar si la pantalla deja de estar activa.
+    func capturarOfrenda() async throws -> UIImage {
+        guard owner != nil, detailHost == nil, let renderer else { throw ErrorCaptura.noDisponible }
+        let id = UUID()
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await withCheckedThrowingContinuation { continuation in
+                renderer.capturar(id: id) { continuation.resume(with: $0) }
+            }
+        } onCancel: {
+            Task { @MainActor [weak renderer] in renderer?.cancelarCaptura(id: id) }
+        }
+    }
+
+    enum ErrorCaptura: LocalizedError {
+        case noDisponible, fallida
+        var errorDescription: String? {
+            switch self {
+            case .noDisponible: "Espera a que la ofrenda termine de cargar e inténtalo de nuevo."
+            case .fallida: "No se pudo preparar la imagen. Intenta capturar la ofrenda otra vez."
+            }
+        }
+    }
+
     func owns(_ owner: UUID) -> Bool { self.owner == owner }
 
     func unmount(owner: UUID, host: OfrendaRenderHost, discard: Bool) {

@@ -25,7 +25,7 @@ struct PlantillaTarjetaElementoView: View {
     let parrafoSignificado2: String
     let notaSignificado: String
 
-    // Pestaña 3: Indagar (Línea del tiempo y fuentes)
+    // Mapa precede a Conocer más, que reúne la línea del tiempo y las fuentes.
     let hitos: [HitoHistorico]
     var textoBotonCerrar: String = "Volver a la ofrenda"
 
@@ -35,11 +35,23 @@ struct PlantillaTarjetaElementoView: View {
     private let colorAcento = AppTheme.accent
     private let colorTextoSecundario = AppTheme.secondaryText
 
+    private var textoLectura: String {
+        switch seccionActiva {
+        case 0: TextoLecturaOfrenda.unir([nombreElemento, tituloHistoria, parrafoHistoria1, parrafoHistoria2, preguntaReflexion])
+        case 1: TextoLecturaOfrenda.unir([nombreElemento, tituloSignificado, parrafoSignificado1, subtituloSignificado2, parrafoSignificado2, notaSignificado])
+        case 2: TextoLecturaOfrenda.mapa(para: nombreElemento)
+        default: TextoLecturaOfrenda.cronologia("Su camino hasta el altar", hitos: hitos)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ElementSheetHeader(icono: icono, subtitulo: subtituloCabecera, titulo: nombreElemento)
-            SheetSectionPicker(secciones: ["Historia", "Significado", "Indagar"], seleccion: $seccionActiva)
-            ScrollView {
+            SheetSectionPicker(secciones: ["Historia", "Significado", "Mapa", "Conocer más"], seleccion: $seccionActiva)
+                .objetivoGuiaContextual("ficha.secciones")
+            ControlLecturaView(texto: textoLectura, suspendida: mostrarFuentes)
+                .objetivoGuiaContextual("ficha.voz")
+            SheetReadingContent {
                 VStack(alignment: .leading, spacing: 16) {
                     if seccionActiva == 0 {
                         // HISTORIA
@@ -90,8 +102,10 @@ struct PlantillaTarjetaElementoView: View {
                             .font(.footnote)
                             .foregroundColor(colorTextoSecundario)
 
+                    } else if seccionActiva == 2 {
+                        MapaElementoView(nombreElemento: nombreElemento)
                     } else {
-                        // INDAGAR (Línea del tiempo)
+                        // CONOCER MÁS (Línea del tiempo)
                         Text("Su camino hasta el altar")
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
@@ -118,11 +132,6 @@ struct PlantillaTarjetaElementoView: View {
                         }
                         .buttonStyle(.glass)
 
-                        if let vinculo = TradicionesCatalog.vinculo(para: nombreElemento) {
-                            TarjetaLugarView(lugar: vinculo.lugar, contexto: vinculo.contexto)
-                            Text(vinculo.lugar.avisoVisita)
-                                .font(.footnote).foregroundStyle(AppTheme.secondaryText)
-                        }
                     }
 
                 }
@@ -132,10 +141,12 @@ struct PlantillaTarjetaElementoView: View {
             }
             Button { dismiss() } label: {
                 Text(textoBotonCerrar)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
             }
-            .ofrendaPrimaryAction()
+            .ofrendaPrimaryAction().objetivoGuiaContextual("hoja.cerrar")
         }
         .padding(24)
         .sheet(isPresented: $mostrarFuentes) {

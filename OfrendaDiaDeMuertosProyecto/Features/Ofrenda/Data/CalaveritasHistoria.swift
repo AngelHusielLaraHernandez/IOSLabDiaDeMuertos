@@ -10,32 +10,43 @@ import SwiftUI
 extension OfrendaCatalog {
     static let historiaCalaveritas: [HitoHistorico] = [
         HitoHistorico(
-            epoca: "Antecedente histórico",
-            titulo: "Alfeñique y figuras de azúcar",
-            descripcion: "Técnica confitera que dio forma a pequeñas calaveras decoradas con colores vegetales y nombres en la frente.",
+            epoca: "Tradición confitera", titulo: "Figuras de azúcar",
+            descripcion: "La técnica del alfeñique permite modelar y decorar figuras de azúcar. Las calaveritas de dulce forman parte de la ofrenda.",
             colorPunto: .yellow,
-            fuentes: [
-                FuenteDocumental(periodo: "Siglo XVIII", titulo: "Dulcería y alfeñique", detalle: "Tradición de figuras de pasta de azúcar en ferias como la de Toluca y Oaxaca.", referencia: "Museo del Alfeñique")
-            ]
+            fuentes: [FuenteDocumental(periodo: "Antecedentes", titulo: "Calaverita de azúcar, dulce sabor de la muerte",
+                detalle: "La Secretaría de Agricultura describe la técnica confitera y su incorporación a la celebración.",
+                referencia: "Secretaría de Agricultura",
+                url: URL(string: "https://www.gob.mx/agricultura/articulos/calaverita-de-azucar-dulce-sabor-de-la-muerte"))]
         ),
         HitoHistorico(
-            epoca: "Siglo XIX",
-            titulo: "Versos satíricos e impresos",
-            descripcion: "Los periódicos y hojas volantes popularizaron las calaveritas literarias acompañadas de grabados de José Guadalupe Posada.",
+            epoca: "Tradición actual", titulo: "Artesanía que se comparte",
+            descripcion: "Las ofrendas y las ferias del alfeñique conservan esta expresión artesanal. Hay figuras de azúcar, chocolate y amaranto.",
             colorPunto: .orange,
-            fuentes: [
-                FuenteDocumental(periodo: "1849 - 1913", titulo: "Panteones literarios", detalle: "Primeros registros impresos en el periódico El Socialista y grabados populares.", referencia: "Hemeroteca Nacional de México")
-            ]
-        ),
-        HitoHistorico(
-            epoca: "Tradición actual",
-            titulo: "Dulzura e ingenio para recordar",
-            descripcion: "Tanto en dulce como en rima, las calaveritas celebran la vida de nuestros seres queridos con una sonrisa.",
-            colorPunto: .purple,
-            fuentes: [
-                FuenteDocumental(periodo: "Actualidad", titulo: "Calaveritas en la ofrenda", detalle: "Concursos literarios y ferias del alfeñique en todo México.", referencia: "Acervo de Tradiciones Mexicanas")
-            ]
+            fuentes: [FuenteDocumental(periodo: "Actualidad", titulo: "Calaveritas dulces: tradición mexicana",
+                detalle: "Presenta las variedades de dulce y la feria de Toluca como parte de esta tradición.",
+                referencia: "Secretaría de Agricultura",
+                url: URL(string: "https://www.gob.mx/agricultura/articulos/139127"))]
         )
     ]
 
+    static let historiaCalaveritasLiterarias: [HitoHistorico] = [
+        HitoHistorico(
+            epoca: "Siglo XIX", titulo: "La sátira en verso",
+            descripcion: "Las calaveritas literarias se difundieron como una forma de sátira y crítica social. Son una expresión distinta de las figuras de azúcar.",
+            colorPunto: .orange,
+            fuentes: [FuenteDocumental(periodo: "Siglo XIX y actualidad", titulo: "Calaveritas literarias",
+                detalle: "La Secretaría de Cultura de la Ciudad de México explica su carácter satírico y su relación con el Día de Muertos.",
+                referencia: "Secretaría de Cultura de la Ciudad de México",
+                url: URL(string: "https://www.cultura.cdmx.gob.mx/storage/app/media/calaveritas-literariasdocx-1.pdf"))]
+        ),
+        HitoHistorico(
+            epoca: "Gráfica popular", titulo: "La calavera en los impresos",
+            descripcion: "Los impresos mexicanos emplearon la figura de la calavera para comentar la vida social. Destacan los trabajos de Manuel Manilla y José Guadalupe Posada.",
+            colorPunto: .purple,
+            fuentes: [FuenteDocumental(periodo: "Siglo XIX", titulo: "La resignificación de la imagen de la calavera en México",
+                detalle: "El Archivo General de la Nación documenta el uso de la calavera en la prensa y la gráfica popular.",
+                referencia: "Archivo General de la Nación",
+                url: URL(string: "https://www.gob.mx/agn/articulos/la-resignificacion-de-la-imagen-de-la-calavera-en-mexico"))]
+        )
+    ]
 }

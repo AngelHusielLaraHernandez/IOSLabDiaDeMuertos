@@ -22,6 +22,7 @@ struct Elemento3DView: View {
     @State private var resetToken = 0
     @State private var errorFoto: String?
     @Environment(\.accessibilityReduceMotion) private var reducirMovimiento
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.scenePhase) private var scenePhase
 
     private var marco: MarcoOfrenda {
@@ -60,11 +61,17 @@ struct Elemento3DView: View {
                         Button {
                             giroAutomatico.toggle()
                         } label: {
-                            Label(giroAutomatico ? "Pausar giro" : "Reanudar giro", systemImage: giroAutomatico ? "pause.fill" : "play.fill")
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 12).frame(minHeight: 44)
+                            if dynamicTypeSize.isAccessibilitySize {
+                                Image(systemName: giroAutomatico ? "pause.fill" : "play.fill")
+                                    .font(.system(size: 18, weight: .semibold)).frame(width: 44, height: 44)
+                            } else {
+                                Label(giroAutomatico ? "Pausar giro" : "Reanudar giro", systemImage: giroAutomatico ? "pause.fill" : "play.fill")
+                                    .font(.caption.weight(.semibold))
+                                    .padding(.horizontal, 12).frame(minHeight: 44)
+                            }
                         }
                         .buttonStyle(.glass)
+                        .accessibilityLabel(giroAutomatico ? "Pausar giro" : "Reanudar giro")
                     }
                     Spacer(minLength: 0)
                     GlassIconButton(systemImage: "arrow.counterclockwise", label: "Restablecer objeto 3D") {

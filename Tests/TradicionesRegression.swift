@@ -26,6 +26,10 @@ struct TradicionesRegression {
         comprobar(OfrendaCatalog.elementosDelAltar.count == 13, "El tema literario no agrega un objeto inexistente al altar")
         let literaria = OfrendaCatalog.elementos.first { $0.nombre == "Calaveritas literarias" }
         comprobar(literaria?.esElementoDelAltar == false && literaria?.icono == .calaveritaLiteraria, "La lectura literaria conserva su identidad sin visor 3D")
+<<<<<<< HEAD
+=======
+        comprobar(OfrendaCatalog.elementos.first { $0.nombre == "Calaveritas" }?.nombreVisible == "Calaveritas de azúcar", "La figura dulce se distingue por su título sin cambiar su ID")
+>>>>>>> main
         progreso.visitar(nombre: "Calaveritas literarias")
         comprobar(progreso.cantidad == 0, "La lectura adicional no adelanta los desbloqueos del altar")
         comprobar(TradicionesCatalog.vinculo(para: "Calaveritas literarias") == nil, "Toluca no se presenta como origen de las calaveritas literarias")
@@ -61,6 +65,22 @@ struct TradicionesRegression {
         comprobar(TransporteCultural.automovil.modoMapas == MKLaunchOptionsDirectionsModeDriving, "Automóvil debe solicitar conducción")
         comprobar(TransporteCultural.transportePublico.modoMapas == MKLaunchOptionsDirectionsModeTransit, "Transporte público debe solicitar tránsito")
         comprobar(TransporteCultural.caminando.modoMapas == MKLaunchOptionsDirectionsModeWalking, "Caminando debe solicitar ruta peatonal")
+        let urlFotos = URL(fileURLWithPath: CommandLine.arguments[1])
+        let datosFotos = try! Data(contentsOf: urlFotos)
+        let fotos = try! JSONDecoder().decode([FotografiaCultural].self, from: datosFotos)
+        comprobar(fotos.count == TradicionesCatalog.lugares.count, "Cada lugar del mapa tiene una fotografía propia")
+        comprobar(Set(fotos.map(\.id)).count == fotos.count, "Las fotografías no duplican identificadores")
+        for lugar in TradicionesCatalog.lugares {
+            let foto = fotos.first { $0.id == lugar.id }
+            comprobar(foto != nil, "El lugar tiene una fotografía de contexto")
+            comprobar(foto?.fuente.scheme == "https" && foto?.credito.isEmpty == false, "La fotografía conserva crédito y publicación original")
+            comprobar(foto?.pie.isEmpty == false && foto?.descripcion.isEmpty == false, "Las fotos tienen contexto y descripción accesible")
+            let archivo = urlFotos.deletingLastPathComponent().appendingPathComponent(foto!.archivo)
+            let datos = try? Data(contentsOf: archivo)
+            comprobar(datos?.starts(with: [0xFF, 0xD8]) == true, "La fotografía enlazada existe y es JPEG")
+            comprobar((datos?.count ?? Int.max) < 400_000, "Las imágenes culturales no cargan originales pesados")
+        }
+        comprobar(TradicionesCatalog.vinculo(para: "Agua y sal")?.lugar.id == "huaquechula", "Agua y sal muestra una tradición de ofrendas documentada")
         print("TRADICIONES_OK: \(comprobaciones) comprobaciones")
     }
 }

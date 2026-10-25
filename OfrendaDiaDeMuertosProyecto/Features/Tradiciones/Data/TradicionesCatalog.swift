@@ -48,12 +48,6 @@ enum TradicionesCatalog {
         descripcion: "La memoria familiar se expresa en sus ofrendas. Un registro local de 1993 describe alimentos, frutas, copal y gustos personales que reciben a los difuntos.",
         avisoVisita: "El punto señala el centro del pueblo. Las ofrendas familiares y ceremonias tienen condiciones de acceso propias; consulta la información local.",
         fuentes: [mixquicFuente])
-    static let zapotitlan = LugarCultural(
-        id: "zapotitlan", nombre: "Zapotitlán Salinas", region: "Puebla", referencia: "Centro de Zapotitlán Salinas",
-        latitud: 18.332, longitud: -97.475,
-        descripcion: "La producción artesanal de sal mineral forma parte de la historia de esta comunidad. Es un lugar para conocer el trabajo detrás de la sal que usamos en la mesa.",
-        avisoVisita: "El punto señala la localidad, no una salina visitable. Consulta con guías locales los accesos y recorridos disponibles.",
-        fuentes: [fuente("Ayuntamiento de Zapotitlán · Producción artesanal de sal", "https://zapotitlansalinas.gob.mx/transparencia/archivo/24-27/transparencia/2025/1trim/plan%20municipal%20de%20desarrollo%20zp.pdf")])
     static let tequila = LugarCultural(
         id: "tequila", nombre: "Tequila y su paisaje agavero", region: "Jalisco", referencia: "Centro de Tequila, Jalisco",
         latitud: 20.882, longitud: -103.836,
@@ -85,7 +79,7 @@ enum TradicionesCatalog {
         case "Retrato": return .init(lugar: huaquechula, contexto: "En los altares de esta región, el retrato forma parte de una composición dedicada a la memoria de una persona.")
         case "Velas": return .init(lugar: janitzio, contexto: "La luz acompaña la velación y las ofrendas de la isla. Es un ejemplo regional, no el origen de las velas.")
         case "Papel", "Papel picado": return .init(lugar: huixcolotla, contexto: "Descubre una comunidad de artesanos que mantiene vivo el oficio del papel picado.")
-        case "Agua y sal": return .init(lugar: zapotitlan, contexto: "Aquí exploramos la producción de sal. El sentido ritual del agua y la sal se explica en Significado; no procede exclusivamente de esta localidad.")
+        case "Agua y sal": return .init(lugar: huaquechula, contexto: "Conoce los altares familiares de Huaquechula. El agua y la sal acompañan las ofrendas en distintas regiones; su sentido ritual se explica en Significado.")
         case "Calaveritas": return .init(lugar: toluca, contexto: "Este lugar se relaciona con las calaveritas de dulce y el alfeñique. La calaverita literaria tiene una historia propia.")
         case "Pan", "Pan de muerto": return .init(lugar: mixquic, contexto: "El registro de Mixquic describe panes colocados en la ofrenda. Es una expresión local de una tradición con variantes regionales.")
         case "Comida": return .init(lugar: mixquic, contexto: "El mole y los tamales aparecen entre los alimentos de las ofrendas descritas en esta comunidad.")
@@ -98,7 +92,7 @@ enum TradicionesCatalog {
         }
     }
 
-    static let lugares = [xochimilco, huixcolotla, toluca, janitzio, mixquic, zapotitlan, tequila, huaquechula, universum, atlixco]
+    static let lugares = [xochimilco, huixcolotla, toluca, janitzio, mixquic, tequila, huaquechula, universum, atlixco]
 
     static let celebraciones: [CelebracionCultural] = [
         .init(id: "megaofrenda-unam", nombre: "Megaofrenda UNAM", simbolo: "building.columns", resumen: "La comunidad universitaria convierte la memoria en una creación colectiva.", historia: "Cada edición reúne ofrendas y actividades de la comunidad universitaria. Sus temas y sedes cambian: conocer una edición no garantiza que la siguiente ocurra en el mismo lugar.", datoDestacado: "La celebración universitaria comenzó en 1997. A lo largo de su historia ha ocupado diferentes espacios de la UNAM.", lugar: universum, referenciaTemporal: "Edición 2026 · Explanada de Universum", avisoEdicion: "La agenda de la Facultad de Ingeniería anuncia el 31 de octubre de 2026 a las 11:00 h. Consulta el programa oficial para conocer todos los días, horarios y accesos.", fuente: unamFuente, verificadoEl: revision, historiasRequeridas: 3),

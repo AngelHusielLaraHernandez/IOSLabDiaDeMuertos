@@ -29,13 +29,14 @@ struct RecorridoOfrendaView: View {
                         .font(.subheadline).foregroundStyle(AppTheme.secondaryText)
                 }
                 Spacer(minLength: 8)
-                GlassIconButton(systemImage: "xmark", label: "Cerrar recorrido") { dismiss() }
+                AyudaGuiaContextualButton()
             }
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 10) {
                     if elementos.isEmpty {
                         Text("Activa elementos desde Mi ofrenda para empezar tu recorrido.")
                             .foregroundStyle(AppTheme.secondaryText).padding(.vertical)
+                            .objetivoGuiaContextual("recorrido.lista")
                     }
                     if !pendientes.isEmpty { seccion("POR DESCUBRIR", elementos: pendientes, visitado: false) }
                     if !completados.isEmpty { seccion("YA EXPLORADOS", elementos: completados, visitado: true) }
@@ -48,11 +49,12 @@ struct RecorridoOfrendaView: View {
             Button { dismiss() } label: {
                 Text("Seguir explorando").frame(maxWidth: .infinity).padding(.vertical, 8)
             }
-            .ofrendaPrimaryAction()
+            .ofrendaPrimaryAction().objetivoGuiaContextual("recorrido.volver")
         }
         .padding(24)
         .background(AppTheme.background.ignoresSafeArea())
         .ilustracionesOfrenda()
+        .guiaContextual(.recorrido)
     }
 
     private func seccion(_ titulo: String, elementos: [ElementoOfrenda], visitado: Bool) -> some View {
@@ -72,6 +74,7 @@ struct RecorridoOfrendaView: View {
                 }
                 .buttonStyle(.plain)
                 .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 18))
+                .objetivoGuiaContextual("recorrido.lista", activo: elemento.id == (pendientes.first ?? completados.first)?.id)
                 .accessibilityLabel(elemento.nombre)
                 .accessibilityValue(visitado ? "Visitado" : "Pendiente")
                 .accessibilityHint("Abre el elemento de tu ofrenda")

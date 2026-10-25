@@ -2,6 +2,8 @@
 //  OfrendaPersonalizadaFlowView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
+//  Created by Angel Lara on 16/10/26.
+//
 
 import SwiftUI
 import PhotosUI
@@ -13,6 +15,7 @@ struct OfrendaPersonalizadaFlowView: View {
     let elementosStore: ElementosOfrendaStore
     var isActive = true
     let onSalir: () -> Void
+    var onGuardar: (() -> Void)? = nil
     
     // NUEVO: Para cerrar la vista (sheet o push) antes de cambiar de pestaña
     @Environment(\.dismiss) private var dismiss
@@ -24,6 +27,9 @@ struct OfrendaPersonalizadaFlowView: View {
     @State private var pickerAbierto = false
     @State private var marcoDelAjuste: MarcoOfrenda = .izquierdo
     @State private var guardandoFoto = false
+    @State private var fotosPendientes: [MarcoOfrenda: UIImage] = [:]
+    @State private var nombresOriginales: [MarcoOfrenda: String] = [:]
+    @State private var identidadCargada = false
 
     var body: some View {
         ZStack {
@@ -34,21 +40,17 @@ struct OfrendaPersonalizadaFlowView: View {
                     fotosMarcos: fotosMarcos,
                     onElegirFoto: abrirPicker,
                     onContinuar: { paso = .gustos },
-                    onVolver: onSalir
+                    nombresOriginales: nombresOriginales
                 )
             case .ajusteFoto:
                 if let imagen = fotoEnAjuste {
                     AjusteFotoView(
                         imagenOriginal: imagen,
                         onConfirmar: { ajustada in
-                            guardandoFoto = true
-                            Task { @MainActor in
-                                if await fotosMarcos.guardar(ajustada, en: marcoDelAjuste) {
-                                    fotoEnAjuste = nil
-                                    paso = regresoDeFoto
-                                }
-                                guardandoFoto = false
-                            }
+                            fotosPendientes[marcoDelAjuste] = ajustada
+                            fotosMarcos.previsualizar(ajustada, en: marcoDelAjuste)
+                            fotoEnAjuste = nil
+                            paso = regresoDeFoto
                         },
                         onCancelar: { fotoEnAjuste = nil; paso = regresoDeFoto },
                         aspectMarco: marcoDelAjuste.relacionAspecto,
@@ -87,20 +89,30 @@ struct OfrendaPersonalizadaFlowView: View {
                     elementosStore: elementosStore,
                     isActive: isActive,
                     onEditarGustos: { paso = .gustos },
-                    onCambiarFoto: abrirPicker,
+                    onCambiarFoto: { paso = .retrato },
                     onVolver: { paso = .sugerencias },
                     onTerminar: { // <-- NUEVO CIERRE
                         dismiss() // Cierra la vista flotante o hace pop en la navegación
-                        onSalir() // Llama a la acción que cambia a la pestaña principal
-                    }
+                        (onGuardar ?? onSalir)() // La lista conserva el foco para elegir con el check.
+                    },
+                    nombresOriginales: nombresOriginales,
+                    fotosPendientes: fotosPendientes
                 )
             }
         }
+        .navigationBarBackButtonHidden(paso != .retrato)
+        .navigationBarTitleDisplayMode(.inline)
         .background(AppTheme.background.ignoresSafeArea())
         .ilustracionesOfrenda(activa: isActive && !pickerAbierto && paso != .ajusteFoto)
         .animation(paso == .elementos || paso == .resultado ? nil : .easeInOut(duration: 0.2), value: paso)
         .task {
             await fotosMarcos.cargar()
+            if !identidadCargada {
+                let configuracion = personalizacion.configuracionInicial(desde: fotosMarcos.configuracion)
+                personalizacion.aplicarRetratos(configuracion)
+                nombresOriginales = Dictionary(uniqueKeysWithValues: MarcoOfrenda.allCases.map { ($0, configuracion.persona(en: $0).nombre) })
+                identidadCargada = true
+            }
             sincronizarRetrato()
         }
         .onChange(of: fotosMarcos.configuracion) { _, _ in sincronizarRetrato() }
@@ -128,12 +140,17 @@ struct OfrendaPersonalizadaFlowView: View {
     }
 
     private func sincronizarRetrato() {
-        if !fotosMarcos.configuracion.visibles.contains(personalizacion.marcoRetrato) {
-            personalizacion.marcoRetrato = fotosMarcos.configuracion.principal
+        let configuracion = personalizacion.retratos ?? fotosMarcos.configuracion
+        if !configuracion.visibles.contains(personalizacion.marcoRetrato) {
+            personalizacion.marcoRetrato = configuracion.principal
         }
     }
 
     private func abrirPicker() {
+        let marco = personalizacion.marcoRetrato
+        guard IdentidadRetrato.permiteReemplazar(nombreAnterior: nombresOriginales[marco] ?? "",
+            nombreNuevo: personalizacion.retratos?.persona(en: marco).nombre ?? personalizacion.nombre,
+            esPredeterminada: fotosMarcos.esPredeterminadaGuardada(marco)) else { paso = .retrato; return }
         marcoDelAjuste = personalizacion.marcoRetrato
         regresoDeFoto = paso
         pickerAbierto = true

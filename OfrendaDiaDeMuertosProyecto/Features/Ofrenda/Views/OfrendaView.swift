@@ -13,18 +13,37 @@ struct OfrendaView: View {
     let fotosMarcos: FotosMarcosStore
     var seleccionElementos = ConfiguracionElementosOfrenda()
     var nombrePersona = ""
+    var perfil: PersonalizacionOfrenda? = nil
+    var onGuardarIdentidad: ((ConfiguracionMarcos) -> Bool)? = nil
+    private var personalizada: Bool { fotosMarcos.idOfrenda != OfrendasManager.ofrendaGeneralID }
+    private var nombres: String {
+        let actuales = fotosMarcos.configuracion.nombresCortos
+        return actuales.isEmpty ? (perfil?.nombresResumen ?? IdentidadRetrato.primerNombre(de: nombrePersona)) : actuales
+    }
+    private var etiquetasMarcos: [MarcoOfrenda: String] {
+        guard personalizada else { return [:] }
+        let configuracion = fotosMarcos.configuracion.personas.isEmpty ? (perfil?.configuracionInicial(desde: fotosMarcos.configuracion) ?? fotosMarcos.configuracion) : fotosMarcos.configuracion
+        return Dictionary(uniqueKeysWithValues: configuracion.visibles.map { ($0, configuracion.persona(en: $0).primerNombre) })
+    }
     var isActive = true
     @Binding var elementosVisitados: Set<String>
     @Binding var elementoSeleccionado: ElementoOfrenda?
     let onPersonalizar: () -> Void
     @State private var mostrarRecorrido = false
+    @State private var mostrarFechas = false
+    @State private var mostrarReferencias = true
+    @State private var solicitudCaptura: UUID?
+    @State private var capturaCompartida: CapturaOfrenda?
+    @State private var errorCaptura: String?
+
     @State private var pendienteDelRecorrido: ElementoOfrenda?
-    @State private var resetToken = 0
     @State private var loadState: ModelLoadState = .loading
     @State private var viewport = OfrendaViewportState()
     @State private var focusRequest: OfrendaFocusRequest?
     @State private var editorMarcos: EditorMarcos?
     @State private var errorFoto: String?
+    @EnvironmentObject private var guia: GuiaOfrendaStore
+    @State private var referenciasAntesGuia: Bool?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Environment(\.verticalSizeClass) private var verticalSizeClass
@@ -36,16 +55,34 @@ struct OfrendaView: View {
     private var visitasVisibles: Int { elementosVisibles.filter { elementosVisitados.contains($0.nombre) }.count }
 
     var body: some View {
-        Group {
-            if verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize {
-                ScrollView { contenido }
-            } else {
-                contenido
+        ScrollViewReader { desplazamiento in
+            Group {
+                if verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize {
+                    ScrollView { contenido }
+                } else { contenido }
+            }
+            .onChange(of: guia.paso) { _, paso in
+                if verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize, let paso {
+                    desplazamiento.scrollTo(paso, anchor: paso == .personalizar ? .bottom : .top)
+                }
             }
         }
         .foregroundStyle(.white)
         .background(AppTheme.background.ignoresSafeArea())
+        .onAppear { guia.actualizarDisponibilidad(isActive && loadState == .ready) }
+        .onChange(of: loadState) { _, estado in guia.actualizarDisponibilidad(isActive && estado == .ready) }
+        .onChange(of: guia.activa) { _, activa in
+            if activa {
+                referenciasAntesGuia = mostrarReferencias
+                mostrarReferencias = true
+            } else if let referenciasAntesGuia {
+                mostrarReferencias = referenciasAntesGuia
+                self.referenciasAntesGuia = nil
+            }
+        }
         .onChange(of: isActive) { _, active in
+            guia.actualizarDisponibilidad(active && loadState == .ready)
+            if !active { solicitudCaptura = nil }
             if !active && elementoSeleccionado == nil {
                 focusRequest = nil
                 viewport = OfrendaViewportState()
@@ -61,7 +98,29 @@ struct OfrendaView: View {
             }
         }
         .task { await fotosMarcos.cargar() }
-        .ilustracionesOfrenda(activa: isActive && !mostrarRecorrido && editorMarcos == nil && elementoSeleccionado == nil)
+        .task(id: solicitudCaptura) {
+            guard let solicitud = solicitudCaptura else { return }
+            defer { if solicitudCaptura == solicitud { solicitudCaptura = nil } }
+            do {
+                let imagen = try await renderSession.capturarOfrenda()
+                try Task.checkCancellation()
+                let nombre = nombres
+                capturaCompartida = CapturaOfrenda(imagen: imagen, titulo: nombre.isEmpty ? "Mi ofrenda" : "La ofrenda de \(nombre)")
+            } catch is CancellationError { }
+            catch { if !Task.isCancelled { errorCaptura = error.localizedDescription } }
+        }
+        .sheet(item: $capturaCompartida) { captura in
+            CompartirOfrendaView(captura: captura)
+        }
+        .alert("No se pudo capturar la ofrenda", isPresented: Binding(
+            get: { errorCaptura != nil }, set: { if !$0 { errorCaptura = nil } }
+        )) {
+            Button("Entendido", role: .cancel) { errorCaptura = nil }
+        } message: {
+            Text(errorCaptura ?? "")
+        }
+
+        .ilustracionesOfrenda(activa: isActive && !mostrarRecorrido && !mostrarFechas && editorMarcos == nil && elementoSeleccionado == nil && capturaCompartida == nil && solicitudCaptura == nil)
         .sheet(isPresented: $mostrarRecorrido, onDismiss: {
             guard let elemento = pendienteDelRecorrido else { return }
             pendienteDelRecorrido = nil
@@ -73,10 +132,10 @@ struct OfrendaView: View {
                 pendienteDelRecorrido = elemento
                 mostrarRecorrido = false
             }
-            .ofrendaSheet(detents: [.medium, .large])
+            .ofrendaSheet(detents: UserDefaults.standard.bool(forKey: GuiaContextualAmbito.recorrido.clave) ? [.medium, .large] : [.large])
         }
         .sheet(item: $editorMarcos) { editor in
-            MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco)
+            MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco, perfilInicial: perfil, onGuardarIdentidad: onGuardarIdentidad)
                 .ofrendaSheet(detents: [.large])
         }
         .alert("No se pudo mostrar la foto", isPresented: Binding(
@@ -92,27 +151,48 @@ struct OfrendaView: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 12) {
-                    Text(nombrePersona.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "LA OFRENDA DE ELENA" : "LA OFRENDA DE \(nombrePersona.uppercased())")
-                        .font(.caption.weight(.bold))
-                        .tracking(0.8)
-                        .foregroundStyle(AppTheme.accent)
-                    Spacer(minLength: 4)
-                    Button {
-                        editorMarcos = EditorMarcos(marco: nil)
-                    } label: {
-                        Label("Fotos", systemImage: "photo.on.rectangle")
-                            .frame(minHeight: 32)
+                    Group {
+                        if personalizada {
+                            Text("LA OFRENDA DE \(Text(nombres.uppercased()).bold().foregroundColor(AppTheme.accent))")
+                                .foregroundStyle(AppTheme.secondaryText)
+                        } else { Text("OFRENDA GENERAL").foregroundColor(AppTheme.accent) }
                     }
-                    .ofrendaSecondaryAction()
-                    .accessibilityLabel("Agregar fotos a los marcos")
-                    .disabled(loadState != .ready || focusRequest != nil)
+                    .font(.caption.weight(.medium)).tracking(0.8)
+                    .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 4)
+                    HStack(spacing: 8) {
+                        GlassIconButton(systemImage: "photo.on.rectangle", label: "Agregar fotos a los marcos") {
+                            editorMarcos = EditorMarcos(marco: nil)
+                        }
+                        .objetivoGuia(.fotografias).id(PasoGuiaOfrenda.fotografias)
+                        GlassIconButton(
+                            systemImage: mostrarReferencias ? "eye.slash" : "eye",
+                            label: mostrarReferencias ? "Ocultar referencias" : "Mostrar referencias"
+                        ) { mostrarReferencias.toggle() }
+                        .objetivoGuia(.vistaLimpia).id(PasoGuiaOfrenda.vistaLimpia)
+                        .accessibilityValue(mostrarReferencias ? "Referencias visibles" : "Referencias ocultas")
+                        .accessibilityHint("Muestra u oculta las etiquetas y los botones sobre el altar")
+                        Button { solicitudCaptura = UUID() } label: {
+                            Group {
+                                if solicitudCaptura != nil { ProgressView().tint(AppTheme.accent) }
+                                else { Image(systemName: "square.and.arrow.up").font(.body.weight(.semibold)) }
+                            }
+                            .frame(width: 44, height: 44)
+                            .contentShape(.circle)
+                        }
+                        .buttonStyle(.plain)
+                        .glassEffect(.regular.interactive(), in: .circle)
+                        .objetivoGuia(.compartir).id(PasoGuiaOfrenda.compartir)
+                        .accessibilityLabel(solicitudCaptura == nil ? "Capturar y compartir ofrenda" : "Preparando captura")
+                        .accessibilityHint("Encuadra toda la ofrenda y abre las opciones para compartir su imagen")
+                    }
+                    // Los símbolos caben en sus blancos de toque sin limitar el texto de la pantalla.
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                    .disabled(loadState != .ready || focusRequest != nil || solicitudCaptura != nil)
                 }
                 Text("Cada objeto, una historia.")
                     .font(.largeTitle.bold())
                     .fixedSize(horizontal: false, vertical: true)
-                Text(elementosVisibles.isEmpty ? "Elige qué objetos añadir desde Mi ofrenda." : "Acerca la ofrenda para descubrir más objetos y sus historias.")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.secondaryText)
                 Button { mostrarRecorrido = true } label: {
                     VStack(alignment: .leading, spacing: 7) {
                         HStack(spacing: 10) {
@@ -132,14 +212,18 @@ struct OfrendaView: View {
                 .accessibilityValue("\(visitasVisibles) de \(elementosVisibles.count) elementos visitados")
                 .accessibilityHint("Muestra los elementos pendientes y completados")
                 .disabled(focusRequest != nil)
+                .objetivoGuia(.recorrido).id(PasoGuiaOfrenda.recorrido)
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
 
+            CalendarioOfrendaView(activo: isActive, mostrarFechas: $mostrarFechas)
+                .padding(.horizontal, 24)
+
             GeometryReader { geometry in
-                let paused = elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || !isActive
-                let projections = paused ? [:] : viewport.positions
-                let photoControls = MarcoPhotoControls.placements(paused ? [:] : viewport.frameProjections, in: geometry.size)
+                let paused = elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || mostrarFechas || capturaCompartida != nil || !isActive
+                let projections = paused || !mostrarReferencias || solicitudCaptura != nil ? [:] : viewport.positions
+                let photoControls = MarcoPhotoControls.placements(paused || !mostrarReferencias || solicitudCaptura != nil ? [:] : viewport.frameProjections, in: geometry.size, nombres: etiquetasMarcos)
                 let pins = OfrendaPinLayout.place(
                     elementosVisibles.compactMap { elemento in
                         guard let point = projections[elemento.nombre] else { return nil }
@@ -159,7 +243,7 @@ struct OfrendaView: View {
                     if isActive || elementoSeleccionado != nil {
                         OfrendaInteractive3DView(
                             elementos: elementos,
-                            resetToken: resetToken,
+                            resetToken: 0,
                             viewport: $viewport,
                             focusRequest: focusRequest,
                             reduceMotion: reduceMotion,
@@ -173,7 +257,7 @@ struct OfrendaView: View {
                             onLoad: { loadState = $0 },
                             fotosMarcos: fotosMarcos.fotos,
                             onSeleccionarMarco: { marco in
-                                guard loadState == .ready, focusRequest == nil else { return }
+                                guard mostrarReferencias, solicitudCaptura == nil, loadState == .ready, focusRequest == nil else { return }
                                 editorMarcos = EditorMarcos(marco: marco)
                             },
                             onErrorFoto: { mensaje in
@@ -182,7 +266,7 @@ struct OfrendaView: View {
                             },
                             configuracionMarcos: fotosMarcos.configuracion,
                             seleccionElementos: seleccionElementos,
-                            isObscured: elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || !isActive,
+                            isObscured: elementoSeleccionado != nil || editorMarcos != nil || mostrarRecorrido || mostrarFechas || capturaCompartida != nil || !isActive,
                             renderSession: renderSession
                         )
                     }
@@ -218,6 +302,7 @@ struct OfrendaView: View {
                                     }
                                     .buttonStyle(.plain)
                                     .glassEffect(.regular.interactive(), in: .capsule)
+                                    .objetivoGuia(.historias, activo: elemento.nombre == pins.keys.sorted().first)
                                     .position(pin.center)
                                     .accessibilityLabel("\(elemento.nombre): ver historia y significado")
                                     .accessibilityHint("Acerca el elemento y abre su historia")
@@ -228,21 +313,12 @@ struct OfrendaView: View {
                     }
                     MarcoPhotoControls(
                         placements: photoControls,
-                        isEnabled: !paused && loadState == .ready && focusRequest == nil
+                        nombres: etiquetasMarcos,
+                        isEnabled: !paused && loadState == .ready && focusRequest == nil,
+                        requiereCambioDeNombre: personalizada
                     ) { marco in
                         editorMarcos = EditorMarcos(marco: marco)
                     }
-                    VStack {
-                        HStack {
-                            Spacer()
-                            GlassIconButton(systemImage: "arrow.counterclockwise", label: "Restablecer vista 3D") {
-                                focusRequest = nil
-                                resetToken += 1
-                            }
-                        }
-                        Spacer()
-                    }
-                    .padding(16)
                     if case .loading = loadState {
                         ProgressView("Cargando modelo 3D…")
                             .padding(20)
@@ -256,12 +332,15 @@ struct OfrendaView: View {
                 .clipped()
             }
             .frame(minHeight: 210)
+            .objetivoGuia(.explorar).id(PasoGuiaOfrenda.explorar)
+            .id(PasoGuiaOfrenda.historias)
 
-            Text("Toca un marco: fotos · 1 dedo: girar · 2 dedos: mover · Pellizca: acercar")
+            Text(mostrarReferencias ? "Toca un marco: fotos · 1 dedo: girar · 2 dedos: mover · Pellizca: acercar" : "1 dedo: girar · 2 dedos: mover · Pellizca: acercar")
                 .font(.caption2)
                 .foregroundStyle(AppTheme.secondaryText)
                 .frame(maxWidth: .infinity)
                 .allowsHitTesting(false)
+            if !personalizada {
             Button(action: onPersonalizar) {
                 HStack(spacing: 12) {
                     Image(systemName: "heart")
@@ -284,7 +363,10 @@ struct OfrendaView: View {
             .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 24))
             .padding(.horizontal, 24)
             .padding(.bottom, 12)
+            .objetivoGuia(.personalizar).id(PasoGuiaOfrenda.personalizar)
+            }
         }
+        .disabled(solicitudCaptura != nil)
         .foregroundStyle(.white)
         .background(AppTheme.background.ignoresSafeArea())
     }

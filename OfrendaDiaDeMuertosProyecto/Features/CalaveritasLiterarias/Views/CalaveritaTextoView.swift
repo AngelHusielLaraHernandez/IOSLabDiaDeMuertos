@@ -15,7 +15,7 @@ struct CalaveritaTextoView: View {
     var body: some View {
         Text(texto.formatearCalaverita(colorAcento: AppTheme.accent))
             .font(.body).italic()
-            .foregroundStyle(.white)
+            .tint(AppTheme.accent)
             .lineSpacing(6)
             .frame(maxWidth: .infinity, alignment: .leading)
             .textSelection(.enabled)
@@ -99,6 +99,7 @@ private extension String {
             return AttributedString(self)
         }
 
+        attrString.foregroundColor = .white
         for run in attrString.runs {
             if run.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
                 attrString[run.range].foregroundColor = colorAcento

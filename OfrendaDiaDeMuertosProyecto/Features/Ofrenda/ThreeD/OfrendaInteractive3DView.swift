@@ -133,6 +133,18 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         private var seleccionElementos = ConfiguracionElementosOfrenda()
         private let elementVisibility = OfrendaElementVisibility()
         private var candleLights: [PointLight] = []
+        private struct CapturaPendiente {
+            let id: UUID
+            let orientation: simd_quatf
+            let position: SIMD3<Float>
+            let cameraTransform: Transform
+            let interactionEnabled: Bool
+            let completion: (Result<UIImage, Error>) -> Void
+        }
+        private var capturaPendiente: CapturaPendiente?
+        private var tareaCaptura: Task<Void, Never>?
+        private var tiempoLimiteCaptura: Task<Void, Never>?
+
 
         private var yaw: Float = 0
         private var pitch: Float = 0
@@ -159,6 +171,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
 
         func bind(to parent: OfrendaInteractive3DView, newOwner: Bool) {
             if newOwner {
+                cancelarCaptura()
                 cancelFocus()
                 previousFraming = nil
                 pendingPublication?.cancel()
@@ -330,6 +343,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         }
 
         func dispose() {
+            cancelarCaptura()
             pendingLoadNotification?.cancel()
             pendingLoadNotification = nil
             onLoad = { _ in }
@@ -363,6 +377,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             guard isObscured != obscured, let view, let sceneAnchor else { return }
             isObscured = obscured
             if obscured {
+                cancelarCaptura()
                 cancelFocus()
                 pendingPublication?.cancel()
                 pendingPublication = nil
@@ -403,7 +418,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         }
 
         @objc private func selectFrame(_ gesture: UITapGestureRecognizer) {
-            guard !isObscured, gesture.state == .ended, focusTask == nil, let view,
+            guard !isObscured, capturaPendiente == nil, gesture.state == .ended, focusTask == nil, let view,
                   let marco = photoFrames.frame(at: gesture.location(in: view), in: view, camera: camera) else { return }
             onSeleccionarMarco(marco)
         }
@@ -512,10 +527,71 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         func resize() {
             guard let view else { return }
             if view.bounds.size != previousSize {
+                cancelarCaptura()
                 previousSize = view.bounds.size
                 updateCamera()
             }
             notifyLoadState()
+        }
+
+        /// Captura solo RealityKit: ninguna etiqueta SwiftUI ni controles entran en la imagen.
+        func capturar(id: UUID, completion: @escaping (Result<UIImage, Error>) -> Void) {
+            guard capturaPendiente == nil, loadState == .ready, !isObscured, focusTask == nil,
+                  let view, view.window != nil, view.bounds.width > 0, view.bounds.height > 0 else {
+                completion(.failure(OfrendaRenderSession.ErrorCaptura.noDisponible))
+                return
+            }
+            capturaPendiente = CapturaPendiente(
+                id: id, orientation: pivot.orientation, position: pivot.position,
+                cameraTransform: camera.transform, interactionEnabled: view.isUserInteractionEnabled,
+                completion: completion
+            )
+            view.isUserInteractionEnabled = false
+            pivot.orientation = OfrendaCaptureFraming.orientation
+            pivot.position = .zero
+            let distance = OfrendaCaptureFraming.distance(
+                extents: extents, aspect: Float(view.bounds.width / view.bounds.height)
+            )
+            camera.look(at: .zero, from: [0, 0, distance], relativeTo: nil)
+            tareaCaptura = Task { @MainActor [weak self, weak view] in
+                // Deja presentar el nuevo encuadre antes de solicitar el siguiente fotograma.
+                do { try await Task.sleep(for: .milliseconds(180)) } catch { return }
+                guard let self, let view, self.capturaPendiente?.id == id else { return }
+                view.snapshot(saveToHDR: false) { [weak self] image in
+                    Task { @MainActor in
+                        guard let self else { return }
+                        if let image {
+                            self.finalizarCaptura(id: id, resultado: .success(image))
+                        } else {
+                            self.finalizarCaptura(id: id, resultado: .failure(OfrendaRenderSession.ErrorCaptura.fallida))
+                        }
+                    }
+                }
+            }
+            tiempoLimiteCaptura = Task { @MainActor [weak self] in
+                do { try await Task.sleep(for: .seconds(8)) } catch { return }
+                self?.finalizarCaptura(id: id, resultado: .failure(OfrendaRenderSession.ErrorCaptura.fallida))
+            }
+        }
+
+        func cancelarCaptura(id: UUID? = nil) {
+            guard let pendiente = capturaPendiente, id == nil || pendiente.id == id else { return }
+            finalizarCaptura(id: pendiente.id, resultado: .failure(CancellationError()))
+        }
+
+        private func finalizarCaptura(id: UUID, resultado: Result<UIImage, Error>) {
+            guard let pendiente = capturaPendiente, pendiente.id == id else { return }
+            capturaPendiente = nil
+            tareaCaptura?.cancel()
+            tareaCaptura = nil
+            tiempoLimiteCaptura?.cancel()
+            tiempoLimiteCaptura = nil
+            pivot.orientation = pendiente.orientation
+            pivot.position = pendiente.position
+            camera.transform = pendiente.cameraTransform
+            view?.isUserInteractionEnabled = pendiente.interactionEnabled
+            proyectarBotonesEnPantalla()
+            pendiente.completion(resultado)
         }
 
         func reset() {
@@ -607,7 +683,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         }
 
         private func updateCamera() {
-            guard !isObscured, view != nil else { return }
+            guard !isObscured, capturaPendiente == nil, view != nil else { return }
             let distance = cameraDistance(zoom: zoomFactor)
             pivot.orientation = simd_quatf(angle: yaw, axis: [0, 1, 0]) * simd_quatf(angle: pitch, axis: [1, 0, 0])
             pivot.position = offset

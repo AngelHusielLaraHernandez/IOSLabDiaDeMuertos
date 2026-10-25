@@ -10,6 +10,8 @@ import simd
 
 struct ElementoOfrenda: Identifiable {
     var id: String { nombre }
+    /// El identificador histórico se conserva aunque se aclare el nombre mostrado.
+    var nombreVisible: String { nombre == "Calaveritas" ? "Calaveritas de azúcar" : nombre }
     let nombre: String
     let icono: IlustracionOfrenda
     let tituloHistoria: String
