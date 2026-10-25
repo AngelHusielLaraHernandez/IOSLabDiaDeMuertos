@@ -14,6 +14,7 @@ import UIKit
 @MainActor @Observable
 final class FotosMarcosStore {
     let idOfrenda: UUID
+    var requiereIdentidad: Bool { idOfrenda != OfrendasManager.ofrendaGeneralID }
     
     private(set) var fotos: [MarcoOfrenda: FotoMarco]
     private(set) var cargando = false
@@ -22,12 +23,13 @@ final class FotosMarcosStore {
     var mensajeError: String?
     private let predeterminadas: [MarcoOfrenda: FotoMarco]
     private var haCargado = false
+    private var fotosPersonalesGuardadas: Set<MarcoOfrenda> = []
     private let archivos: ArchivoFotosMarcos // Ya no lo inicializamos aquí directamente
 
-    init(idOfrenda: UUID) {
+    init(idOfrenda: UUID, directorio: URL? = nil) {
         self.idOfrenda = idOfrenda
         // Inicializamos el actor pasándole el ID para que sepa en qué carpeta guardar
-        self.archivos = ArchivoFotosMarcos(idOfrenda: idOfrenda)
+        self.archivos = ArchivoFotosMarcos(idOfrenda: idOfrenda, directorio: directorio)
         
         let ejemplos = Self.cargarEjemplos()
         self.predeterminadas = ejemplos
@@ -39,7 +41,11 @@ final class FotosMarcosStore {
     }
     
     func cargar() async {
-        guard !haCargado, !cargando else { return }
+        guard !haCargado else { return }
+        if cargando {
+            while cargando && !Task.isCancelled { try? await Task.sleep(for: .milliseconds(10)) }
+            return
+        }
         cargando = true
         defer { cargando = false }
         do {
@@ -54,6 +60,10 @@ final class FotosMarcosStore {
             if let configuracionGuardada {
                 configuracion = try JSONDecoder().decode(ConfiguracionMarcos.self, from: configuracionGuardada)
             }
+            if !requiereIdentidad {
+                configuracion.personas = [:]
+            }
+            fotosPersonalesGuardadas = Set(recuperadas.filter { !$0.value.esPredeterminada }.map(\.key))
             fotos = recuperadas
             haCargado = true
         } catch {
@@ -61,28 +71,39 @@ final class FotosMarcosStore {
         }
     }
 
+    func esPredeterminadaGuardada(_ marco: MarcoOfrenda) -> Bool { !fotosPersonalesGuardadas.contains(marco) }
+
+    func previsualizar(_ imagen: UIImage, en marco: MarcoOfrenda) { fotos[marco] = FotoMarco(imagen: imagen) }
+
     @discardableResult
-    func guardar(_ imagen: UIImage, en marco: MarcoOfrenda) async -> Bool {
-        guard let data = imagen.jpegData(compressionQuality: 0.9) else {
-            mensajeError = "No se pudo preparar la fotografía. Intenta elegirla de nuevo."
-            return false
+    func guardarCambios(_ propuesta: ConfiguracionMarcos, imagenes: [MarcoOfrenda: UIImage] = [:], nombresAnteriores: [MarcoOfrenda: String] = [:]) async -> Bool {
+        guard haCargado, !cargando, !guardandoConfiguracion else { mensajeError = "Espera a que se recuperen las fotografías antes de guardar."; return false }
+        guard !requiereIdentidad || imagenes.keys.allSatisfy({ marco in
+            IdentidadRetrato.permiteReemplazar(nombreAnterior: configuracion.persona(en: marco).nombre.isEmpty ? nombresAnteriores[marco] ?? "" : configuracion.persona(en: marco).nombre,
+                nombreNuevo: propuesta.persona(en: marco).nombre, esPredeterminada: esPredeterminadaGuardada(marco))
+        }) else { mensajeError = "Para reemplazar la fotografía cambia también el nombre de esa persona."; return false }
+        if requiereIdentidad, let error = propuesta.errorIdentidad { mensajeError = error; return false }
+        guardandoConfiguracion = true
+        defer { guardandoConfiguracion = false }
+        var nueva = propuesta
+        if !requiereIdentidad { nueva.personas = [:] }
+        nueva.archivosFotos = configuracion.archivosFotos
+        var archivosNuevos: [String: Data] = [:]
+        for (marco, imagen) in imagenes {
+            guard let datos = imagen.jpegData(compressionQuality: 0.9) else { mensajeError = "No se pudo preparar la fotografía."; return false }
+            let nombre = "\(marco.rawValue)_\(UUID().uuidString).jpg"
+            nueva.archivosFotos[marco.rawValue] = nombre
+            archivosNuevos[nombre] = datos
         }
         do {
-            try await archivos.guardar(data, nombre: marco.rawValue)
-            fotos[marco] = FotoMarco(imagen: imagen)
+            try await archivos.confirmar(archivosNuevos, configuracion: JSONEncoder().encode(nueva))
+            configuracion = nueva
+            for (marco, imagen) in imagenes { fotos[marco] = FotoMarco(imagen: imagen); fotosPersonalesGuardadas.insert(marco) }
+            mensajeError = nil
             return true
         } catch {
-            mensajeError = "No se pudo guardar la foto en este teléfono. La foto anterior se conserva."
+            mensajeError = "No se pudieron guardar las fotos y sus nombres. Se conserva la versión anterior; vuelve a intentarlo."
             return false
-        }
-    }
-
-    func restablecer(_ marco: MarcoOfrenda) async {
-        do {
-            try await archivos.guardar(nil, nombre: marco.rawValue)
-            fotos[marco] = predeterminadas[marco]
-        } catch {
-            mensajeError = "No se pudo restablecer la fotografía. Intenta de nuevo."
         }
     }
 
@@ -99,26 +120,6 @@ final class FotosMarcosStore {
             return true
         } catch {
             mensajeError = "No se pudo guardar la disposición de los marcos. Intenta de nuevo."
-            return false
-        }
-    }
-
-    /// Las fotos se escriben al confirmar su encuadre; Guardar confirma también la disposición.
-    @discardableResult
-    func confirmarGuardado() async -> Bool {
-        guard haCargado, !cargando, !guardandoConfiguracion else {
-            mensajeError = "No se han podido recuperar los marcos. Cierra y vuelve a abrir las fotografías antes de guardar."
-            return false
-        }
-        guardandoConfiguracion = true
-        defer { guardandoConfiguracion = false }
-        do {
-            let datos = try JSONEncoder().encode(configuracion)
-            try await archivos.guardarConfiguracion(datos)
-            mensajeError = nil
-            return true
-        } catch {
-            mensajeError = "No se pudieron confirmar los marcos. Tus fotografías se conservan; vuelve a pulsar Guardar."
             return false
         }
     }
@@ -150,15 +151,17 @@ final class FotosMarcosStore {
 
 /// El acceso al disco se hace fuera del actor de la interfaz.
 private actor ArchivoFotosMarcos {
-    let idOfrenda: UUID // Agregamos el ID aquí también
-    
-    init(idOfrenda: UUID) {
+    let idOfrenda: UUID
+    let directorio: URL?
+    init(idOfrenda: UUID, directorio: URL? = nil) {
         self.idOfrenda = idOfrenda
+        self.directorio = directorio
     }
     
     private var carpeta: URL {
         get throws {
-            try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+            if let directorio { return directorio }
+            return try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                         appropriateFor: nil, create: true)
                 .appendingPathComponent("FotosMarcos", isDirectory: true)
                 // AHORA SÍ creará una subcarpeta única por cada ofrenda
@@ -169,8 +172,13 @@ private actor ArchivoFotosMarcos {
     func cargar() throws -> [String: Data] {
         let carpeta = try carpeta
         var resultado: [String: Data] = [:]
+        let configuracion = try cargarConfiguracion()
+        let objeto = configuracion.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        let archivos = objeto?["archivosFotos"] as? [String: String] ?? [:]
         for nombre in ["retrato__001", "retrato__002"] {
-            let url = carpeta.appendingPathComponent(nombre).appendingPathExtension("jpg")
+            let archivo = archivos[nombre] ?? "\(nombre).jpg"
+            guard archivo == (archivo as NSString).lastPathComponent else { continue }
+            let url = carpeta.appendingPathComponent(archivo)
             if FileManager.default.fileExists(atPath: url.path) {
                 resultado[nombre] = try Data(contentsOf: url)
             }
@@ -182,6 +190,33 @@ private actor ArchivoFotosMarcos {
         let url = try carpeta.appendingPathComponent("configuracion.json")
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         return try Data(contentsOf: url)
+    }
+
+    func confirmar(_ imagenes: [String: Data], configuracion: Data) throws {
+        let carpeta = try carpeta
+        try FileManager.default.createDirectory(at: carpeta, withIntermediateDirectories: true)
+        var creados: [URL] = []
+        do {
+            for (nombre, datos) in imagenes {
+                let url = carpeta.appendingPathComponent(nombre)
+                try datos.write(to: url, options: .atomic)
+                creados.append(url)
+            }
+            // Este único cambio publica a la vez nombres, músicas y referencias de imágenes.
+            try configuracion.write(to: carpeta.appendingPathComponent("configuracion.json"), options: .atomic)
+        } catch {
+            for url in creados { try? FileManager.default.removeItem(at: url) }
+            throw error
+        }
+        let objeto = (try? JSONSerialization.jsonObject(with: configuracion)) as? [String: Any]
+        let vigentes = Set((objeto?["archivosFotos"] as? [String: String] ?? [:]).values)
+        for url in (try? FileManager.default.contentsOfDirectory(at: carpeta, includingPropertiesForKeys: nil)) ?? [] {
+            let nombre = url.lastPathComponent
+            if nombre.hasPrefix("retrato__"), nombre.hasSuffix(".jpg"), !vigentes.contains(nombre),
+               vigentes.contains(where: { $0.hasPrefix(String(nombre.prefix(12))) }) {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
     }
 
     func guardarConfiguracion(_ datos: Data) throws {

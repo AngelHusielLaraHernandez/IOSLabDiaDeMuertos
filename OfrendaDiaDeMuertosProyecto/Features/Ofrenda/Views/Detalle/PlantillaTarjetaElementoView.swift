@@ -35,11 +35,23 @@ struct PlantillaTarjetaElementoView: View {
     private let colorAcento = AppTheme.accent
     private let colorTextoSecundario = AppTheme.secondaryText
 
+    private var textoLectura: String {
+        switch seccionActiva {
+        case 0: TextoLecturaOfrenda.unir([nombreElemento, tituloHistoria, parrafoHistoria1, parrafoHistoria2, preguntaReflexion])
+        case 1: TextoLecturaOfrenda.unir([nombreElemento, tituloSignificado, parrafoSignificado1, subtituloSignificado2, parrafoSignificado2, notaSignificado])
+        case 2: TextoLecturaOfrenda.mapa(para: nombreElemento)
+        default: TextoLecturaOfrenda.cronologia("Su camino hasta el altar", hitos: hitos)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ElementSheetHeader(icono: icono, subtitulo: subtituloCabecera, titulo: nombreElemento)
             SheetSectionPicker(secciones: ["Historia", "Significado", "Mapa", "Conocer más"], seleccion: $seccionActiva)
-            ScrollView {
+                .objetivoGuiaContextual("ficha.secciones")
+            ControlLecturaView(texto: textoLectura, suspendida: mostrarFuentes)
+                .objetivoGuiaContextual("ficha.voz")
+            SheetReadingContent {
                 VStack(alignment: .leading, spacing: 16) {
                     if seccionActiva == 0 {
                         // HISTORIA
@@ -129,10 +141,12 @@ struct PlantillaTarjetaElementoView: View {
             }
             Button { dismiss() } label: {
                 Text(textoBotonCerrar)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
             }
-            .ofrendaPrimaryAction()
+            .ofrendaPrimaryAction().objetivoGuiaContextual("hoja.cerrar")
         }
         .padding(24)
         .sheet(isPresented: $mostrarFuentes) {

@@ -75,6 +75,7 @@ struct AjusteFotoView: View {
                         limitarDesplazamiento()
                     }
                 }
+                .objetivoGuiaContextual("ajuste.imagen")
                 .aspectRatio(aspectMarco, contentMode: .fit)
                 .frame(maxWidth: 360)
                 .frame(maxWidth: .infinity)
@@ -101,12 +102,13 @@ struct AjusteFotoView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
-                .ofrendaPrimaryAction()
+                .ofrendaPrimaryAction().objetivoGuiaContextual("ajuste.confirmar")
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
             }
         }
         .background(AppTheme.background.ignoresSafeArea())
+        .guiaContextual(.ajusteFoto)
         .onChange(of: escala) { _, _ in limitarDesplazamiento() }
     }
 

@@ -27,6 +27,7 @@ struct GuardarCalaveritaView: View {
                         .submitLabel(.done)
                         .focused($nombreEnfocado)
                         .accessibilityIdentifier("calaveritas.nombre")
+                        .objetivoGuiaContextual("calaverita.nombre")
                         .onSubmit { if validacion == nil { guardar() } }
                     Text("Para \(calaverita.nombrePersona) · \(nombre.count)/80 caracteres")
                         .font(.footnote).foregroundStyle(AppTheme.secondaryText)
@@ -46,6 +47,11 @@ struct GuardarCalaveritaView: View {
             }
             .scrollContentBackground(.hidden)
             .background(AppTheme.background.ignoresSafeArea())
+            .safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0) {
+                AyudaGuiaContextualButton()
+                    .padding(.trailing, 24)
+                    .padding(.vertical, 8)
+            }
             .navigationTitle("Guardar calaverita")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -57,9 +63,10 @@ struct GuardarCalaveritaView: View {
                         .accessibilityIdentifier("calaveritas.confirmarNombre")
                 }
             }
-            .onAppear { nombre = store.nombreSugerido(para: calaverita); nombreEnfocado = true }
+            .onAppear { nombre = store.nombreSugerido(para: calaverita) }
             .onChange(of: nombre) { _, _ in errorGuardado = nil }
         }
+        .guiaContextual(.guardarCalaverita)
     }
 
     private func guardar() {

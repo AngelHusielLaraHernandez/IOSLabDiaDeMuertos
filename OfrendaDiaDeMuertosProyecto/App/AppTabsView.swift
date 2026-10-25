@@ -8,10 +8,11 @@
 import SwiftUI
 
 private enum AppTab: Hashable {
-    case ofrenda, historias, miOfrenda, calaveritas
+    case ofrenda, historias, miOfrenda, calaveritas, creditos
 }
 
 struct AppTabsView: View {
+    @StateObject private var guia = GuiaOfrendaStore()
     @State private var renderSession = OfrendaRenderSession()
     @State private var tab: AppTab = .ofrenda
     @State private var elementoSeleccionado: ElementoOfrenda?
@@ -24,6 +25,7 @@ struct AppTabsView: View {
     @StateObject private var ofrendasManager = OfrendasManager()
     @StateObject private var calaveritasStore = CalaveritasStore()
     
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.scenePhase) private var scenePhase
     private let elementos = OfrendaCatalog.elementos
 
@@ -63,7 +65,24 @@ struct AppTabsView: View {
                     onPersonalizar: { tab = .miOfrenda }
                 )
             }
+            Tab("Créditos", systemImage: "person.3", value: .creditos) {
+                CreditosView {
+                    guia.actualizarDisponibilidad(false)
+                    guia.repetir()
+                    tab = .ofrenda
+                }
+            }
         }
+        .accessibilityHidden(guia.activa && guia.altarDisponible)
+        .overlayPreferenceValue(ObjetivosGuiaPreference.self) { objetivos in
+            GeometryReader { geometria in
+                if let paso = guia.paso, guia.altarDisponible, tab == .ofrenda, scenePhase == .active,
+                   let ancla = objetivos[paso] ?? objetivos[.explorar] {
+                    GuiaInicialOverlay(paso: paso, objetivo: geometria[ancla], pantalla: geometria.size, guia: guia)
+                }
+            }
+        }
+        .environmentObject(guia)
         // 1. INYECTAMOS EL MANAGER A TODA LA APP
         .environmentObject(ofrendasManager)
         .environmentObject(calaveritasStore)
@@ -81,7 +100,7 @@ struct AppTabsView: View {
                 fotosMarcos: FotosMarcosStore(idOfrenda: tab == .ofrenda ? ofrendasManager.idModeloPrincipal : OfrendasManager.ofrendaGeneralID),
                 textoBotonCerrar: tab == .historias ? "Volver a historias" : "Volver a la ofrenda"
             )
-            .ofrendaSheet(detents: [.fraction(0.82), .large])
+            .ofrendaSheet(detents: dynamicTypeSize.isAccessibilitySize ? [.large] : [.fraction(0.82), .large])
         }
     }
 }
@@ -89,6 +108,7 @@ struct AppTabsView: View {
 // MARK: - Altar elegido desde Mi ofrenda
 
 private struct OfrendaPrincipalTabView: View {
+    @EnvironmentObject private var manager: OfrendasManager
     let renderSession: OfrendaRenderSession
     let isActive: Bool
     @Binding var elementosVisitados: Set<String>
@@ -124,6 +144,12 @@ private struct OfrendaPrincipalTabView: View {
             fotosMarcos: fotosMarcos,
             seleccionElementos: elementosStore.configuracion,
             nombrePersona: nombrePersona,
+            perfil: manager.ofrendaPrincipal,
+            onGuardarIdentidad: { configuracion in
+                guard var perfil = manager.ofrendaPrincipal else { return true }
+                perfil.aplicarRetratos(configuracion)
+                return manager.actualizarOfrenda(perfil, actualizarModelo: false)
+            },
             isActive: isActive,
             elementosVisitados: $elementosVisitados,
             elementoSeleccionado: $elementoSeleccionado,

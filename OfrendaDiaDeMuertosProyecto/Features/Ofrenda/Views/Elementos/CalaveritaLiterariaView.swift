@@ -17,20 +17,52 @@ struct CalaveritaLiterariaView: View {
     private let colorTextoSecundario = AppTheme.secondaryText
     private let hitos = OfrendaCatalog.historiaCalaveritasLiterarias
 
+
+    private enum Contenido {
+        static let ejemplo = [
+            "La Calaca jardinera",
+            "La Calaca fue al **jardín**\ncon su lista y su sombrero;\ndijo: «Aquí vengo por fin,\npero riego lo primero».",
+            "Entre **flores** y alegría,\nse olvidó de su misión;\ny al llegar el nuevo día,\nse marchó con un botón.",
+            "Las calaveritas literarias recuerdan con humor, rima y afecto las aficiones y personalidades de quienes queremos.",
+        ]
+        static let origen = [
+            "Sátira y crítica social",
+            "Durante el siglo XIX, las calaveritas literarias se difundieron como una forma de sátira y crítica social. Sus versos combinan humor e imaginación para hablar de personas y de la muerte.",
+            "El legado de Posada",
+            "La gráfica popular también empleó calaveras para comentar la vida social. Entre sus artistas destacan Manuel Manilla y José Guadalupe Posada. Las figuras de dulce y los versos comparten la celebración, pero son expresiones distintas.",
+        ]
+        static let estructura = [
+            "¿Cómo se componen?",
+            "• **Estrofas:** Generalmente se escriben en cuartetas (estrofas de 4 versos).\n• **Rima:** Rima consonante o asonante, habitualmente en esquema ABAB o ABCB.\n• **Tema:** Se redactan como si la persona (viva) estuviera en una situación cómica o inesperada con «La Catrina» o «La Huesuda».\n• **Tono:** Festivo, irónico y afectuoso, con respeto hacia la persona.",
+        ]
+    }
+
+    private var textoLectura: String {
+        switch seccionActiva {
+        case 0: TextoLecturaOfrenda.unir(Contenido.ejemplo)
+        case 1: TextoLecturaOfrenda.unir(Contenido.origen)
+        case 2: TextoLecturaOfrenda.unir(Contenido.estructura)
+        default: TextoLecturaOfrenda.cronologia("Versos a través del tiempo", hitos: hitos)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ElementSheetHeader(icono: .calaveritaLiteraria, subtitulo: "Poesía y sátira", titulo: "Calaveritas literarias")
             SheetSectionPicker(secciones: ["Ejemplo", "Origen", "Estructura", "Conocer más"], seleccion: $seccionActiva)
+                .objetivoGuiaContextual("ficha.secciones")
 
-            ScrollView {
+            ControlLecturaView(texto: textoLectura, suspendida: mostrarFuentes)
+                .objetivoGuiaContextual("ficha.voz")
+            SheetReadingContent {
                 VStack(alignment: .leading, spacing: 16) {
                     if seccionActiva == 0 {
                         // EJEMPLO / POEMA
-                        Text("La Calaca jardinera")
+                        Text(Contenido.ejemplo[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
 
-                        CalaveritaTextoView(texto: "La Calaca fue al **jardín**\ncon su lista y su sombrero;\ndijo: «Aquí vengo por fin,\npero riego lo primero».")
+                        CalaveritaTextoView(texto: Contenido.ejemplo[1])
                             .font(.body)
                             .foregroundColor(.white.opacity(0.9))
                             .lineSpacing(5)
@@ -38,7 +70,7 @@ struct CalaveritaLiterariaView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(RoundedRectangle(cornerRadius: 14).fill(colorTarjeta.opacity(0.6)))
 
-                        CalaveritaTextoView(texto: "Entre **flores** y alegría,\nse olvidó de su misión;\ny al llegar el nuevo día,\nse marchó con un botón.")
+                        CalaveritaTextoView(texto: Contenido.ejemplo[2])
                             .font(.body)
                             .foregroundColor(.white.opacity(0.9))
                             .lineSpacing(5)
@@ -46,38 +78,38 @@ struct CalaveritaLiterariaView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(RoundedRectangle(cornerRadius: 14).fill(colorTarjeta.opacity(0.6)))
 
-                        Text("Las calaveritas literarias recuerdan con humor, rima y afecto las aficiones y personalidades de quienes queremos.")
+                        Text(Contenido.ejemplo[3])
                             .font(.footnote)
                             .foregroundColor(colorTextoSecundario)
 
                     } else if seccionActiva == 1 {
                         // ORIGEN E HISTORIA
-                        Text("Sátira y crítica social")
+                        Text(Contenido.origen[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
 
-                        Text("Durante el siglo XIX, las calaveritas literarias se difundieron como una forma de sátira y crítica social. Sus versos combinan humor e imaginación para hablar de personas y de la muerte.")
+                        Text(Contenido.origen[1])
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
 
-                        Text("El legado de Posada")
+                        Text(Contenido.origen[2])
                             .font(.headline.weight(.bold))
                             .foregroundColor(.white)
                             .padding(.top, 4)
 
-                        Text("La gráfica popular también empleó calaveras para comentar la vida social. Entre sus artistas destacan Manuel Manilla y José Guadalupe Posada. Las figuras de dulce y los versos comparten la celebración, pero son expresiones distintas.")
+                        Text(Contenido.origen[3])
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(4)
 
                     } else if seccionActiva == 2 {
                         // ESTRUCTURA Y CÓMO ESCRIBIRLAS
-                        Text("¿Cómo se componen?")
+                        Text(Contenido.estructura[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
 
-                        Text("• **Estrofas:** Generalmente se escriben en cuartetas (estrofas de 4 versos).\n• **Rima:** Rima consonante o asonante, habitualmente en esquema ABAB o ABCB.\n• **Tema:** Se redactan como si la persona (viva) estuviera en una situación cómica o inesperada con «La Catrina» o «La Huesuda».\n• **Tono:** Festivo, irónico y afectuoso, con respeto hacia la persona.")
+                        Text(LocalizedStringKey(Contenido.estructura[1]))
                             .font(.body)
                             .foregroundColor(.white.opacity(0.88))
                             .lineSpacing(6)
@@ -97,10 +129,12 @@ struct CalaveritaLiterariaView: View {
 
             Button { dismiss() } label: {
                 Text(textoBotonCerrar)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
             }
-            .ofrendaPrimaryAction()
+            .ofrendaPrimaryAction().objetivoGuiaContextual("hoja.cerrar")
         }
         .padding(24)
         .sheet(isPresented: $mostrarFuentes) {

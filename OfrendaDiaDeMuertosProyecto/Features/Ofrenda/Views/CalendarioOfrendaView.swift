@@ -32,7 +32,7 @@ struct CalendarioOfrendaView: View {
         .onChange(of: scenePhase) { _, fase in if fase == .active { revision = Date() } }
         .onChange(of: activo) { _, valor in if valor { revision = Date() } }
         .sheet(isPresented: $mostrarFechas) {
-            FechasMuertosView().ofrendaSheet(detents: [.medium, .large])
+            FechasMuertosView().ofrendaSheet(detents: UserDefaults.standard.bool(forKey: GuiaContextualAmbito.fechas.clave) ? [.medium, .large] : [.large])
         }
     }
 
@@ -87,6 +87,7 @@ private struct FechasMuertosView: View {
                                 Text(dia.fechaCorta).foregroundStyle(AppTheme.accent)
                             }
                         }.accessibilityElement(children: .combine)
+                        .objetivoGuiaContextual("fechas.calendario", activo: dia == ConmemoracionMuertos.allCases.first)
                     }
                     Text("Son fechas de referencia. Las costumbres y la llegada de las ánimas varían según la comunidad y la familia.")
                         .foregroundStyle(AppTheme.secondaryText)
@@ -100,5 +101,6 @@ private struct FechasMuertosView: View {
             .navigationTitle("Fechas para recordar").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Listo") { dismiss() } } }
         }
+        .guiaContextual(.fechas)
     }
 }

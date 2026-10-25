@@ -45,18 +45,8 @@ struct GustosRecuerdosView: View {
                 .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
                 .padding(.horizontal, 24)
 
-                // Música
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("SU MÚSICA O CANCIÓN FAVORITA (OPCIONAL)")
-                        .font(.caption.weight(.bold)).tracking(0.6)
-                        .foregroundColor(colorAcento)
-                    TextField("Por ejemplo, Cielito Lindo", text: $personalizacion.musicaFavorita)
-                        .font(.title3).foregroundColor(.white)
-                        .textInputAutocapitalization(.sentences)
-                }
-                .padding(16)
-                .background(RoundedRectangle(cornerRadius: 16).fill(colorTarjeta.opacity(0.75)))
-                .padding(.horizontal, 24)
+                Text("La comida, las aficiones y los recuerdos se comparten entre las personas de esta ofrenda. La música se configura en cada retrato.")
+                    .font(.subheadline).foregroundStyle(AppTheme.secondaryText).padding(.horizontal, 24)
 
                 // Pasatiempos
                 VStack(alignment: .leading, spacing: 12) {

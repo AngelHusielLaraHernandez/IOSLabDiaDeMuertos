@@ -1,6 +1,6 @@
 # Ofrenda Día de Muertos · Guía completa del proyecto
 
-> Documentación de la estructura y del código revisados el **21 de octubre de 2026**. Actualmente tenemos **68 archivos Swift** dentro de la carpeta de la aplicación.
+> Documentación actualizada el **25 de octubre de 2026**. Actualmente tenemos **105 archivos Swift** dentro de la carpeta de la aplicación; las integraciones posteriores al inventario inicial se explican en las secciones finales.
 
 Te explico cómo quedó organizado el proyecto, esto porque ya se movieron varios archivos y también se separaron responsabilidades que antes estaban juntas. La idea de este README es que cualquiera del equipo pueda abrirlo, entender cómo funciona la aplicación y saber dónde hacer un cambio sin tener que revisar todo desde cero.
 
@@ -37,11 +37,16 @@ Este documento describe lo que tenemos implementado actualmente. Cuando una part
 24. [Retratos predeterminados y fotos compartidas](#retratos-compartidos).
 25. [Referencias que descubrimos al acercar la ofrenda](#detalles-nuevos).
 26. [Objetos aislados y uno o dos marcos](#objetos-aislados).
+36. [Guía de primer inicio y Créditos](#guia-inicial).
+37. [Guías de las hojas y administración de ofrendas](#guias-hojas).
+38. [Una identidad por marco y ajustes de navegación](#identidad-marcos).
+39. [Creación por retrato y avance entre marcos](#creacion-por-retrato).
+40. [Ayuda inferior en Calaveritas](#ayuda-calaveritas).
 
 <a id="estado-actual"></a>
 ## 1. Qué hace actualmente la aplicación
 
-Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG y JavaScript. Primero se cruza el umbral y después se entra a la ofrenda. Al terminar ese recorrido aparecen cuatro pestañas:
+Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG y JavaScript. Primero se cruza el umbral y después se entra a la ofrenda. Al terminar ese recorrido aparecen cinco pestañas. En el primer inicio, la guía espera a que el altar esté listo y explica sus controles con la pantalla atenuada:
 
 | Pestaña | Qué encontramos ahí |
 | --- | --- |
@@ -49,16 +54,17 @@ Al abrir la app vemos una entrada animada al Mictlán, hecha con HTML, CSS, SVG 
 | **Historias** | Elementos y celebraciones: 14 temas —los 13 grupos del altar y las calaveritas literarias—, tres celebraciones monumentales y progreso persistente del recorrido físico. |
 | **Mi ofrenda** | Crear y editar las ofrendas, sus fotos, gustos y elementos 3D. |
 | **Calaveritas** | Generar versos para una ofrenda guardada, conservarlos y abrir la colección de calaveritas. |
+| **Créditos** | Los cuatro integrantes, la leyenda del laboratorio y la opción para volver a ver la guía. |
 
 Tenemos **13 grupos físicos del altar**: Flores, Retrato, Velas, Papel, Agua y sal, Calaveritas de azúcar, Pan, Comida, Caña de azúcar, Frutas, Incienso, Cigarro y Tequila. Los ocho primeros pertenecen a la vista general. Los cinco últimos aparecen al acercar la cámara a un factor de 0.9 o menor, si su objeto está en el encuadre y cabe su etiqueta.
 
-Cada grupo tiene su tarjeta. Doce utilizan **Historia, Significado, Conocer más y Mapa**. Calaveritas de azúcar tiene **Significado, Elaboración, Historia, Conocer más y Mapa**. Las calaveritas literarias tienen una ficha independiente en Historias con **Ejemplo, Origen, Estructura y Conocer más**, sin otro objeto 3D.
+Cada grupo tiene su tarjeta. Doce utilizan **Historia, Significado, Conocer más y Mapa**. Calaveritas de azúcar tiene **Significado, Historia, Mapa y Conocer más**; Significado incluye también la elaboración. Las calaveritas literarias tienen una ficha independiente en Historias con **Ejemplo, Origen, Estructura y Conocer más**, sin otro objeto 3D.
 
 La personalización es opcional para recorrer la aplicación. Si decidimos entrar a ese flujo, la interfaz permite conservar la foto de ejemplo y pide nombre para continuar desde el retrato, y una comida favorita para pasar de gustos a sugerencias. Las aficiones y el recuerdo compartido complementan esa información.
 
 Los gustos se utilizan para mostrar sugerencias escritas y completar una plantilla de calaverita literaria. Actualmente esas sugerencias no agregan por sí mismas nuevas mallas al altar. Las fotografías sí se actualizan dentro de los marcos del altar. Ahora también podemos elegir cuáles de los 13 tipos de elementos existentes se ven en 3D. La selección se comparte entre el editor, la propuesta y la pantalla principal, y se conserva en el teléfono. Los gustos escritos no crean modelos nuevos automáticamente.
 
-En la ofrenda principal también tenemos el botón Fotos y selección directa de los marcos visibles. Podemos mostrar uno o dos; al conservar uno, se centra y se oculta el otro, sin borrar su fotografía. Cada uno admite una foto con encuadre propio; sus copias se guardan localmente y se recuperan al abrir de nuevo la app.
+En la ofrenda principal también tenemos el botón de fotografías y selección directa de los marcos visibles. Podemos mostrar uno o dos; al conservar uno, se centra y se oculta el otro, sin borrar su fotografía. Cada uno admite una foto con encuadre propio; sus copias se guardan localmente y se recuperan al abrir de nuevo la app.
 
 Las ofrendas se guardan en `mis_ofrendas.json`. Las calaveritas que guardamos desde su nueva pestaña se conservan en `mis_calaveritas.json`, con su persona y fecha. El poema recién generado sigue siendo un borrador hasta tocar Guardar calaverita. El recorrido de historias abiertas se conserva localmente con identificadores estables; desbloquea celebraciones al llegar a 3, 6 y 13 elementos. No necesitamos una cuenta ni un servicio remoto.
 
@@ -121,13 +127,17 @@ La carpeta exterior es el repositorio. Dentro hay otra carpeta con el mismo nomb
 ```text
 OfrendaDiaDeMuertosProyecto/
 ├── README.md
+├── PRODUCT.md
 ├── ESTRUCTURA-Y-MODELO.md
 ├── PRUEBA-SWIFT-COMPARTIDOS.md
 ├── RETRATOS-PREDETERMINADOS.md
 ├── .gitignore
 ├── Scripts/
 │   ├── crear-proyecto-local.py
+│   ├── probar-guia.sh
 │   └── commit-swift.py
+├── Tests/
+│   └── GuiaRegression.swift
 ├── OfrendaDiaDeMuertosProyecto.xcodeproj/
 │   ├── project.pbxproj
 │   └── project.xcworkspace/
@@ -150,6 +160,21 @@ OfrendaDiaDeMuertosProyecto/
 │   │   └── Models/
 │   │       └── Item.swift
 │   ├── Features/
+│   │   ├── Guia/
+│   │   │   ├── Models/
+│   │   │   │   ├── PasoGuiaOfrenda.swift
+│   │   │   │   ├── GuiaContextualAmbito.swift
+│   │   │   │   └── GuiaDestacadoLayout.swift
+│   │   │   ├── Services/
+│   │   │   │   ├── GuiaOfrendaStore.swift
+│   │   │   │   └── GuiaContextualStore.swift
+│   │   │   └── Views/
+│   │   │       ├── ObjetivoGuia.swift
+│   │   │       ├── GuiaContextual.swift
+│   │   │       └── GuiaInicialOverlay.swift
+│   │   ├── Creditos/
+│   │   │   └── Views/
+│   │   │       └── CreditosView.swift
 │   │   ├── Inicio/
 │   │   │   ├── MictlanIntroView.swift
 │   │   │   └── MictlanAnimationView.swift
@@ -380,7 +405,7 @@ Ese es el Canvas que debemos abrir para revisar la interfaz con el modelo real. 
 
 **Archivo:** [App/AppTabsView.swift](OfrendaDiaDeMuertosProyecto/App/AppTabsView.swift)
 
-Es el punto donde se unen Ofrenda, Historias, Mi ofrenda y Calaveritas. El enum privado `AppTab` identifica las cuatro pestañas sin depender del texto que ve el usuario.
+Es el punto donde se unen Ofrenda, Historias, Mi ofrenda, Calaveritas y Créditos. El enum privado `AppTab` identifica las cinco pestañas sin depender del texto que ve el usuario. Conserva también `GuiaOfrendaStore`, que se comparte por el entorno. La guía se dibuja por encima del TabView usando las anclas reales publicadas por los controles de OfrendaView.
 
 La vista conserva la pestaña, el elemento seleccionado, la sesión 3D y las instancias de `OfrendasManager`, `CalaveritasStore` y `ProgresoRecorridoStore`. Los tres almacenes se entregan como objetos del entorno. El último conserva los elementos visitados entre arranques. `OfrendaPrincipalTabView` conserva los almacenes de fotos y elementos correspondientes al altar elegido. `AppTabsView` obtiene el catálogo completo de `OfrendaCatalog.elementos`; `OfrendaPrincipalTabView` utiliza `elementosDelAltar`, que conserva los 13 grupos físicos.
 
@@ -433,13 +458,15 @@ Si queremos modificar el estilo de todos los botones principales o el indicador 
 
 **Archivo:** [Core/DesignSystem/ElementSheetControls.swift](OfrendaDiaDeMuertosProyecto/Core/DesignSystem/ElementSheetControls.swift)
 
-Contiene dos componentes que comparten las tarjetas.
+Contiene tres componentes que comparten las tarjetas.
 
-`ElementSheetHeader` recibe icono, subtítulo y título. Normalmente coloca el botón de cerrar mediante `dismiss`. Si recibe `onGuardar`, presenta Guardar con el estilo principal y admite `guardarDeshabilitado`; en tamaños de accesibilidad coloca esa acción debajo de la cabecera. El título está marcado como encabezado para accesibilidad y el icono decorativo no se lee como otro dato.
+`ElementSheetHeader` conserva icono, título y ayuda. El parámetro de subtítulo permanece por compatibilidad, pero no se dibuja, y la cabecera no añade una X de cierre. Si recibe `onGuardar`, presenta Guardar con el estilo principal y admite `guardarDeshabilitado`; en tamaños de accesibilidad coloca esa acción debajo de la cabecera. El título está marcado como encabezado para accesibilidad y el icono decorativo no se lee como otro dato.
 
-`SheetSectionPicker` recibe un arreglo de secciones y un binding al índice seleccionado. Muestra un control segmentado con hasta cuatro opciones y tamaños normales. Utiliza un menú cuando hay más de cuatro opciones o se emplea texto de accesibilidad.
+`SheetSectionPicker` recibe un arreglo de secciones y un binding al índice seleccionado. Calcula el ancho necesario con la fuente adaptada a Dynamic Type. Si cabe, utiliza `UISegmentedControl`, conservando la selección, el arrastre y el material nativos. Cuando desborda, presenta botones Liquid Glass en un `ScrollView` horizontal: `.glassProminent` para la opción seleccionada y `.glass` para las demás, con estado seleccionado accesible y zonas táctiles de al menos 44 puntos. Durante la guía selecciona la sección explicada, la centra cuando hay desplazamiento y al terminar recupera la selección anterior.
 
-Los componentes reciben información; no eligen qué texto histórico debe tener Flores o Calaveritas. Esa separación permite reutilizarlos con las cuatro secciones de la plantilla y las cinco de la ficha de azúcar.
+`SheetReadingContent` desplaza el texto en los tamaños habituales. Con texto de accesibilidad deja el contenido a su altura natural para que `TarjetaDetalleElementoView` utilice un único desplazamiento vertical exterior.
+
+Los componentes reciben información; no eligen qué texto histórico debe tener Flores o Calaveritas. Esa separación permite reutilizarlos con las cuatro secciones de la plantilla, la ficha de azúcar y la literaria.
 
 ### 7. PhotoProcessor.swift
 
@@ -818,13 +845,15 @@ Es la pantalla SwiftUI de la pestaña Ofrenda. Aquí se unen el encabezado, el p
 
 Recibe el catálogo, `isActive`, los bindings del progreso y la selección, y `onPersonalizar`.
 
-La vista principal ya no muestra el texto de acercar la ofrenda ni el botón de restablecer, para dejar más altura disponible al modelo. El doble toque conserva la opción de recuperar el encuadre inicial.
+La vista principal ya no muestra el texto de acercar la ofrenda ni el botón de restablecer, para dejar más altura disponible al modelo. El doble toque conserva la opción de recuperar el encuadre inicial. La misma fila del nombre reúne los botones de fotografías, ojo y cámara; no se reserva una esquina del visor para esos controles. Sus símbolos limitan el crecimiento a XXXL para caber dentro de las áreas de toque de 44 puntos, sin limitar el tamaño del texto del resto de la pantalla.
 
 Sus estados principales son:
 
 - `loadState`, para la carga y sus errores.
 - `viewport`, con posiciones y zoom recibidos del coordinador.
 - `focusRequest`, para identificar el elemento que se está enfocando.
+- `mostrarReferencias`, para mostrar u ocultar las etiquetas y accesos de los marcos sin cambiar la selección de piezas.
+- `solicitudCaptura`, `capturaCompartida` y `errorCaptura`, para preparar una imagen, compartirla y comunicar un fallo recuperable.
 
 También lee Reducir movimiento, el tamaño vertical y el tamaño de texto. En horizontal o con texto de accesibilidad utiliza un contenedor desplazable.
 
@@ -905,7 +934,7 @@ Conserva `seccionActiva` y `mostrarFuentes`. El selector tiene cuatro opciones:
 3. **Conocer más:** título del recorrido histórico, tarjetas de hitos y acceso a fuentes.
 4. **Mapa:** referencia geográfica, vista previa y acciones de exploración y rutas mediante `MapaElementoView`.
 
-El texto extenso está dentro de un `ScrollView`. El encabezado y el botón de cerrar se mantienen como partes de la estructura vertical.
+El texto extenso utiliza `SheetReadingContent`. En tamaños habituales desplaza su contenido dentro de la ficha; con texto de accesibilidad, toda la ficha comparte el desplazamiento exterior de `TarjetaDetalleElementoView`. El encabezado y el botón inferior de regreso permanecen en esa estructura.
 
 Los botones de fuente activan una segunda hoja con `VistaFuentesElemento`. Actualmente se le entrega el arreglo completo de hitos del elemento. Tocar un hito abre las fuentes del elemento completo, no una lista filtrada exclusivamente a ese hito.
 
@@ -1014,13 +1043,12 @@ Su selector presenta:
 
 | Sección | Qué muestra |
 | --- | --- |
-| Significado | El simbolismo, los nombres y el afecto asociados a las figuras de dulce. |
-| Elaboración | La técnica del alfeñique y sus variedades de azúcar, chocolate y amaranto. |
+| Significado | El simbolismo, los nombres y el afecto asociados a las figuras de dulce; incluye la técnica del alfeñique y las variedades de azúcar, chocolate y amaranto. |
 | Historia | Su incorporación a la celebración y a las ferias del alfeñique. |
-| Conocer más | Los hitos de `OfrendaCatalog.historiaCalaveritas` y sus fuentes. |
 | Mapa | La referencia de Toluca mediante `MapaElementoView`. |
+| Conocer más | Los hitos de `OfrendaCatalog.historiaCalaveritas` y sus fuentes. |
 
-Conserva `seccionActiva` y `mostrarFuentes`. Reutiliza el encabezado, el selector y las tarjetas de hitos sin pasar por `PlantillaTarjetaElementoView`. Sus cinco opciones se presentan como menú.
+Conserva `seccionActiva` y `mostrarFuentes`. Reutiliza el encabezado, el selector y las tarjetas de hitos sin pasar por `PlantillaTarjetaElementoView`. Sus cuatro opciones utilizan `SheetSectionPicker`: control segmentado nativo cuando caben y botones Liquid Glass desplazables cuando desbordan. Escuchar lee juntos los textos de significado y elaboración en la primera sección; Historia, Mapa y Conocer más conservan sus lecturas correspondientes.
 
 `CalaveritaLiterariaView.swift` contiene la ficha literaria independiente, con Ejemplo, Origen, Estructura y Conocer más. Su ejemplo La Calaca jardinera es estático y utiliza `CalaveritaTextoView`; el poema personalizado se genera en la pestaña Calaveritas mediante `CalaveritaGenerator`. La ficha literaria usa `historiaCalaveritasLiterarias` y no monta un visor 3D.
 
@@ -1765,12 +1793,12 @@ Ahora podemos colocar una fotografía distinta en cada uno de los dos marcos del
 ### Recorrido del usuario
 
 1. Abre **Fotos** en el encabezado o toca directamente un marco.
-2. Elige Agregar foto o Cambiar foto.
-3. Selecciona una imagen con el selector nativo.
+2. Completa el nombre y la música de cada marco visible. Para reemplazar una foto personal guardada, cambia también el nombre de esa persona.
+3. Toca Elegir fotografía y selecciona una imagen con el selector nativo.
 4. Mueve la foto y ajusta el acercamiento con el slider o los botones de menos y más.
-5. Confirma con Usar esta foto y después toca Guardar en la hoja de fotografías para volver al altar.
+5. Confirma el recorte con Usar esta foto y después toca Guardar en la hoja de fotografías para publicar el conjunto y volver al altar.
 
-También podemos ajustar de nuevo o restablecer cada foto. Cancelar no sustituye la imagen anterior. Las dos superficies tienen proporción **15:17**, medida en el hueco interior. La imagen conserva su proporción y no cubre el borde.
+Podemos ajustar de nuevo el encuadre cuando se cumple la misma regla de cambio de nombre. Cancelar el ajuste conserva el borrador anterior; cerrar la hoja sin Guardar descarta sus cambios. Las dos superficies tienen proporción **15:17**, medida en el hueco interior. La imagen conserva su proporción y no cubre el borde.
 
 ### 45. MarcoOfrenda.swift
 
@@ -1790,11 +1818,9 @@ Al inicializarse carga dos retratos de ejemplo del bundle y los encuadra al tama
 
 `cargar()` combina las fotos predeterminadas con los JPEG personalizados que existan en Application Support. Cada marco se resuelve por separado.
 
-`guardar(_:en:)` codifica y escribe la foto de manera atómica; después actualiza el diccionario y el UUID que reciben los visores. Si falla el disco, se conserva la foto anterior.
+`guardarCambios(_:imagenes:nombresAnteriores:)` exige que la carga haya terminado y valida las identidades y la condición de cambio de nombre antes de sustituir una foto personal. Escribe las imágenes nuevas con nombres versionados y publica sus referencias junto con la disposición, los nombres y las músicas mediante un cambio atómico de configuración. Después actualiza las fotos y sus UUID para los visores. Si falla la publicación, elimina los archivos nuevos de ese intento y conserva la versión anterior.
 
-`confirmarGuardado()` exige que la carga haya terminado y que no se esté guardando otra disposición. Escribe de forma atómica la configuración actual y devuelve si se confirmó correctamente. Las fotografías ya se escriben al confirmar su encuadre; esta confirmación permite cerrar la hoja mediante Guardar. Si falla, conserva las fotos y comunica el error.
-
-`restablecer(_:)` elimina únicamente la copia personalizada y vuelve al retrato de ejemplo. El marco no queda vacío ni se borra el original de la fototeca.
+Confirmar el encuadre solo modifica el borrador de la hoja; Guardar publica el conjunto. No se modifica el original de la fototeca.
 
 El actor privado `ArchivoFotosMarcos` realiza las operaciones de disco fuera del actor de la interfaz. Las rutas locales son `Application Support/FotosMarcos/retrato__001.jpg` y `retrato__002.jpg`.
 
@@ -1820,11 +1846,11 @@ La misma integración se utiliza en la pantalla principal y en la propuesta. Si 
 
 Es la hoja con las opciones de fotografía. Su selector muestra un retrato centrado o dos retratos lado a lado. Si entramos desde un marco 3D, empieza seleccionando ese retrato, pero permite cambiar al otro sin cerrar la hoja. Si el marco inicial está oculto, selecciona el principal que sigue visible.
 
-El retrato seleccionado lleva borde naranja y un check. Debajo del selector aparece Editando: Marco 1 o Marco 2, con su posición izquierda o derecha. La tarjeta inferior contiene únicamente las acciones de ese marco: elegir fotografía, ajustar encuadre y, si es personalizada, restablecerla. No duplicamos las fotos en otra lista de tarjetas. La selección capturada al abrir PhotosPicker o AjusteFotoView conserva el destino aunque termine de cargar más tarde.
+El retrato seleccionado lleva borde naranja y un check. Debajo del selector aparece Editando: Marco 1 o Marco 2, con su posición izquierda o derecha. `DatosRetratosView` permite completar el nombre y la música del marco seleccionado. La tarjeta inferior contiene las acciones de ese marco: elegir fotografía y ajustar encuadre, sujetas a la regla de cambio de nombre para fotos personales. No duplicamos las fotos en otra lista de tarjetas. La selección capturada al abrir PhotosPicker o AjusteFotoView conserva el destino aunque termine de cargar más tarde.
 
-Utiliza `PhotosPicker`, decodificación asíncrona con `PhotoProcessor` y una sheet de `AjusteFotoView` con proporción 15:17. Usar esta foto solicita el guardado de la imagen en el almacén compartido; cancelar el encuadre conserva la foto anterior.
+Utiliza `PhotosPicker`, decodificación asíncrona con `PhotoProcessor` y una sheet de `AjusteFotoView` con proporción 15:17. Usar esta foto conserva el recorte en `fotosPendientes`; cancelar el encuadre conserva el borrador anterior. Ninguna de esas acciones publica todavía la imagen en el almacén compartido.
 
-El encabezado presenta Guardar con el acento amarillo de las acciones principales. La acción espera a que terminen la carga, la selección, el encuadre y las escrituras; llama a `confirmarGuardado()` y cierra solamente si tiene éxito. Durante esas operaciones se bloquean las acciones y el cierre interactivo. Un fallo mantiene la hoja abierta y muestra el error. La actualización de la foto se refleja en todos los visores que reciben el almacén.
+El encabezado presenta Guardar con el acento amarillo de las acciones principales. La acción espera a que terminen la carga, la selección y el encuadre; valida el borrador y llama a `guardarCambios`. Cierra después de confirmar las fotos y la identidad del perfil. Durante las operaciones se bloquean las acciones y el cierre interactivo. Un fallo mantiene la hoja abierta y muestra el error. Al guardar, la actualización se refleja en todos los visores que reciben el almacén.
 
 ### 49. PhotoCropGeometry.swift
 
@@ -1968,7 +1994,7 @@ Concentra los ajustes de materiales que antes estaban dentro del coordinador del
 
 Es el selector visual compartido entre Fotos y Personalizar retrato. Recibe el almacén y el binding `marcoElegido`. Ofrece Un marco y Dos marcos arriba, y muestra las fotografías con proporción 15:17 debajo. Tocar un retrato selecciona su edición; no abre la fototeca automáticamente. Se resaltan borde y check, y la etiqueta inferior confirma qué marco estamos editando.
 
-Al pasar a Un marco conserva la fotografía seleccionada y la muestra centrada. Usar la fotografía del otro marco permite escoger cuál conservar sin borrar la otra. Al pasar a Dos marcos reaparecen ambas fotos. Usa `FotosMarcosStore.configurar`, espera a que el guardado tenga éxito antes de actualizar la selección de un marco único y bloquea cambios simultáneos mientras guarda. La propiedad `numero` de `MarcoOfrenda` aporta Marco 1 y Marco 2; las identidades internas y los nombres de las mallas no cambian.
+Al pasar a Un marco conserva la fotografía seleccionada y la muestra centrada. Usar la fotografía del otro marco permite escoger cuál conservar sin borrar la otra. Al pasar a Dos marcos reaparecen ambas fotos. Cuando recibe el binding de borrador, actualiza esa configuración sin escribir en disco; la hoja y la personalización la publican al guardar. Si no recibe borrador, conserva la alternativa `FotosMarcosStore.configurar` y espera al guardado antes de actualizar la selección de un marco único. La propiedad `numero` de `MarcoOfrenda` aporta Marco 1 y Marco 2; las identidades internas y los nombres de las mallas no cambian.
 
 `MarcoOfrenda.swift` ahora incluye `CantidadMarcos` y `ConfiguracionMarcos`. La configuración contiene cantidad y principal; `visibles` calcula cuáles deben aparecer. `FotosMarcosStore` guarda estos valores de forma atómica en `Application Support/FotosMarcos/configuracion.json`, junto a los JPEG ya existentes. Ocultar un marco no elimina su archivo.
 
@@ -2010,6 +2036,7 @@ Antes cada regreso construía un motor gráfico y preparaba otro clon, aunque el
 | --- | --- |
 | `mount(owner:host:makeRenderer:)` | Crea el visor y renderer la primera vez; después los reutiliza y traslada el visor al contenedor vigente. |
 | `owns(_:)` | Comprueba que una actualización pertenece a la pantalla que tiene el visor. |
+| `capturarOfrenda()` | Pide una captura al renderer activo; rechaza el préstamo a un detalle y propaga la cancelación con la identidad de esa captura. |
 | `borrow(into:)` | Marca la inspección activa, retira el altar mediante su coordinador, desactiva sus gestos y traslada el visor al contenedor pequeño. Rechaza otro préstamo simultáneo. |
 | `cloneElement(nombres:)` | Pide a `OfrendaAssets` una copia parcial desde el altar existente. Así no necesita leer otra vez el USDZ después de vaciar la caché. |
 | `giveBack(from:)` | Restaura los gestos, devuelve el visor al contenedor principal y solicita recalcular la visibilidad. |
@@ -2286,9 +2313,9 @@ Recuperamos las dos lecturas: Calaveritas de azúcar conserva el objeto del alta
 
 `CalaveritaTextoView` conserva el texto naranja, la negrita, la cursiva y el subrayado de los datos marcados con Markdown. Se utiliza en los versos generados y guardados. Sus enlaces mantienen el acento del proyecto y la animación de pétalos respeta Reducir movimiento.
 
-En las fichas, Conocer más contiene la línea del tiempo y las fuentes. Mapa es una opción independiente que monta `MapaElementoView`, con la ubicación asociada y las acciones existentes de exploración y rutas. No se solicita la miniatura del mapa al consultar la cronología. El selector nativo pasa a menú cuando hay más de cuatro opciones o se usa texto de accesibilidad.
+En las fichas, Conocer más contiene la línea del tiempo y las fuentes. Mapa es una opción independiente que monta `MapaElementoView`, con la ubicación asociada y las acciones existentes de exploración y rutas. No se solicita la miniatura del mapa al consultar la cronología. El selector conserva todas sus opciones: usa el control segmentado nativo si caben y una fila horizontal de botones Liquid Glass si el ancho requerido desborda, incluido Dynamic Type.
 
-`MarcosFotosView` reemplaza la X por Guardar, con el acento amarillo de los botones principales. El botón espera a que terminen la carga, el encuadre y las escrituras. `FotosMarcosStore.confirmarGuardado()` confirma la disposición en disco antes de cerrar; si falla, conserva la hoja abierta y presenta el error. Las fotografías siguen guardándose al confirmar el encuadre y se comparten con el altar y su vista previa.
+`MarcosFotosView` presenta Guardar con el acento amarillo de los botones principales. La disposición, las identidades y los recortes permanecen en un borrador hasta esa acción. `FotosMarcosStore.guardarCambios` valida y publica el conjunto antes de cerrar; si falla, conserva la hoja abierta y presenta el error. Después de guardar, las fotografías se comparten con el altar y su vista previa.
 
 
 ## 33. Fotografías, fechas para recordar y nombres de calaveritas
@@ -2336,3 +2363,273 @@ Es el formulario nativo del nombre: propone uno libre, explica cómo distinguir 
 ### Pruebas de esta integración
 
 `Scripts/probar-calaveritas.sh` comprueba los nombres, duplicados, migración de títulos antiguos sin pérdida de datos, persistencia y texto compartido. `Scripts/probar-tradiciones.sh` añade cobertura de los nueve recursos, sus créditos y relación con los destinos; copia las fotos al directorio temporal de la prueba antes de ejecutarla. `Scripts/probar-calendario.sh` compila `Tests/CalendarioRegression.swift`: comprueba Hoy, singular, cambios de año, años bisiestos, zona horaria y horario de verano con fechas fijas. Ningún script necesita cambiar el reloj del teléfono ni escribir las colecciones de la app. La revisión visual de estas novedades se realiza en iPhone; no se ha probado en iPad en esta etapa.
+
+
+## 34. Ver la ofrenda sin referencias y compartir su imagen
+
+Ahora, junto al nombre de la ofrenda, tenemos tres controles: fotografías, un ojo y una cámara. El ojo quita las etiquetas de cristal, sus líneas y los botones de cambiar fotos que aparecen encima del modelo. No apaga elementos del altar ni cambia el progreso; podemos seguir girando, moviendo y acercando el modelo. Otro toque recupera las referencias. Mientras están ocultas, tocar directamente un marco tampoco abre su editor; el botón de fotografías sigue disponible en el encabezado.
+
+La cámara prepara un encuadre frontal con una inclinación leve que permite apreciar los niveles y abre directamente la hoja nativa de compartir con la imagen. El archivo contiene únicamente la escena de RealityKit y su fondo morado: no incluye encabezado, calendario, pestañas ni etiquetas, independientemente del estado del ojo. Conserva las fotos, la cantidad de marcos y las piezas visibles de la ofrenda que tenemos cargada. No modifica ni vuelve a cargar el USDZ.
+
+### 81. OfrendaCaptureFraming.swift
+
+**Archivo:** [Features/Ofrenda/ThreeD/OfrendaCaptureFraming.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/ThreeD/OfrendaCaptureFraming.swift).
+
+Calcula la distancia para la fotografía a partir de las ocho esquinas de los límites normalizados del altar. Aplica la orientación de captura, el campo de visión vertical de 47 grados y la proporción real del visor. La distancia deja un margen de 12 % para que ninguna esquina se corte. Los límites incluyen el conjunto del altar y excluyen la pared mediante el cálculo que ya realiza el renderer; ocultar piezas no cambia su escala ni destruye recursos.
+
+### 82. CompartirOfrendaView.swift
+
+**Archivo:** [Features/Ofrenda/Views/Components/CompartirOfrendaView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Components/CompartirOfrendaView.swift).
+
+`CapturaOfrenda` reúne una identidad, la `UIImage` y el título. `CompartirOfrendaView` presenta `UIActivityViewController`. Su fuente de actividad entrega la imagen, declara PNG y proporciona título y miniatura mediante LinkPresentation, sin consultar direcciones de internet. La hoja muestra los destinos que tiene disponibles el dispositivo; la aplicación no elige un contacto ni envía la imagen por su cuenta. La foto permanece en memoria mientras se comparte y no se guarda automáticamente en Fotos ni en las colecciones del proyecto.
+
+### Qué cambia en la sesión y el renderer
+
+`OfrendaView` inicia una tarea identificada por `solicitudCaptura`. Espera a que el modelo esté listo y deshabilita los controles de esta pantalla mientras captura, evitando solicitudes simultáneas. El renderer conserva las transformaciones exactas del pivote y de la cámara, desactiva temporalmente la interacción del visor y prepara el encuadre de fotografía. Después de 180 ms solicita `ARView.snapshot(saveToHDR: false)`, que captura la escena sin las capas de SwiftUI.
+
+Al recibir la imagen, restaura las transformaciones y el estado de interacción, vuelve a proyectar las etiquetas y entrega el resultado a la vista. El zoom, desplazamiento y giro de exploración no se sobrescriben con los de la fotografía. Se limita la espera a ocho segundos; un error recupera el encuadre y presenta un aviso para reintentar. Cada respuesta verifica su UUID para que una captura antigua no termine una nueva.
+
+Cambiar de pestaña, ir a segundo plano, desmontar el visor, abrir una inspección o cambiar sus dimensiones cancela una captura pendiente y recupera sus transformaciones. Mientras la hoja de compartir está abierta se retira el ancla del altar, conservando el modelo preparado, y se pausan las ilustraciones HTML. Al cerrar, la misma sesión vuelve a dibujarlo. Esta función utiliza el motor que ya tenemos; no crea otra `ARView`, otro clon del altar ni un reloj de render adicional.
+
+### Verificación de la captura
+
+`bash Scripts/probar-captura.sh` compila `Tests/CapturaOfrendaRegression.swift` en macOS: verifica la proyección de las ocho esquinas en visores estrechos, cuadrados y horizontales, con altares de proporciones distintas. También revisa profundidad positiva y límites vacíos. El ensayo geométrico no sustituye la prueba del render; la imagen se revisa desde el simulador de iPhone, junto con ocultar y recuperar referencias, abrir y cancelar compartir y regresar al encuadre previo. No se ha probado esta función en iPad ni en un iPhone físico.
+
+
+## 35. Lectura en voz alta de las fichas
+
+Cada ficha tiene ahora el botón **Escuchar**, colocado después del selector de sección. Lee el contenido que está abierto y permite Pausar, Continuar o Detener. Cambiar de sección detiene la narración anterior; la siguiente comienza únicamente cuando tocamos Escuchar. No hay reproducción automática al abrir un elemento.
+
+La lectura está integrada en las doce fichas de `PlantillaTarjetaElementoView`, en las dos fichas propias de calaveritas de azúcar y literarias, y en la hoja de fuentes documentales. Historia, Significado, Origen, Estructura y la cronología utilizan sus mismos textos visibles. En azúcar, Significado lee también Elaboración dentro de la misma sección. Mapa narra el nombre, región, contexto cultural, referencia y aviso de visita; no dicta coordenadas, direcciones web ni botones del mapa. Las fuentes leen los datos bibliográficos legibles.
+
+### 83. LectorVozOfrenda.swift
+
+**Archivo:** [Features/Ofrenda/Services/LectorVozOfrenda.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Services/LectorVozOfrenda.swift).
+
+Es un `ObservableObject` aislado al MainActor que controla `AVSpeechSynthesizer`. Sus estados son inactivo, preparando, leyendo y pausado. `TarjetaDetalleElementoView` conserva una instancia por ficha y la comparte con su contenido y la hoja de fuentes mediante el entorno. El sintetizador se crea cuando tocamos Escuchar por primera vez; abrir una tarjeta sin escucharla no prepara un motor de voz.
+
+Elige español de México, con español de España como alternativa. La disponibilidad y el timbre dependen de las voces del dispositivo. Utiliza una velocidad base de 0.46 y respeta las preferencias de tecnologías de asistencia mediante `prefersAssistiveTechnologySettings`. El sistema administra la sesión de audio con `usesApplicationAudioSession = false`, incluyendo su mezcla con otros audios. La narración utiliza voces normales del sistema y no solicita micrófono ni reconocimiento de voz.
+
+Cada sección se entrega como una sola lectura y se elimina la anterior antes de empezar otra. Los callbacks del delegado regresan al MainActor y comprueban la identidad de la lectura vigente; una cancelación atrasada no limpia un texto nuevo. Si la voz tarda más de ocho segundos en empezar, se detiene el intento y aparece un mensaje para reintentar. También se informa si falta la voz española o el motor interrumpe una lectura vigente.
+
+### 84. TextoLecturaOfrenda.swift
+
+**Archivo:** [Features/Ofrenda/Models/TextoLecturaOfrenda.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Models/TextoLecturaOfrenda.swift).
+
+Prepara el texto plano conservando acentos y saltos de línea. Retira las marcas de Markdown, de modo que los énfasis naranjas de las calaveritas no se pronuncien como asteriscos. `unir` separa los bloques con líneas en blanco y omite los vacíos. `cronologia` reúne época, título y descripción; `fuentes` añade periodo, detalle y referencia; `mapa` usa el vínculo cultural del elemento y conserva su aviso de visita. No genera relatos nuevos.
+
+En la plantilla, la narración utiliza directamente los parámetros que ya dibujan los textos. En las dos fichas de calaveritas, los grupos `Contenido` reúnen los mismos literales para la lectura y la pantalla. Se conserva el formato de versos y énfasis del poema, y el Markdown de la explicación de su estructura.
+
+### 85. ControlLecturaView.swift
+
+**Archivo:** [Features/Ofrenda/Views/Components/ControlLecturaView.swift](OfrendaDiaDeMuertosProyecto/Features/Ofrenda/Views/Components/ControlLecturaView.swift).
+
+Es el control compartido de Escuchar, Pausar y Continuar. Mientras prepara la voz muestra un indicador y permite cancelar mediante Detener. Usa los botones de cristal y el color de acento existentes. Los símbolos limitan su crecimiento a XXXL, mientras la etiqueta sigue el tamaño de lectura del teléfono. Incluye nombres accesibles e identificadores estables `ofrenda.escuchar` y `ofrenda.detenerLectura`.
+
+El componente detiene la voz cuando cambia el texto, se suspende por abrir las fuentes o desaparece. La ficha también la detiene al cerrarse, salir de primer plano, abrir el explorador del lugar, recibir una interrupción de audio, desconectar la ruta de auriculares o cambiar el estado de VoiceOver. No se reanuda automáticamente después de una llamada ni al regresar a la app. La lectura no altera la selección de elementos, fotos, progreso, encuadre ni los recursos 3D.
+
+### Verificación de la voz
+
+`bash Scripts/probar-lectura.sh` compila `Tests/LecturaVozRegression.swift` para el simulador de iPhone con mínimo iOS 26.2. Comprueba versos, énfasis, bloques vacíos, cronología, referencias bibliográficas, los vínculos de los trece grupos físicos y el estado inactivo sin reproducción automática. Además utiliza una voz española real para generar un buffer PCM y verifica que contiene muestras con señal, no silencio. La prueba local pasó **40 comprobaciones**, con voz `es-MX`, 67270 muestras y pico aproximado de 0.587.
+
+La interfaz se revisa en iPhone: inicio de voz, pausa, continuación, detener, cambio de sección, lectura de las fuentes y cierre. El proyecto conserva los cambios anteriores del ojo y captura de la ofrenda. No se añadieron App Intents ni comandos de Siri. La salida física, auriculares y llamadas requieren validación en un iPhone real; no se ha probado en iPad en esta etapa.
+
+
+<a id="guia-inicial"></a>
+## 36. Guía de primer inicio y Créditos
+
+Ahora tenemos una guía para que la primera persona que abra la app sepa cómo recorrerla. En nuestro caso aparece después de la entrada al Mictlán y solamente cuando el modelo del altar ya está listo. Se oscurece el resto de la pantalla y se destaca la zona que estamos explicando. No se crea otro visor ni se vuelve a cargar el modelo para mostrar la guía.
+
+El recorrido tiene siete pasos: mover la ofrenda con los dedos, abrir la historia de una etiqueta, consultar el progreso, cambiar fotografías, ocultar referencias con el ojo, preparar una captura para compartir y personalizar desde Mi ofrenda. El último paso también orienta hacia Historias, Calaveritas y Créditos.
+
+Podemos avanzar con Siguiente, volver con Anterior o usar Omitir. Durante la explicación los controles del fondo quedan bloqueados; tocar el recorte no abre una ficha, cambia una foto ni comparte algo por accidente. Al terminar con Empezar a explorar recuperamos los controles normales. Si las referencias estaban ocultas antes de repetir la guía, se muestran durante la explicación y recuperan su estado al salir.
+
+### 86. PasoGuiaOfrenda.swift
+
+**Archivo:** [Features/Guia/Models/PasoGuiaOfrenda.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Models/PasoGuiaOfrenda.swift).
+
+Define los siete pasos, sus títulos, explicaciones y orden. `numero` se utiliza en el progreso y `esUltimo` cambia el nombre de la acción final. Este archivo contiene la explicación, no la lógica del altar.
+
+### 87. GuiaOfrendaStore.swift
+
+**Archivo:** [Features/Guia/Services/GuiaOfrendaStore.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Services/GuiaOfrendaStore.swift).
+
+Controla el paso actual y espera la disponibilidad de la ofrenda. Guarda la finalización en UserDefaults con la clave `ofrenda.guiaInicial.v1.completada`. Terminar u omitir cuenta como haber visto la guía; así no se repite cada vez que abrimos la app. Cerrar la app a mitad de una primera guía deja pendiente el recorrido, que comienza de nuevo en el siguiente inicio. Pasar momentáneamente a segundo plano oculta la explicación y conserva el paso de esa sesión.
+
+`repetir()` permite abrirla desde Créditos aunque ya esté completada, sin borrar esa preferencia ni los datos de la ofrenda. No modifica fotos, poemas, gustos ni el progreso de historias. El almacén admite un UserDefaults de prueba independiente para verificar el comportamiento sin tocar preferencias reales.
+
+### 88. ObjetivoGuia.swift
+
+**Archivo:** [Features/Guia/Views/ObjetivoGuia.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Views/ObjetivoGuia.swift).
+
+Publica un diccionario de anclas SwiftUI con `PreferenceKey`. El modificador `objetivoGuia` registra la posición del control y conserva las anclas de sus hijos. Esto permite destacar una etiqueta dentro del área 3D sin perderla al registrar también el área completa. Las posiciones se calculan a partir de la interfaz actual, no de coordenadas fijas de un modelo de iPhone.
+
+### 89. GuiaDestacadoLayout.swift
+
+**Archivo:** [Features/Guia/Models/GuiaDestacadoLayout.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Models/GuiaDestacadoLayout.swift).
+
+Amplía ligeramente el recorte, lo mantiene dentro de la pantalla y decide qué lado tiene más espacio para la explicación. También calcula una altura máxima para que el texto largo pueda desplazarse. Su cálculo es independiente del render 3D y se prueba con diferentes tamaños de pantalla y posiciones.
+
+### 90. GuiaInicialOverlay.swift
+
+**Archivo:** [Features/Guia/Views/GuiaInicialOverlay.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Views/GuiaInicialOverlay.swift).
+
+Dibuja la capa oscura, el recorte transparente con borde naranja y la explicación. Hereda el morado, los tipos de letra del sistema y los botones existentes. Cuando el contenido cabe se muestra completo; cuando aumenta el tamaño de texto o falta espacio, el título y la explicación utilizan desplazamiento. Omitir, Anterior y Siguiente permanecen fuera de esa zona y siempre disponibles. Al cambiar de paso se reinicia el contenido desplazable y la pantalla coloca el control destacado hacia un extremo para dejar espacio al texto.
+
+La guía se presenta como una región modal de accesibilidad, coloca el foco en el título y oculta de VoiceOver los controles del TabView mientras está activa. OfrendaView informa cuándo el modelo está listo y, en disposiciones desplazables, lleva a la pantalla el control que se explica. No incorpora animaciones constantes, temporizadores ni trabajo adicional del modelo.
+
+### 91. CreditosView.swift
+
+**Archivo:** [Features/Creditos/Views/CreditosView.swift](OfrendaDiaDeMuertosProyecto/Features/Creditos/Views/CreditosView.swift).
+
+Es la quinta pestaña nativa del TabView. Muestra a Angel Husiel Lara Hernandez, Adolfo de Jesus Garcia Cortes, Victor Jaziel Flores Colin y Rodrigo Lugo Manzano, con la leyenda **Hecho en el iOS Development Lab.** debajo de la lista. Los nombres se acomodan en varias líneas si hace falta y la vista puede desplazarse. No se asignaron cargos o funciones que no hayan sido indicados.
+
+Incluye Volver a ver la guía. Esa acción regresa a Ofrenda y espera a que el altar esté disponible antes de mostrar las explicaciones. Se conserva una sola sesión 3D compartida con las demás pantallas.
+
+### Verificación de la guía
+
+`bash Scripts/probar-guia.sh` ejecuta `Tests/GuiaRegression.swift` con preferencias aisladas. Comprueba espera de carga, primer inicio, avance, retroceso, omisión, finalización, repetición, interrupción y límites del recorte. La verificación inicial reunió **75 comprobaciones**; la suite ampliada de las secciones 37 y 38 reúne **170**. La revisión visual se realiza en el simulador de iPhone 17 Pro Max; iPad permanece fuera de esta etapa por indicación del proyecto.
+
+
+<a id="guias-hojas"></a>
+## 37. Guías de las hojas y administración de ofrendas
+
+La ayuda ya no se queda solamente en la pantalla principal. Ahora cada tipo de hoja muestra sus propias indicaciones al abrirla por primera vez: fichas de los elementos, ficha literaria, fotografías, recorrido, fuentes, fechas, creación de una ofrenda, ajuste de una imagen, guardado de una calaverita y colección de versos. Mis ofrendas también explica sus dos acciones principales.
+
+En las fichas físicas, la guía destaca el selector de secciones, Escuchar, el objeto 3D separado y el cierre. Se explica dónde consultar el mapa, la evolución y las fuentes sin reproducir voz automáticamente. La ficha literaria tiene su recorrido propio porque no utiliza otro objeto 3D. No repetimos la misma explicación cada vez que se abre otro de los trece elementos.
+
+Los controles con signo de interrogación repiten la ayuda de esa pantalla. Omitir o terminar la guarda como vista. Desde Créditos, Volver a ver la guía también deja preparadas las ayudas de las hojas para la siguiente vez que se visiten. Esto reinicia únicamente las preferencias de ayuda, no las fotos, ofrendas, poemas o historias visitadas. El selector de fotos de Apple y la hoja del sistema para compartir conservan sus propios controles; la explicación se ofrece antes de abrirlos.
+
+### 92. GuiaContextualAmbito.swift
+
+**Archivo:** [Features/Guia/Models/GuiaContextualAmbito.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Models/GuiaContextualAmbito.swift).
+
+Define catorce contextos y sus indicaciones de uno a siete pasos. Historia, Significado, Mapa y Conocer más se explican individualmente; azúcar reúne significado y elaboración en el primer paso, y la ficha literaria usa Ejemplo, Origen y Estructura. El contexto `.marcosGeneral` explica uno o dos marcos, fotografía y Guardar sin solicitar nombres ni músicas; `.marcos` conserva la ayuda de identidad personalizada. Cada paso tiene un identificador que corresponde a un control real, un título y una explicación. Las claves `ofrenda.guiaHoja.v1.<contexto>.completada` separan las ayudas: ficha y literaria usan versión 2, y azúcar versión 3 para volver a explicar su distribución de cuatro secciones.
+
+### 93. GuiaContextualStore.swift
+
+**Archivo:** [Features/Guia/Services/GuiaContextualStore.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Services/GuiaContextualStore.swift).
+
+Conserva el índice del paso en el MainActor. Presenta una guía pendiente al entrar a su pantalla, respeta el inicio y el final, persiste al omitir o completar y admite repetición manual. `reiniciarAyudas` elimina exclusivamente las claves de los catorce contextos de ayuda; la guía principal conserva su preferencia independiente.
+
+### 94. GuiaContextual.swift
+
+**Archivo:** [Features/Guia/Views/GuiaContextual.swift](OfrendaDiaDeMuertosProyecto/Features/Guia/Views/GuiaContextual.swift).
+
+El modificador `guiaContextual` se coloca dentro de cada hoja para que su capa se dibuje encima de ella. Publica la acción de ayuda por el entorno, obtiene anclas de los objetivos y lleva el control al área visible cuando está dentro de una pantalla desplazable. `AyudaGuiaContextualButton` usa esa acción sin acoplar los encabezados a un tipo de hoja concreto.
+
+`GuiaDestacadoView`, dentro de GuiaInicialOverlay.swift, es ahora la superficie compartida: conserva el oscurecimiento, recorte naranja, foco accesible y las acciones fuera de la explicación desplazable. Cada pantalla usa su propio almacén de ayuda; no se crean motores 3D, WebViews o temporizadores nuevos. La primera ayuda del recorrido se abre con la hoja grande para dejar sitio al objetivo y a la explicación; después conserva los tamaños habituales.
+
+### Acciones más claras
+
+El botón principal que prepara la captura utiliza ahora `square.and.arrow.up`, el símbolo de compartir. Sigue encuadrando y capturando la ofrenda limpia antes de abrir las opciones del sistema.
+
+En Mis ofrendas, **Eliminar** aparece a la izquierda y **Crear** a la derecha, con tamaño compacto debajo del título. Sus etiquetas de accesibilidad conservan los nombres completos Eliminar ofrenda y Crear ofrenda; con texto de accesibilidad se muestran símbolos de tamaño fijo para conservar el espacio. El signo de ayuda queda abajo a la derecha. Crear inicia una personalización independiente. Eliminar activa el modo de borrado de la lista y cambia a **Terminar** para salir, con la etiqueta accesible Terminar de eliminar. Se deshabilita cuando no hay ofrendas guardadas. Se conserva la selección con check de la ofrenda principal y el flujo de edición existente.
+
+### Verificación
+
+La prueba `bash Scripts/probar-guia.sh` pasó **163 comprobaciones**, incluyendo las doce persistencias independientes, repetición, omisión y la separación entre la ayuda principal y las hojas. La compilación se comprueba para el simulador de iPhone con mínimo iOS 26.2. No se borran ofrendas reales durante la revisión de interfaz y todavía no se prueba iPad.
+
+Durante la guía de una ficha se selecciona cada sección que se explica. Al terminar u omitir, el selector recupera la sección que estaba abierta antes de la ayuda. El calendario conserva su guía automática de primera visita, sin botón de interrogación, como se indicó.
+
+Las acciones compactas de Mis ofrendas conservan una zona táctil nativa y sus etiquetas accesibles completas, también cuando solo se muestran sus símbolos.
+
+
+<a id="identidad-marcos"></a>
+## 38. Una identidad por marco y ajustes de navegación
+
+En las ofrendas personalizadas, cada marco puede tener sus propios datos. La idea es que, al poner dos fotografías, la ofrenda recuerde a dos personas, sin mezclar sus nombres o su música. Comida, aficiones y recuerdos siguen siendo compartidos por esa ofrenda. La ofrenda general permite uno o dos marcos y fotografías sin solicitar datos de identidad.
+
+### IdentidadRetrato.swift y MarcoOfrenda.swift
+
+`IdentidadRetrato` guarda el nombre completo y la música. `primerNombre` separa por espacios o saltos de línea, por lo que «Elena María Lara» se muestra como **Elena** en el altar y en los versos. El nombre completo se conserva en los campos de edición.
+
+`ConfiguracionMarcos.personas` relaciona esa identidad con `retrato__001` o `retrato__002`. En una ofrenda personalizada, con dos marcos se requieren dos nombres y dos músicas diferentes. La comparación ignora mayúsculas, acentos y espacios repetidos; no basta escribir «ELENA» para crear una identidad diferente de «Elena». Un solo marco permite dejar la música vacía. El nombre tiene un límite de 80 caracteres y la música de 120.
+
+`archivosFotos` es el manifiesto de las imágenes publicadas. La lectura admite los JSON anteriores sin identidades ni manifiesto; mantiene la cantidad de marcos y sus imágenes. No se reescriben los archivos antiguos solamente por abrirlos.
+
+### PersonalizacionOfrenda.swift
+
+`retratos` guarda una copia de la configuración de identidad para que la generación de versos tenga los parámetros de cada persona. Los perfiles antiguos conservan `nombre` y `musicaFavorita`; esos datos permiten abrirlos y generar sin borrarlos. Al editar, `configuracionInicial` coloca esos datos en su marco original y pide completar el segundo si se mantienen dos marcos.
+
+`aplicarRetratos` sincroniza la copia y los campos anteriores. `paraCalaverita(marco:)` prepara una personalización para la persona elegida: primer nombre, su música y los gustos compartidos. La selección no modifica los poemas que ya estaban guardados.
+
+### DatosRetratosView.swift, MarcosFotosView.swift y FotosMarcosStore.swift
+
+`DatosRetratosView` recibe `marcoSeleccionado` y presenta únicamente su nombre y su música; explica que los gustos son compartidos. Se utiliza tanto en la personalización como en la hoja de fotografías de una ofrenda personalizada; no aparece en la ofrenda general. La validación local y la validación del conjunto se detallan en [Creación por retrato](#creacion-por-retrato).
+
+En `MarcosFotosView`, las identidades, la disposición y los recortes se editan como un borrador. **Guardar** confirma el conjunto. Cerrar la hoja sin Guardar descarta esos cambios. En una ofrenda personalizada, una foto personal guardada solamente puede reemplazarse cuando también cambia su nombre, como se solicitó; cambios de mayúsculas, acentos o espacios no evitan esa condición. Una foto de ejemplo sí puede sustituirse inicialmente después de escribir el nombre.
+
+`FotosMarcosStore.requiereIdentidad` distingue la ofrenda general de las personalizadas. En la general, Guardar confirma las fotografías, `cantidad` y `principal` sin nombres ni músicas, y mantiene las fotos del marco oculto para recuperarlas al volver a dos. Las imágenes se pueden reemplazar sin cambiar un nombre. En las personalizadas, `FotosMarcosStore.guardarCambios` vuelve a validar la regla de reemplazo y la identidad antes de escribir. Guarda las imágenes nuevas en archivos con identificador propio y publica sus referencias junto con los nombres y músicas mediante un cambio atómico de `configuracion.json`. Si ese cambio falla, elimina las imágenes nuevas de ese intento y conserva las anteriores. Después de confirmar, limpia las versiones de fotos reemplazadas que ya no están referenciadas.
+
+La carga inicial comparte su resultado entre los consumidores para que una hoja no tome los valores de ejemplo mientras todavía se recupera el archivo. Los cambios de identidad desde la principal se sincronizan con `OfrendasManager.actualizarOfrenda(actualizarModelo: false)`, sin reconstruir toda la sesión 3D.
+
+### Flujo de personalización y altar
+
+`EditorOfrendaView`, dentro de ListaMisOfrendasView.swift, conserva un borrador y los almacenes de fotos y elementos durante la edición. Los campos no recrean los almacenes cada vez que se escribe. `OfrendaPersonalizadaFlowView` conserva los recortes pendientes hasta llegar al guardado final; `MiOfrendaFinalView` publica las fotos y después confirma el perfil.
+
+`OfrendaView` resalta los primeros nombres en naranja y negritas. `MarcoPhotoControls` usa esos nombres en cápsulas sobre los marcos y reserva el espacio que necesitan para evitar que las etiquetas de historias los invadan. Tocarlos abre la edición correspondiente. La tarjeta «Personaliza tu ofrenda» se muestra únicamente en la ofrenda general.
+
+### Calaveritas y fichas
+
+`CalaveritasLiterariasView` añade su signo de ayuda. Con una ofrenda de dos personas permite elegir a cuál dedicar los versos y reinicia el poema provisional al cambiar de persona. Guardar, compartir y la colección mantienen su funcionamiento. `CalaveritaGenerator` utiliza solamente el primer nombre y garantiza que aparezca resaltado en cada generación nueva.
+
+`SheetSectionPicker` recupera `UISegmentedControl` cuando el ancho requerido cabe, conservando su interacción arrastrable y el material del sistema. En Historias, Elementos y Celebraciones tienen el mismo ancho mediante `distribucionUniforme`. Si las etiquetas desbordan el espacio, por ejemplo con Dynamic Type, el selector utiliza botones `.glass` y `.glassProminent` en un `ScrollView` horizontal, con textos completos, estado seleccionado accesible y objetivos táctiles mínimos de 44 puntos. El gesto horizontal desplaza esa fila. Durante la guía selecciona y lleva a la vista la sección explicada; al terminar recupera la selección anterior. `ElementSheetHeader` conserva título y ayuda, sin subtítulos decorativos ni X duplicada. En las fichas: el cierre se hace con Volver a la ofrenda o Volver a historias. Fotografías conserva su botón Guardar; los formularios mantienen sus acciones necesarias de confirmación o cancelación.
+
+### Verificación de esta integración
+
+- `bash Scripts/probar-retratos.sh`: **50 comprobaciones** de lectura antigua, dos identidades, validación de música, primer nombre, generación por persona y publicación de imágenes con recuperación ante errores. Se utilizan carpetas temporales.
+- `bash Scripts/probar-calaveritas.sh`: **394 comprobaciones** de persistencia, selección, colección y generación.
+- `bash Scripts/probar-guia.sh`: **170 comprobaciones**, incluyendo el nuevo contexto del generador.
+
+La revisión visual usa iPhone 17 Pro Max con texto habitual y de accesibilidad. Para comprobar dos personas se prepara una copia aislada de la app con perfiles de ejemplo; no se guardan nombres de prueba en las ofrendas del usuario. iPad sigue pendiente por indicación del proyecto.
+
+
+La comprobación visual final también cubre fotografías horizontales: ConfiguracionMarcosView impone el ancho y la proporción del marco antes de escalar y recortar la imagen, así no invade el retrato vecino. Con tamaños de accesibilidad, TarjetaDetalleElementoView utiliza un desplazamiento vertical para toda la ficha y SheetReadingContent deja el texto a su altura natural; la presentación inicial es grande. El giro del objeto utiliza un símbolo con etiqueta accesible para no tapar el modelo, y el regreso puede ocupar varias líneas completas.
+
+
+### Refinamiento de general, selectores y azúcar
+
+La ficha de azúcar presenta **Significado, Historia, Mapa y Conocer más**, en ese orden. Significado conserva los textos de elaboración y su lectura conjunta. La guía `.azucar` usa la clave de versión 3 y explica esa misma distribución; la guía independiente `.marcosGeneral` acompaña el editor sin identidad. Mis ofrendas mantiene Eliminar a la izquierda y Crear a la derecha, con esa etiqueta breve.
+
+Es un refinamiento del sistema existente: fondo morado, acento naranja, tipografía SF mediante estilos del sistema y materiales nativos. No establece otra identidad ni otra composición global, y no añade un detector de estilos. Se conserva la ausencia de `DESIGN.md` y de `.impeccable/design.json`.
+
+La validación de este ajuste pasó **61 comprobaciones de retratos** y **177 de guía**, **238 en total**, además de una compilación exitosa para el simulador de iPhone. Los resultados anteriores de esta sección corresponden a sus respectivas integraciones. La revisión final confirmó resuelta la corrección de accesibilidad del selector al desbordar y emitió `ship`, sin pendientes en ese alcance. Se verificaron toque y arrastre en iPhone 17 Pro Max con iOS 26.5, texto habitual y AX3: ambas selecciones de Historias y las cuatro secciones de azúcar. Las capturas finales están en `.impeccable/review/selectores`, incluidas la primera y la última sección de azúcar. Este veredicto corresponde al ajuste de selectores revisado; no constituye una revisión de toda la aplicación. iPad permanece fuera de esta validación.
+
+
+<a id="creacion-por-retrato"></a>
+## 39. Creación por retrato y avance entre marcos
+
+### Navegación y formulario seleccionado
+
+En `ListaMisOfrendasView`, Crear presenta `EditorOfrendaView` mediante `navigationDestination`. El primer paso del flujo conserva un único regreso nativo de iOS: `PersonalizarRetratoView` ya no añade Volver dentro de su contenido y coloca la ayuda en la barra superior. `OfrendaPersonalizadaFlowView` oculta ese regreso nativo al avanzar a los otros pasos, que conservan su propia acción de regreso sin duplicarla con la del destino.
+
+`DatosRetratosView` recibe el marco seleccionado tanto desde `PersonalizarRetratoView` como desde `MarcosFotosView`. Con dos marcos, solo se muestran el nombre y la música del retrato elegido. La acción Elegir foto también corresponde a ese marco; la selección y el recorte mantienen su destino aunque la imagen termine de cargar después. Cambiar de marco conserva los datos y la fotografía del otro.
+
+### Avance y validación
+
+Con dos retratos, el marco 1 muestra **Siguiente**. Se habilita al completar su nombre y su música, sin exigir todavía los campos del segundo marco; al tocarlo se selecciona el marco 2 y se lleva su formulario a la vista. Desde el marco 2, **Añadir gustos y recuerdos** exige que las dos identidades sean válidas antes de continuar. Comida, aficiones y recuerdos pertenecen a la ofrenda y siguen siendo compartidos. Elegir fotografías personales es opcional: se pueden conservar las imágenes de ejemplo.
+
+`ConfiguracionMarcos.errorIdentidad(en:)` valida el marco indicado, incluidos sus límites de longitud y las diferencias frente al otro cuando ya tiene datos. No bloquea el primer paso por una identidad aún pendiente. `errorIdentidad` recorre los marcos visibles y devuelve el primer error del conjunto; se usa al pasar a gustos desde el segundo marco y al guardar el editor personalizado. Se conserva la regla de dos nombres y dos músicas diferentes, ignorando mayúsculas, acentos y espacios repetidos. Con un solo marco la música continúa siendo opcional.
+
+La ayuda `.crearOfrenda` usa ahora versión **2** de su clave de persistencia. Explica que cada retrato tiene sus datos y fotografía, que Siguiente abre el marco 2 y que después se añaden los gustos compartidos.
+
+### Altura de los selectores y continuidad visual
+
+En su tamaño habitual, los selectores nativos de Historias y de las fichas pasan de 52 a **44 puntos**. Conservan `UISegmentedControl`, su arrastre nativo y, en Historias, las dos mitades simétricas. La altura puede crecer con el texto. Si las etiquetas desbordan, se mantiene la fila horizontal desplazable de botones Liquid Glass, con objetivos táctiles de al menos 44 puntos; ese caso no se fuerza a una altura fija de 44.
+
+Este es un refinamiento local del sistema existente: morado de fondo, acento naranja, tipografía SF mediante estilos del sistema y materiales nativos. No crea `DESIGN.md` ni `.impeccable/design.json`.
+
+### Verificación de este ajuste
+
+Las pruebas de retratos pasaron **65 comprobaciones** y las de guía **177**, **242 en total**; también pasó la compilación para el simulador de iPhone. Una prueba de interfaz en una copia aislada confirmó que los nombres, músicas y fotografías se mantienen separados por marco y que el flujo avanza tras elegir Foto A y Foto B. Las capturas de esta etapa están en `.impeccable/review/flujo`.
+
+Una revisión final independiente emitió `ship` para este refinamiento local en iPhone 17 Pro Max con iOS 26.5, sin correcciones materiales pendientes. Verificó las seis capturas, los nombres y fotos separados por marco, Siguiente al marco 2, la continuación a gustos y los selectores con texto habitual y AX3. Este veredicto se limita al flujo y los selectores revisados; no supone una revisión de toda la aplicación. No se ha probado iPad ni se han realizado operaciones de Git en esta etapa.
+
+
+<a id="ayuda-calaveritas"></a>
+## 40. Ayuda inferior en Calaveritas
+
+En `CalaveritasLiterariasView` y `GuardarCalaveritaView`, el botón **?** pasa de la barra superior izquierda a la esquina inferior derecha mediante `safeAreaInset(edge: .bottom, alignment: .trailing, spacing: 0)`, con 24 puntos a la derecha y 8 de margen vertical. Conserva `AyudaGuiaContextualButton` y las guías `.generador` y `.guardarCalaverita`. La biblioteca de calaveritas guardadas conserva su interfaz y comportamiento.
+
+La compilación de este ajuste terminó con `BUILD SUCCEEDED` (`/private/tmp/ofrenda-ayuda/build.log`). En iPhone 17 Pro Max con iOS 26.5 se confirmó que ambos botones abren su guía; las capturas son `.impeccable/review/ayuda-calaveritas/phone-calaveritas.png` y `phone-guardar.png`. Quedan fuera de esta comprobación visual el teclado de software y iPad. Las 242 comprobaciones anteriores corresponden al ajuste de creación por retrato, no a este cambio. La revisión final independiente emitió `ship`, sin correcciones pendientes, para esta reubicación de ayuda en el iPhone indicado; el veredicto se limita a ese alcance.

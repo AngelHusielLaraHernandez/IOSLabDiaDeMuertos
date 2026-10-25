@@ -17,11 +17,13 @@ struct MiOfrendaFinalView: View {
     let onCambiarFoto: () -> Void
     let onVolver: () -> Void
     let onTerminar: () -> Void
+    var nombresOriginales: [MarcoOfrenda: String] = [:]
+    var fotosPendientes: [MarcoOfrenda: UIImage] = [:]
+    @State private var guardando = false
     
     @EnvironmentObject var ofrendasManager: OfrendasManager
     
     @State private var loadState: ModelLoadState = .loading
-    @State private var editorMarcos: EditorMarcos?
     @State private var errorFoto: String?
     
     private let colorFondo = AppTheme.background
@@ -32,7 +34,7 @@ struct MiOfrendaFinalView: View {
     private var descripcionSubtitulo: String {
         var partes: [String] = []
         if !personalizacion.comidaFavorita.isEmpty { partes.append(personalizacion.comidaFavorita.lowercased()) }
-        if !personalizacion.musicaFavorita.isEmpty { partes.append(personalizacion.musicaFavorita.lowercased()) }
+        if !personalizacion.musicaResumen.isEmpty { partes.append(personalizacion.musicaResumen.lowercased()) }
         let inicio = elementosStore.configuracion.muestra(.flores) ? "Sus flores" : "Sus recuerdos"
         if partes.isEmpty { return "Sus gustos y recuerdos." }
         else if partes.count == 1 { return "\(inicio) y \(partes[0])." }
@@ -49,7 +51,7 @@ struct MiOfrendaFinalView: View {
                         Text("SUS GUSTOS, SU HISTORIA")
                             .font(.caption.weight(.bold)).tracking(0.8)
                             .foregroundColor(colorAcento)
-                        Text("Mi ofrenda para \(personalizacion.nombre.isEmpty ? "…" : personalizacion.nombre).")
+                        Text("Mi ofrenda para \(personalizacion.nombresResumen.isEmpty ? "…" : personalizacion.nombresResumen).")
                             .font(.system(size: 30, weight: .bold)).foregroundColor(.white)
                     }
                     .padding(.horizontal, 24)
@@ -61,11 +63,11 @@ struct MiOfrendaFinalView: View {
                                     renderSession: renderSession,
                                     resetToken: 0,
                                     fotosMarcos: fotosMarcos.fotos,
-                                    configuracionMarcos: fotosMarcos.configuracion,
+                                    configuracionMarcos: personalizacion.retratos ?? fotosMarcos.configuracion,
                                     seleccionElementos: elementosStore.configuracion,
-                                    isObscured: editorMarcos != nil,
+                                    isObscured: false,
                                     onLoad: { loadState = $0 },
-                                    onSeleccionarMarco: { marco in editorMarcos = EditorMarcos(marco: marco) },
+                                    onSeleccionarMarco: { marco in personalizacion.marcoRetrato = marco; onCambiarFoto() },
                                     onErrorFoto: { errorFoto = $0 }
                                 )
                                 .frame(height: 300)
@@ -83,7 +85,7 @@ struct MiOfrendaFinalView: View {
                         }
                         HStack(alignment: .top, spacing: 12) {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(personalizacion.nombre.uppercased())
+                                Text(personalizacion.nombresResumen.uppercased())
                                     .font(.caption.weight(.bold)).tracking(0.8)
                                     .foregroundColor(colorAcento)
                                 Text("\(elementosStore.configuracion.visibles.count) tipos de elementos en su ofrenda.")
@@ -114,7 +116,7 @@ struct MiOfrendaFinalView: View {
                     
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         MiniTarjeta(titulo: "COMIDA", valor: personalizacion.comidaFavorita.isEmpty ? "—" : personalizacion.comidaFavorita, icono: .comida, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
-                        MiniTarjeta(titulo: "MÚSICA", valor: personalizacion.musicaFavorita.isEmpty ? "—" : personalizacion.musicaFavorita, icono: .musica, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
+                        MiniTarjeta(titulo: "MÚSICA", valor: personalizacion.musicaResumen.isEmpty ? "—" : personalizacion.musicaResumen, icono: .musica, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
                         MiniTarjeta(titulo: "AFICIÓN", valor: personalizacion.aficiones.sorted().first ?? "—", icono: personalizacion.aficiones.sorted().first.map { n in Aficion.todas.first { $0.nombre == n }?.icono ?? .recuerdo } ?? .recuerdo, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
                         MiniTarjeta(titulo: "RECUERDO", valor: personalizacion.recuerdoCompartido.isEmpty ? "—" : personalizacion.recuerdoCompartido, icono: .recuerdo, colorTarjeta: colorTarjeta, colorAcento: colorAcento)
                     }
@@ -126,33 +128,35 @@ struct MiOfrendaFinalView: View {
                         .padding(.horizontal, 24)
 
                     Button {
-                        let guardada: Bool
-                        if ofrendasManager.ofrendas.contains(where: { $0.id == personalizacion.id }) {
-                            guardada = ofrendasManager.actualizarOfrenda(personalizacion)
-                        } else {
-                            guardada = ofrendasManager.agregarOfrenda(personalizacion)
+                        guardando = true
+                        Task { @MainActor in
+                            defer { guardando = false }
+                            let configuracion = personalizacion.retratos ?? personalizacion.configuracionInicial(desde: fotosMarcos.configuracion)
+                            guard await fotosMarcos.guardarCambios(configuracion, imagenes: fotosPendientes, nombresAnteriores: nombresOriginales) else { errorFoto = fotosMarcos.mensajeError; return }
+                            personalizacion.aplicarRetratos(fotosMarcos.configuracion)
+                            let guardada = ofrendasManager.ofrendas.contains(where: { $0.id == personalizacion.id })
+                                ? ofrendasManager.actualizarOfrenda(personalizacion) : ofrendasManager.agregarOfrenda(personalizacion)
+                            if guardada { onTerminar() }
                         }
-                        if guardada { onTerminar() }
                     } label: {
-                        Text("Guardar ofrenda")
+                        Text(guardando ? "Guardando ofrenda…" : "Guardar ofrenda")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                     }
                     .ofrendaPrimaryAction()
-                    .disabled(!personalizacion.estaCompleta)
+                    .disabled(!personalizacion.estaCompleta || guardando)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 32)
                 }
             }.recortaIlustraciones()
 
         }
+        .disabled(guardando)
+        .interactiveDismissDisabled(guardando)
         .background(colorFondo.ignoresSafeArea())
         .preferredColorScheme(.dark)
         .onChange(of: isActive) { _, active in if !active { loadState = .loading } }
-        .sheet(item: $editorMarcos) { editor in
-            MarcosFotosView(store: fotosMarcos, marcoInicial: editor.marco).ofrendaSheet(detents: [.large])
-        }
         .alert("No se pudo guardar la ofrenda", isPresented: Binding(
             get: { ofrendasManager.mensajeError != nil },
             set: { if !$0 { ofrendasManager.mensajeError = nil } }

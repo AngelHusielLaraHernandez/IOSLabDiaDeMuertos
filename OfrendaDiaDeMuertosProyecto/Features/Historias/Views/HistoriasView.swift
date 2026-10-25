@@ -44,7 +44,7 @@ struct HistoriasView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
 
-                SheetSectionPicker(secciones: ["Elementos", "Celebraciones"], seleccion: $catalogo, titulo: "Catálogo de historias")
+                SheetSectionPicker(secciones: ["Elementos", "Celebraciones"], seleccion: $catalogo, titulo: "Catálogo de historias", distribucionUniforme: true)
                     .padding(.horizontal, 24)
                     .accessibilityIdentifier("historias.catalogo")
 

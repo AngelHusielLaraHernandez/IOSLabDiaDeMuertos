@@ -12,6 +12,7 @@ struct PersonalizacionOfrenda: Identifiable, Codable, Equatable {
     //var foto: UIImage? = nil a ver si no lo rompo
     var marcoRetrato: MarcoOfrenda = .izquierdo
     var nombre: String = ""
+    var retratos: ConfiguracionMarcos? = nil
     var comidaFavorita: String = ""
     var musicaFavorita: String = "" // Único campo para música/canción favorita (Opcional)
     var aficiones: Set<String> = []
@@ -29,8 +30,42 @@ struct PersonalizacionOfrenda: Identifiable, Codable, Equatable {
     var estaCompleta: Bool {
         !nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !comidaFavorita.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (retratos == nil || retratos?.errorIdentidad == nil)
     }
     
+
+    var nombresResumen: String { retratos?.nombresCortos.isEmpty == false ? retratos!.nombresCortos : IdentidadRetrato.primerNombre(de: nombre) }
+    var musicaResumen: String {
+        guard let retratos else { return musicaFavorita }
+        return retratos.visibles.map { marco in
+            let persona = retratos.persona(en: marco)
+            return persona.musica.isEmpty ? "" : "\(persona.primerNombre): \(persona.musica)"
+        }.filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+    func configuracionInicial(desde guardada: ConfiguracionMarcos) -> ConfiguracionMarcos {
+        var configuracion = retratos ?? guardada
+        if configuracion.personas.isEmpty, !nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            configuracion.asignar(IdentidadRetrato(nombre: nombre, musica: musicaFavorita), en: marcoRetrato)
+        }
+        return configuracion
+    }
+    mutating func aplicarRetratos(_ configuracion: ConfiguracionMarcos) {
+        retratos = configuracion
+        let principal = configuracion.persona(en: configuracion.cantidad == .uno ? configuracion.principal : .izquierdo)
+        nombre = principal.nombre
+        musicaFavorita = principal.musica
+    }
+    func paraCalaverita(marco: MarcoOfrenda?) -> PersonalizacionOfrenda {
+        var resultado = self
+        if let retratos {
+            let elegido = marco.flatMap { retratos.visibles.contains($0) ? $0 : nil } ?? retratos.visibles[0]
+            let persona = retratos.persona(en: elegido)
+            resultado.nombre = persona.primerNombre
+            resultado.musicaFavorita = persona.musica
+        } else { resultado.nombre = IdentidadRetrato.primerNombre(de: nombre) }
+        resultado.retratos = nil
+        return resultado
+    }
 }
 
 struct Aficion: Identifiable, Hashable {

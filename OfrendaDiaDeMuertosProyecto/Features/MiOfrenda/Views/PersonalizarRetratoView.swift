@@ -2,6 +2,8 @@
 //  PersonalizarRetratoView.swift
 //  OfrendaDiaDeMuertosProyecto
 //
+//  Created by Angel Lara on 16/10/26.
+//
 
 import SwiftUI
 
@@ -9,79 +11,63 @@ struct PersonalizarRetratoView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
     let fotosMarcos: FotosMarcosStore
     let onElegirFoto: () -> Void
-    // Eliminado: let onEditarElementos: () -> Void
     let onContinuar: () -> Void
-    let onVolver: () -> Void
-    
-    private var fotoActual: UIImage? { fotosMarcos.fotos[personalizacion.marcoRetrato]?.imagen }
-    private var tieneFoto: Bool { fotoActual != nil }
-    private var tieneNombre: Bool { !personalizacion.nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-
+    var nombresOriginales: [MarcoOfrenda: String] = [:]
+    private var configuracion: Binding<ConfiguracionMarcos> {
+        Binding(get: { personalizacion.configuracionInicial(desde: fotosMarcos.configuracion) }, set: { personalizacion.aplicarRetratos($0) })
+    }
+    private var permiteFoto: Bool {
+        IdentidadRetrato.permiteReemplazar(nombreAnterior: nombresOriginales[personalizacion.marcoRetrato] ?? "",
+            nombreNuevo: configuracion.wrappedValue.persona(en: personalizacion.marcoRetrato).nombre,
+            esPredeterminada: fotosMarcos.esPredeterminadaGuardada(personalizacion.marcoRetrato))
+    }
+    private var necesitaSegundoMarco: Bool {
+        configuracion.wrappedValue.cantidad == .dos && personalizacion.marcoRetrato == .izquierdo
+    }
+    private var puedeContinuar: Bool {
+        necesitaSegundoMarco
+            ? configuracion.wrappedValue.errorIdentidad(en: .izquierdo) == nil
+            : configuracion.wrappedValue.errorIdentidad == nil
+    }
     var body: some View {
+        ScrollViewReader { desplazamiento in
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                FlowNavigationBar(onVolver: onVolver)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(tieneFoto && tieneNombre ? "UN RECUERDO CON NOMBRE" : "TU PROPIA OFRENDA")
-                        .font(.caption.bold()).tracking(0.8)
-                        .foregroundStyle(AppTheme.accent)
-                    Text(tieneFoto && tieneNombre ? "Recordemos a \(personalizacion.nombre)." : "¿A quién quieres recordar?")
-                        .font(.largeTitle.bold())
-                }
-                .padding(.horizontal, 24)
-                
-                // Eliminado el botón que llamaba a onEditarElementos
-                
-                ConfiguracionMarcosView(store: fotosMarcos, marcoElegido: $personalizacion.marcoRetrato)
+                Text("¿A quién quieres recordar?").font(.largeTitle.bold()).padding(.horizontal, 24)
+                ConfiguracionMarcosView(store: fotosMarcos, marcoElegido: $personalizacion.marcoRetrato, borrador: configuracion)
                     .padding(.horizontal, 24)
+                DatosRetratosView(configuracion: configuracion, marcoSeleccionado: personalizacion.marcoRetrato, mostrarErrorGlobal: !necesitaSegundoMarco)
+                    .id("datosRetrato")
+                    .objetivoGuiaContextual("personalizar.nombre").padding(.horizontal, 24)
                 Button(action: onElegirFoto) {
-                    VStack(spacing: 14) {
-                        Text("Elegir foto del \(personalizacion.marcoRetrato.numero.lowercased())")
-                            .font(.headline)
-                        if !tieneFoto {
-                            Text("Su retrato será el centro de tu ofrenda.")
-                                .font(.subheadline)
-                                .foregroundStyle(AppTheme.secondaryText)
-                        }
-                    }
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .padding(24)
-                    .contentShape(.rect(cornerRadius: 24))
+                    Label("Elegir foto del \(personalizacion.marcoRetrato.numero.lowercased())", systemImage: "photo.on.rectangle")
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                .accessibilityLabel("Elegir foto del \(personalizacion.marcoRetrato.numero.lowercased())")
-                .buttonStyle(.plain)
-                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 24))
-                .padding(.horizontal, 24)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("SU NOMBRE")
-                        .font(.caption.bold()).tracking(0.6)
-                        .foregroundStyle(AppTheme.accent)
-                    TextField("Escribe cómo le llamabas", text: $personalizacion.nombre)
-                        .font(.title3)
-                        .textInputAutocapitalization(.words)
-                        .submitLabel(.done)
+                .ofrendaSecondaryAction().disabled(!permiteFoto).padding(.horizontal, 24)
+                if !permiteFoto {
+                    Text(configuracion.wrappedValue.persona(en: personalizacion.marcoRetrato).primerNombre.isEmpty
+                         ? "Escribe primero su nombre para elegir una fotografía."
+                         : "Para reemplazar esta fotografía, cambia también el nombre de la persona de ese marco.")
+                        .font(.footnote).foregroundStyle(AppTheme.accent).padding(.horizontal, 24)
                 }
-                .padding(16)
-                .ofrendaSurface(cornerRadius: 16)
-                .padding(.horizontal, 24)
-                Text("Este retrato se comparte con la pantalla principal y la vista previa. Puedes conservar la foto de ejemplo o elegir la tuya.")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.secondaryText)
-                    .padding(.horizontal, 24)
-                Button {
-                    if tieneFoto { onContinuar() } else { onElegirFoto() }
-                } label: {
-                    Text(tieneFoto ? "Añadir gustos y recuerdos" : "Añadir una fotografía")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                Button(necesitaSegundoMarco ? "Siguiente" : "Añadir gustos y recuerdos") {
+                    if necesitaSegundoMarco {
+                        personalizacion.marcoRetrato = .derecho
+                        desplazamiento.scrollTo("datosRetrato", anchor: .top)
+                    } else { onContinuar() }
                 }
-                .ofrendaPrimaryAction()
-                .disabled(tieneFoto && !tieneNombre)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
+                    .frame(maxWidth: .infinity, minHeight: 44).ofrendaPrimaryAction()
+                    .disabled(!puedeContinuar)
+                    .accessibilityIdentifier("personalizar.continuar")
+                    .accessibilityHint(necesitaSegundoMarco ? "Continúa con el nombre, la música y la foto del marco 2." : "Continúa con los gustos y recuerdos compartidos.")
+                    .objetivoGuiaContextual("personalizar.continuar").padding(.horizontal, 24).padding(.bottom, 24)
             }
         }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { AyudaGuiaContextualButton() }
+        }
+        .guiaContextual(.crearOfrenda)
         .scrollDismissesKeyboard(.interactively)
         .background(AppTheme.background.ignoresSafeArea())
     }

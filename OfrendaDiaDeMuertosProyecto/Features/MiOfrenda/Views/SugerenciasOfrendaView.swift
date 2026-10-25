@@ -29,7 +29,7 @@ struct SugerenciasOfrendaView: View {
                         .foregroundColor(colorAcento)
                     Text("Ideas para su ofrenda.")
                         .font(.system(size: 34, weight: .bold)).foregroundColor(.white)
-                    Text("Para \(personalizacion.nombre) · Tú decides qué conservar.")
+                    Text("Para \(personalizacion.nombresResumen) · Tú decides qué conservar.")
                         .font(.subheadline).foregroundColor(colorTextoSec)
                 }
                 .padding(.horizontal, 24)
@@ -62,10 +62,10 @@ struct SugerenciasOfrendaView: View {
                 }
 
                 // Música o canción favorita
-                if !personalizacion.musicaFavorita.isEmpty {
+                if !personalizacion.musicaResumen.isEmpty {
                     TarjetaSugerencia(
                         icono: .musica,
-                        titulo: "\(personalizacion.musicaFavorita)",
+                        titulo: "\(personalizacion.musicaResumen)",
                         razon: "Para hacer sonar la música que alegraba sus días.",
                         colorTarjeta: colorTarjeta, colorTextoSec: colorTextoSec
                     )

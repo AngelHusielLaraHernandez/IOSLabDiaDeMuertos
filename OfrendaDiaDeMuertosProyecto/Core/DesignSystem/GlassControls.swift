@@ -54,6 +54,7 @@ struct GlassIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .font(.body.weight(.semibold))
                 .frame(width: 44, height: 44)
                 .contentShape(.circle)
@@ -76,6 +77,7 @@ struct FlowNavigationBar: View {
             }
             .ofrendaSecondaryAction()
             Spacer()
+            AyudaGuiaContextualButton()
             if let onSalir {
                 Button("Volver a la ofrenda", action: onSalir)
                     .ofrendaSecondaryAction()

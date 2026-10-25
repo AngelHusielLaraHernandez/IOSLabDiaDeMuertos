@@ -69,12 +69,12 @@ class OfrendasManager: ObservableObject {
     }
 
     @discardableResult
-    func actualizarOfrenda(_ ofrenda: PersonalizacionOfrenda) -> Bool {
+    func actualizarOfrenda(_ ofrenda: PersonalizacionOfrenda, actualizarModelo: Bool = true) -> Bool {
         guard let indice = ofrendasGuardadas.firstIndex(where: { $0.id == ofrenda.id }) else { return false }
         var actualizadas = ofrendasGuardadas
         actualizadas[indice] = ofrenda
         let guardada = guardarOfrendas(actualizadas)
-        if guardada && idOfrendaPrincipal == ofrenda.id { versionPrincipal = UUID() }
+        if guardada && actualizarModelo && idOfrendaPrincipal == ofrenda.id { versionPrincipal = UUID() }
         return guardada
     }
 

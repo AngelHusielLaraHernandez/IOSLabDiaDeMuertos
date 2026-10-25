@@ -51,9 +51,11 @@ struct CalaveritasGuardadasView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
+            .objetivoGuiaContextual("calaveritas.coleccion")
             .background(AppTheme.background.ignoresSafeArea())
             .navigationTitle("Mis calaveritas")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) { AyudaGuiaContextualButton() }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Listo") { dismiss() }
                 }
@@ -67,6 +69,7 @@ struct CalaveritasGuardadasView: View {
                 Button("Entendido", role: .cancel) { store.mensajeError = nil }
             } message: { Text(store.mensajeError ?? "") }
         }
+        .guiaContextual(.calaveritasGuardadas)
     }
 
     private func vistaPrevia(_ texto: String) -> AttributedString {

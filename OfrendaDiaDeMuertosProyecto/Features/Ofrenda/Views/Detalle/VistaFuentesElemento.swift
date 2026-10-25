@@ -15,9 +15,11 @@ struct VistaFuentesElemento: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             ElementSheetHeader(icono: .fuentes, subtitulo: "Fuentes para la línea de tiempo", titulo: nombreElemento)
+            ControlLecturaView(texto: TextoLecturaOfrenda.fuentes(nombre: nombreElemento, hitos: hitos))
+                .objetivoGuiaContextual("fuentes.voz")
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Se diferencian antecedentes, contextos históricos, registros documentados y usos actuales. Las prácticas cambian entre regiones y familias.")
+                    Text(TextoLecturaOfrenda.introduccionFuentes)
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.secondaryText)
                     ForEach(hitos.flatMap { $0.fuentes }) { fuente in
@@ -47,14 +49,16 @@ struct VistaFuentesElemento: View {
                 }
                 .padding(.bottom, 16)
             }
+            .objetivoGuiaContextual("fuentes.documentos")
             Button { dismiss() } label: {
                 Text("Volver al elemento")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
             }
-            .ofrendaPrimaryAction()
+            .ofrendaPrimaryAction().objetivoGuiaContextual("hoja.cerrar")
         }
         .padding(24)
         .ilustracionesOfrenda()
+        .guiaContextual(.fuentes)
     }
 }
