@@ -13,6 +13,15 @@ struct MapaElementoView: View {
 
     var body: some View {
         if let vinculo = TradicionesCatalog.vinculo(para: nombreElemento) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Origen y tradición").font(.title3.bold())
+                Text(vinculo.tipo.rawValue).font(.subheadline.bold()).foregroundStyle(AppTheme.accent)
+                Text(vinculo.origen).font(.body).lineSpacing(4)
+                ForEach(vinculo.fuentesOrigen, id: \.self) { fuente in
+                    Link(fuente.titulo, destination: fuente.url)
+                        .font(.footnote).frame(minHeight: 44, alignment: .leading)
+                }
+            }
             TarjetaLugarView(lugar: vinculo.lugar, contexto: vinculo.contexto)
             Text(vinculo.lugar.avisoVisita)
                 .font(.footnote).foregroundStyle(AppTheme.secondaryText)

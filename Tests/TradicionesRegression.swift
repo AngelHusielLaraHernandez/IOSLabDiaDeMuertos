@@ -77,7 +77,41 @@ struct TradicionesRegression {
             comprobar(datos?.starts(with: [0xFF, 0xD8]) == true, "La fotografía enlazada existe y es JPEG")
             comprobar((datos?.count ?? Int.max) < 400_000, "Las imágenes culturales no cargan originales pesados")
         }
-        comprobar(TradicionesCatalog.vinculo(para: "Agua y sal")?.lugar.id == "huaquechula", "Agua y sal muestra una tradición de ofrendas documentada")
+        comprobar(TradicionesCatalog.vinculo(para: "Agua y sal")?.lugar.id == "mixquic", "Agua y sal se vincula al lugar donde la fuente describe ambos elementos")
+        // Los nombres visibles en las fichas deben resolver el mismo destino que el catálogo 3D.
+        let aliasMapa = [("Flores", "Cempasúchil"), ("Papel", "Papel picado"),
+                         ("Pan", "Pan de muerto"), ("Incienso", "Incienso y copal"),
+                         ("Calaveritas", "Calaveritas de azúcar"), ("Tequila", "Vaso de tequila")]
+        for (id, titulo) in aliasMapa {
+            let base = TradicionesCatalog.vinculo(para: id)
+            let visible = TradicionesCatalog.vinculo(para: titulo)
+            comprobar(base != nil && visible != nil && base?.lugar.id == visible?.lugar.id,
+                      "El título visible no debe dejar el mapa vacío: \(titulo)")
+        }
+        for elemento in OfrendaCatalog.elementosDelAltar {
+            let vinculo = TradicionesCatalog.vinculo(para: elemento.nombre)!
+            comprobar(!vinculo.origen.isEmpty && !vinculo.fuentesOrigen.isEmpty,
+                      "Cada mapa distingue el origen documentado de la asociación regional")
+            comprobar(vinculo.fuentesOrigen.allSatisfy { $0.url.scheme == "https" },
+                      "La explicación geográfica tiene referencias consultables")
+        }
+        // Los puntos corroborados deben seguir en el entorno público que nombra la ficha.
+        comprobar(TradicionesCatalog.xochimilco.latitud > 19.260 && TradicionesCatalog.xochimilco.latitud < 19.266,
+                  "La referencia de San Bernardino está en el centro histórico de Xochimilco")
+        comprobar(TradicionesCatalog.toluca.latitud > 19.290 && TradicionesCatalog.toluca.latitud < 19.291,
+                  "Los Portales no se confunden con una calle homónima fuera del centro")
+        let nombresFicha = ["Cempasúchil", "Retrato", "Velas", "Papel picado", "Agua y sal", "Pan de muerto",
+                            "Comida", "Caña de azúcar", "Frutas", "Incienso y copal", "Cigarro", "Vaso de tequila"]
+        for nombre in nombresFicha {
+            let hitos = HistoriasDocumentadas.hitos(para: nombre)
+            comprobar(!hitos.isEmpty, "Toda ficha conserva su contenido para Conocer más")
+            comprobar(hitos.allSatisfy { !$0.fuentes.isEmpty && $0.fuentes.allSatisfy { $0.url?.scheme == "https" } },
+                      "Las cronologías no regresan a referencias genéricas sin publicación")
+        }
+        for hitos in [OfrendaCatalog.historiaCalaveritas, OfrendaCatalog.historiaCalaveritasLiterarias] {
+            comprobar(hitos.allSatisfy { !$0.fuentes.isEmpty && $0.fuentes.allSatisfy { $0.url != nil } },
+                      "Dulce y literatura conservan historias y fuentes separadas")
+        }
         print("TRADICIONES_OK: \(comprobaciones) comprobaciones")
     }
 }

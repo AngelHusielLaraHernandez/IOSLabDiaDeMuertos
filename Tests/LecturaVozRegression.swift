@@ -51,6 +51,9 @@ struct LecturaVozRegression {
             comprobar(texto.contains("Tradición en México") && texto.contains("Referencia:"), "Cada elemento físico incluye su referencia geográfica narrable")
             comprobar(!texto.contains("https://"), "Mapa no dicta direcciones web")
         }
+        let copal = TradicionesCatalog.vinculo(para: "Incienso y copal")!
+        comprobar(TextoLecturaOfrenda.mapa(para: "Incienso y copal").contains(copal.origen),
+                  "Escuchar lee la misma explicación del origen que el mapa muestra")
         comprobar(TextoLecturaOfrenda.mapa(para: "Calaveritas literarias").contains("Sin ubicación asociada"), "El tema literario no recibe un origen geográfico inventado")
         let lector = LectorVozOfrenda()
         comprobar(lector.estado == .inactivo, "No hay reproducción automática al crear la ficha")

@@ -13,6 +13,7 @@ env DEVELOPER_DIR="$desarrollador" SDKROOT="$sdk" xcrun --sdk iphonesimulator sw
   "$fuentes/Features/Ofrenda/Models/HistoriaElemento.swift" \
   "$fuentes/Features/Tradiciones/Models/LugarCultural.swift" \
   "$fuentes/Features/Tradiciones/Data/TradicionesCatalog.swift" \
+  "$fuentes/Features/Ofrenda/Data/ReferenciasOfrenda.swift" \
   "$fuentes/Features/Ofrenda/Models/TextoLecturaOfrenda.swift" \
   "$fuentes/Features/Ofrenda/Services/LectorVozOfrenda.swift" \
   "$raiz/Tests/LecturaVozRegression.swift" -o "$temporal/lectura-tests"

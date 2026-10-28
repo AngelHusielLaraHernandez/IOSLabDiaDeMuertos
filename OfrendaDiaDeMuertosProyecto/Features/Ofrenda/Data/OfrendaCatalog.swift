@@ -20,7 +20,7 @@ enum OfrendaCatalog {
         ElementoOfrenda(
             nombre: "Retrato", icono: .retrato,
             tituloHistoria: "Una sonrisa conocida",
-            descripcionHistoria: "La fotografía en lo alto del altar dedica la ofrenda a la persona que recordamos.",
+            descripcionHistoria: "El retrato dedica la ofrenda a la persona que recordamos; su posición cambia según la tradición.",
             significado: "Mantiene presente su rostro e identidad en la memoria familiar.",
             anclaNormalizada: SIMD3<Float>(0.06, 0.56, 0.0)
         ),
@@ -34,7 +34,7 @@ enum OfrendaCatalog {
         ElementoOfrenda(
             nombre: "Papel", icono: .papel,
             tituloHistoria: "El aire entre los colores",
-            descripcionHistoria: "El papel picado se mueve con la brisa, anunciando el paso de las ánimas.",
+            descripcionHistoria: "El papel picado viste de color el altar; su movimiento se asocia simbólicamente con el aire.",
             significado: "Representa el elemento aire y la alegría festiva de la tradición.",
             anclaNormalizada: SIMD3<Float>(0.25, 0.78, 0.0)
         ),
@@ -66,7 +66,7 @@ enum OfrendaCatalog {
             nombre: "Pan", icono: .pan,
             tituloHistoria: "El aroma de la cocina",
             descripcionHistoria: "El pan de muerto se comparte como símbolo de fraternidad y cariño.",
-            significado: "Su forma circular representa el ciclo de la vida y sus relieves los huesos.",
+            significado: "En la variante redonda, el círculo suele evocar el ciclo vital y las canillas, huesos o lágrimas.",
             anclaNormalizada: SIMD3<Float>(0.0, 0.22, 0.28)
         ),
         ElementoOfrenda(

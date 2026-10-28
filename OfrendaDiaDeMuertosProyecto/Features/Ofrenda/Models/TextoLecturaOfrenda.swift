@@ -36,7 +36,8 @@ enum TextoLecturaOfrenda {
             return "Sin ubicación asociada. Puedes consultar la historia y sus referencias en Conocer más."
         }
         let lugar = vinculo.lugar
-        return unir(["Tradición en México", lugar.nombre, lugar.region, vinculo.contexto,
+        return unir(["Origen y tradición", vinculo.tipo.rawValue, vinculo.origen,
+                     "Tradición en México", lugar.nombre, lugar.region, vinculo.contexto,
                      "Referencia: \(lugar.referencia). Las tradiciones también se viven en otras regiones.",
                      lugar.avisoVisita])
     }

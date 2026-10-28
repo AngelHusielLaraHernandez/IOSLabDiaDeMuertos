@@ -17,43 +17,15 @@ struct FloresView: View {
 
             nombreElemento: "Cempasúchil",
             tituloHistoria: "Un camino de pétalos",
-            parrafoHistoria1: "En muchas ofrendas, los pétalos y racimos de cempasúchil trazan un sendero de bienvenida desde la entrada hasta el altar.",
-            parrafoHistoria2: "Cada pétalo brilla como una chispa de sol que acompaña a quienes vuelven a casa.",
+            parrafoHistoria1: "El cempasúchil es una flor nativa de México, de intenso aroma y tonos amarillos o naranjas. En muchas comunidades acompaña la conmemoración de los difuntos; su cultivo y sus usos tienen una historia más amplia que una sola localidad.",
+            parrafoHistoria2: "Las familias lo colocan en ramos, arcos o caminos de pétalos. La disposición depende de la región: el recorrido hacia el altar expresa una bienvenida simbólica, de acuerdo con la creencia del regreso de las ánimas.",
             preguntaReflexion: "¿Qué aroma elegirías para dar la bienvenida?",
             tituloSignificado: "¿Por qué está aquí?",
-            parrafoSignificado1: "En muchas tradiciones mexicanas, el aroma y el color del cempasúchil ayudan a guiar a las ánimas hacia el altar.",
-            subtituloSignificado2: "Una flor que marca el camino",
-            parrafoSignificado2: "Su nombre proviene del náhuatl Cempōhualxōchitl, que significa «flor de veinte pétalos». En los altares se coloca en arcos, floreros y caminos de pétalos.",
-            notaSignificado: "Su uso y significado pueden variar entre regiones y familias.",
-            hitos: [
-                HitoHistorico(
-                    epoca: "Antecedente mesoamericano",
-                    titulo: "Cultivo y usos rituales",
-                    descripcion: "Empleada desde tiempos prehispánicos en ceremonias dedicadas a la memoria y a los ciclos agrícolas.",
-                    colorPunto: .yellow,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Siglo XVI", titulo: "Historia de la flor", detalle: "Registros sobre el uso ceremonial y medicinal de la Cempōhualxōchitl en el centro de México.", referencia: "Códice Florentino, Libro XI")
-                    ]
-                ),
-                HitoHistorico(
-                    epoca: "Periodo virreinal",
-                    titulo: "Senderos de bienvenida",
-                    descripcion: "La flor se integró a los altares domésticos y cementerios durante las festividades de Todos los Santos.",
-                    colorPunto: .orange,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Siglos XVII-XIX", titulo: "Uso en la ofrenda", detalle: "Integración de arcos florales y caminos de pétalos en altares familiares.", referencia: "Crónicas de festividades novohispanas")
-                    ]
-                ),
-                HitoHistorico(
-                    epoca: "Tradición contemporánea",
-                    titulo: "Una tradición viva",
-                    descripcion: "Símbolo principal del Día de Muertos en hogares, plazas públicas y panteones de todo el país.",
-                    colorPunto: .purple,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Actualidad", titulo: "Patrimonio vivo", detalle: "Cultivo tradicional en Xochimilco, Puebla, Michoacán y Oaxaca para las festividades de noviembre.", referencia: "INAH / Patrimonio Cultural")
-                    ]
-                )
-            ],
+            parrafoSignificado1: "El aroma y el color se interpretan como señales para orientar a las ánimas. También adornan el espacio y expresan el cariño de quienes preparan la ofrenda. Esta explicación pertenece a la tradición y a sus creencias.",
+            subtituloSignificado2: "Veinte flores, muchas formas de ofrendar",
+            parrafoSignificado2: "Su nombre náhuatl suele traducirse como «veinte flores»; también se encuentra «flor de veinte pétalos». Xochimilco destaca por su producción, pero la flor se cultiva en varias regiones. No es el lugar de origen exclusivo de su uso ritual.",
+            notaSignificado: "Las flores elegidas y la forma de colocarlas varían entre comunidades y familias.",
+            hitos: HistoriasDocumentadas.hitos(para: "Cempasúchil"),
             textoBotonCerrar: textoBotonCerrar
         )
     }

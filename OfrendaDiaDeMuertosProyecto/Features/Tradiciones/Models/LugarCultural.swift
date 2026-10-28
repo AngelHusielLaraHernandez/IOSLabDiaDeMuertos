@@ -30,9 +30,20 @@ struct LugarCultural: Identifiable, Hashable {
     }
 }
 
+/// Explica qué acredita la ubicación: producción, oficio, práctica o historia de la bebida.
+enum TipoVinculoCultural: String {
+    case cultivo = "Región productora"
+    case oficio = "Centro artesanal"
+    case practica = "Tradición regional documentada"
+    case bebida = "Historia regional de la bebida"
+}
+
 struct VinculoCultural {
     let lugar: LugarCultural
     let contexto: String
+    let tipo: TipoVinculoCultural
+    let origen: String
+    let fuentesOrigen: [FuenteCultural]
 }
 
 /// La edición se documenta por separado para no convertir un anuncio anual en una sede permanente.

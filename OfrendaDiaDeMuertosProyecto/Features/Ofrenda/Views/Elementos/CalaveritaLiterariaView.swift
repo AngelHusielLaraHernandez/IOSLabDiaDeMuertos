@@ -27,13 +27,13 @@ struct CalaveritaLiterariaView: View {
         ]
         static let origen = [
             "Sátira y crítica social",
-            "Durante el siglo XIX, las calaveritas literarias se difundieron como una forma de sátira y crítica social. Sus versos combinan humor e imaginación para hablar de personas y de la muerte.",
+            "En el siglo XIX circularon versos satíricos que imaginaban a personas frente a la Muerte. La UAM menciona una publicación antigua de 1849 en El Socialista de Guadalajara. Es un registro del género, no un certificado de un lugar único de invención.",
             "El legado de Posada",
-            "La gráfica popular también empleó calaveras para comentar la vida social. Entre sus artistas destacan Manuel Manilla y José Guadalupe Posada. Las figuras de dulce y los versos comparten la celebración, pero son expresiones distintas.",
+            "Manuel Manilla y José Guadalupe Posada popularizaron calaveras en la gráfica de los impresos. Su trabajo ayudó a darles presencia pública; no significa que Posada inventara el género literario. Los versos y las figuras de azúcar comparten la fiesta, pero tienen historias propias.",
         ]
         static let estructura = [
             "¿Cómo se componen?",
-            "• **Estrofas:** Generalmente se escriben en cuartetas (estrofas de 4 versos).\n• **Rima:** Rima consonante o asonante, habitualmente en esquema ABAB o ABCB.\n• **Tema:** Se redactan como si la persona (viva) estuviera en una situación cómica o inesperada con «La Catrina» o «La Huesuda».\n• **Tono:** Festivo, irónico y afectuoso, con respeto hacia la persona.",
+            "• **Personaje:** Elige una persona, un oficio o una situación y algún rasgo que la identifique.\n• **Encuentro:** Imagina qué pasaría al encontrarse con la Muerte.\n• **Versos:** Las cuartetas y la rima son recursos frecuentes, no reglas obligatorias de un único esquema.\n• **Remate:** Termina con un giro ingenioso. Puede ser satírico o afectuoso. El ejemplo de esta app es una composición didáctica, no un poema histórico.",
         ]
     }
 

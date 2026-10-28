@@ -16,43 +16,15 @@ struct RetratoView: View {
             subtituloCabecera: "En el altar",
             nombreElemento: "Retrato",
             tituloHistoria: "Una sonrisa conocida",
-            parrafoHistoria1: "En lo alto de la ofrenda, la fotografía nos devuelve un gesto familiar: una tarde de domingo, una fiesta o una mirada serena.",
-            parrafoHistoria2: "Poner su retrato en el nivel principal le da nombre y rostro a todas las historias que compartimos alrededor del altar.",
+            parrafoHistoria1: "La fotografía ayuda a reconocer a quién se dedica el altar. Al mirarla, la familia puede contar una anécdota, recordar una voz o explicar a las nuevas generaciones quién fue esa persona.",
+            parrafoHistoria2: "La fotografía llegó a México en 1839, pero esa fecha no marca su primera incorporación a una ofrenda. En Huaquechula, una variante regional coloca el retrato con alimentos y objetos personales en el nivel que representa la vida terrenal.",
             preguntaReflexion: "Una imagen que mantiene cerca a quienes viven en nuestra memoria.",
             tituloSignificado: "¿Por qué está aquí?",
-            parrafoSignificado1: "Dedica formalmente la ofrenda a la persona o personas que recordamos y preside el nivel superior del altar.",
-            subtituloSignificado2: "Presencia e identidad",
-            parrafoSignificado2: "En algunas tradiciones familiares el retrato se coloca frente a un espejo o ligeramente oculto antes del día principal, simbolizando que el ser querido está presente en el recuerdo.",
-            notaSignificado: "Antes de la fotografía se utilizaban objetos personales o prendas para representar al difunto.",
-            hitos: [
-                HitoHistorico(
-                    epoca: "Antecedente tradicional",
-                    titulo: "Objetos y prendas de identidad",
-                    descripcion: "Se colocaban herramientas de trabajo, sombreros o prendas que representaban a la persona recordada.",
-                    colorPunto: .yellow,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Tradicional", titulo: "Símbolos personales", detalle: "Representación del difunto mediante sus pertenencias más preciadas.", referencia: "Etnografía de altares tradicionales")
-                    ]
-                ),
-                HitoHistorico(
-                    epoca: "Siglos XIX y XX",
-                    titulo: "La fotografía en México",
-                    descripcion: "Con la llegada del retrato fotográfico, los marcos familiares pasaron a ocupar la cima de la ofrenda.",
-                    colorPunto: .orange,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Siglo XIX", titulo: "Fotografía y memoria", detalle: "Incorporación de retratos impresos en los altares domésticos.", referencia: "Fototeca Nacional INAH")
-                    ]
-                ),
-                HitoHistorico(
-                    epoca: "Actualidad",
-                    titulo: "El corazón de la ofrenda personal",
-                    descripcion: "Hoy combinamos fotografías impresas y álbumes digitales para honrar su vida e historia.",
-                    colorPunto: .purple,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Siglo XXI", titulo: "Retratos familiares", detalle: "Prácticas contemporáneas de personalización en los altares de Día de Muertos.", referencia: "Estudios de cultura visual")
-                    ]
-                )
-            ],
+            parrafoSignificado1: "Da rostro e identidad al homenaje. Puede recordar a una o varias personas; su posición depende del tipo de altar y no tiene que ocupar siempre la parte más alta.",
+            subtituloSignificado2: "El retrato y el espejo",
+            parrafoSignificado2: "Algunas descripciones tradicionales incluyen una imagen que se observa a través de un espejo. Esa disposición expresa simbólicamente la presencia de alguien que ya no está físicamente. Otras familias dejan la fotografía a la vista.",
+            notaSignificado: "El espejo es una variante regional. La app permite un retrato visible sin exigir esa disposición.",
+            hitos: HistoriasDocumentadas.hitos(para: "Retrato"),
             textoBotonCerrar: textoBotonCerrar
         )
     }
