@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Utiliza los mismos párrafos de la ficha y conserva pausas entre versos y bloques.
+
 enum TextoLecturaOfrenda {
     static let introduccionFuentes = "Se diferencian antecedentes, contextos históricos, registros documentados y usos actuales. Las prácticas cambian entre regiones y familias."
 

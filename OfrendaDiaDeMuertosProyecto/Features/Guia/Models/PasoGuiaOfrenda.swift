@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// El orden corresponde a acciones reales de la pantalla de la ofrenda.
+
 enum PasoGuiaOfrenda: Int, CaseIterable, Identifiable {
     case explorar, historias, recorrido, fotografias, vistaLimpia, compartir, personalizar
     var id: Int { rawValue }

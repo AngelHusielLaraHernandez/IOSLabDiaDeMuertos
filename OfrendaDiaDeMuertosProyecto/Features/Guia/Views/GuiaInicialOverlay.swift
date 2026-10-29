@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Bloquea las acciones durante la explicación; nunca abre fotos ni comparte una imagen por accidente.
+
 struct GuiaInicialOverlay: View {
     let paso: PasoGuiaOfrenda
     let objetivo: CGRect
@@ -22,7 +22,7 @@ struct GuiaInicialOverlay: View {
     }
 }
 
-/// Superficie compartida por la guía principal y las guías de las hojas.
+
 struct GuiaDestacadoView: View {
     let numero: Int
     let total: Int

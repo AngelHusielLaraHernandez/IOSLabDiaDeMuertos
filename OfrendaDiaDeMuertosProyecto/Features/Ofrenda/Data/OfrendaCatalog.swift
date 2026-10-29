@@ -7,7 +7,7 @@
 
 import simd
 
-/// Elementos y anclajes del altar existente.
+
 enum OfrendaCatalog {
     static let elementos: [ElementoOfrenda] = [
         ElementoOfrenda(
@@ -123,7 +123,7 @@ enum OfrendaCatalog {
         )
     ]
 
-    /// Solo los 13 grupos que tienen representación en la ofrenda tridimensional.
+
     static let elementosDelAltar = elementos.filter(\.esElementoDelAltar)
 
 }

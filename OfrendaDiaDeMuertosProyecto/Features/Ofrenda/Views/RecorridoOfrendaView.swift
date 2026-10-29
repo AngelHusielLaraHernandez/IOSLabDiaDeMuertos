@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Los checks reflejan historias abiertas; no se marcan manualmente.
+
 struct RecorridoOfrendaView: View {
     let elementos: [ElementoOfrenda]
     let visitados: Set<String>

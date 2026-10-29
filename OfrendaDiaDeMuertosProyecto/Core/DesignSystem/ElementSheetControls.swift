@@ -91,7 +91,7 @@ struct SheetSectionPicker: View {
                     .frame(width: geometria.size.width, height: max(44, ceil(fuente.lineHeight) + 16))
                     .frame(height: altura)
             } else {
-                // Al desbordar, el gesto desplaza botones de sistema: no compite con el arrastre del segmented.
+                
                 ScrollViewReader { desplazamiento in
                     ScrollView(.horizontal) {
                         HStack(spacing: 8) {
@@ -145,7 +145,7 @@ struct SheetSectionPicker: View {
     }
 }
 
-/// Conserva el arrastre, selección y material del control del sistema, sin dibujar una cápsula propia.
+
 private struct SelectorSeccionesNativo: UIViewRepresentable {
     let secciones: [String]
     @Binding var seleccion: Int
@@ -161,7 +161,7 @@ private struct SelectorSeccionesNativo: UIViewRepresentable {
         return control
     }
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: UISegmentedControl, context: Context) -> CGSize? {
-        // El alto intrínseco del control es fijo; respeta el espacio calculado para Dynamic Type.
+        
         CGSize(width: proposal.width ?? uiView.intrinsicContentSize.width,
                height: proposal.height ?? max(44, ceil(fuente.lineHeight) + 16))
     }
@@ -194,8 +194,7 @@ private extension UIFont {
     }
 }
 
-/// En accesibilidad, la ficha utiliza un único desplazamiento vertical exterior.
-/// El contenido conserva su tamaño natural para que ninguna sección quede sin área de lectura.
+
 struct SheetReadingContent<Content: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ViewBuilder var content: () -> Content

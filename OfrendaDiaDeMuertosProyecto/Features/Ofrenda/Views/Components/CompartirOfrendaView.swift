@@ -10,7 +10,7 @@ import UIKit
 import LinkPresentation
 import UniformTypeIdentifiers
 
-/// La imagen vive solo mientras está abierta la hoja nativa de compartir.
+
 struct CapturaOfrenda: Identifiable {
     let id = UUID()
     let imagen: UIImage
@@ -27,7 +27,7 @@ struct CompartirOfrendaView: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) { }
 }
 
-/// Da a la hoja una miniatura de la propia ofrenda, sin resolver enlaces en internet.
+
 private final class FuenteCapturaOfrenda: NSObject, UIActivityItemSource {
     private let captura: CapturaOfrenda
     init(_ captura: CapturaOfrenda) { self.captura = captura }

@@ -9,7 +9,7 @@ import Foundation
 import RealityKit
 import OSLog
 
-/// Las copias comparten mallas y texturas; cada visor conserva sus transformaciones.
+
 @MainActor
 final class OfrendaAssets {
     static let shared = OfrendaAssets()
@@ -19,7 +19,7 @@ final class OfrendaAssets {
 
     private init() { models.countLimit = 2 }
 
-    /// Calienta la misma caché que consumirá el altar, sin crear una ARView ni otro clon completo.
+
     func preload(named name: String) async throws {
         _ = try await source(named: name)
     }
@@ -28,7 +28,7 @@ final class OfrendaAssets {
         try await source(named: name).clone(recursive: true)
     }
 
-    /// Comparte los recursos del prototipo y copia solamente las entidades elegidas.
+ 
     func cloneElement(nombres: [String], from existing: Entity? = nil) async throws -> Entity {
         guard !nombres.isEmpty else { throw AssetError.emptySelection }
         let modelo: Entity
@@ -41,9 +41,8 @@ final class OfrendaAssets {
             guard let original = modelo.findEntity(named: nombre) else { throw AssetError.notFound(nombre) }
             let copia = original.clone(recursive: true)
             copia.transform = Transform(matrix: original.transformMatrix(relativeTo: modelo))
-            // Historias también muestra piezas ocultas en el altar; solo se activa la copia.
             copia.isEnabled = true
-            // El retrato se vuelve a conectar al store, sin duplicar su panel de fotografía.
+
             removePhotoOverlays(from: copia)
             detalle.addChild(copia)
         }

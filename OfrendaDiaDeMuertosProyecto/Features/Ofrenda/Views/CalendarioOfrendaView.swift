@@ -8,7 +8,7 @@
 import SwiftUI
 import UIKit
 
-/// Su reloj pertenece a esta vista; no reconstruye la escena 3D del altar cada minuto.
+
 struct CalendarioOfrendaView: View {
     let activo: Bool
     @Environment(\.scenePhase) private var scenePhase

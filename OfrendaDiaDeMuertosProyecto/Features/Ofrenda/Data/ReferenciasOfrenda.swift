@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Bibliografía institucional revisada el 28/10/2026.
+
 enum ReferenciasOfrenda {
     static let inpi = FuenteCultural(titulo: "INPI · Significado de los elementos de la ofrenda", url: URL(string: "https://www.gob.mx/inpi/articulos/conoces-el-significado-de-los-elementos-de-una-ofrenda-de-dia-de-muertos")!)
     static let origen = FuenteCultural(titulo: "INAH · El origen del Día de Muertos", url: URL(string: "https://www.inah.gob.mx/especiales-inah/articulos/el-origen-del-dia-de-muertos")!)

@@ -8,7 +8,7 @@
 import Foundation
 import CoreGraphics
 
-/// Filtra lo que no está en el encuadre y separa las áreas de toque del cristal.
+
 enum OfrendaPinLayout {
     struct Pin {
         let id: String
@@ -43,7 +43,7 @@ enum OfrendaPinLayout {
         guard size.width > 100, size.height >= 100 else { return [:] }
         let viewport = CGRect(origin: .zero, size: size).insetBy(dx: 8, dy: 8)
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
-        // No se pegan a los bordes las etiquetas de objetos que ya salieron del visor.
+
         var visible = pins.filter {
             zoomFactor <= $0.zoomMaximo &&
             $0.anchor.x.isFinite && $0.anchor.y.isFinite && viewport.contains($0.anchor)
@@ -55,7 +55,7 @@ enum OfrendaPinLayout {
                 return a == b ? $0.id < $1.id : a < b
             }
         } else {
-            // Reserva primero espacio a la base, donde hay más objetos juntos.
+        
             visible.sort {
                 if $0.anchor.y != $1.anchor.y { return $0.anchor.y > $1.anchor.y }
                 if $0.anchor.x != $1.anchor.x { return $0.anchor.x < $1.anchor.x }
@@ -91,7 +91,7 @@ enum OfrendaPinLayout {
             placed[pin.id] = placement
             occupied.append(placement.rect.insetBy(dx: -gap / 2, dy: -gap / 2))
         }
-        // Solo la vista general puede redistribuir el conjunto por toda el área.
+     
         if zoomFactor > 0.9, placed.count < visible.count {
             let grid = gridPlacement(visible, in: size, reservedRects: reservedRects)
             if grid.count > placed.count { return grid }

@@ -78,7 +78,7 @@ struct CalaveritasView: View {
                             .lineSpacing(4)
 
                         Divider().padding(.vertical, 4)
-                        // La elaboración acompaña al significado en la misma sección.
+                  
                         Text(Contenido.elaboracion[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
@@ -99,7 +99,7 @@ struct CalaveritasView: View {
                             .lineSpacing(4)
 
                     } else if seccionActiva == 1 {
-                        // HISTORIA
+                 
                         Text(Contenido.historia[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)

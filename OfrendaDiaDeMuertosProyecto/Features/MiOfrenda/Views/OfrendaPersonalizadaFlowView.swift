@@ -17,7 +17,7 @@ struct OfrendaPersonalizadaFlowView: View {
     let onSalir: () -> Void
     var onGuardar: (() -> Void)? = nil
     
-    // NUEVO: Para cerrar la vista (sheet o push) antes de cambiar de pestaña
+
     @Environment(\.dismiss) private var dismiss
     
     @State private var paso: PasoPersonalizacion = .retrato
@@ -91,9 +91,9 @@ struct OfrendaPersonalizadaFlowView: View {
                     onEditarGustos: { paso = .gustos },
                     onCambiarFoto: { paso = .retrato },
                     onVolver: { paso = .sugerencias },
-                    onTerminar: { // <-- NUEVO CIERRE
-                        dismiss() // Cierra la vista flotante o hace pop en la navegación
-                        (onGuardar ?? onSalir)() // La lista conserva el foco para elegir con el check.
+                    onTerminar: { 
+                        dismiss()
+                        (onGuardar ?? onSalir)()
                     },
                     nombresOriginales: nombresOriginales,
                     fotosPendientes: fotosPendientes

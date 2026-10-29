@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Límites compartidos por los dos visores: siempre se conserva una vista frontal.
+
 enum OfrendaCameraPolicy {
     static let yawLimit: Float = 65 * .pi / 180
     static let pitchRange: ClosedRange<Float> = (-8 * .pi / 180)...(22 * .pi / 180)

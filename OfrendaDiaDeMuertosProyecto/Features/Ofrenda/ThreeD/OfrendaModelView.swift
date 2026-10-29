@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// La propuesta usa la misma escena y los mismos marcos que la pantalla principal.
+
 struct OfrendaModelView: View {
     let renderSession: OfrendaRenderSession
     let resetToken: Int

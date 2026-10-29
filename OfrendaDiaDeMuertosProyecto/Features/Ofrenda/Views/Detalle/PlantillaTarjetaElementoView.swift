@@ -12,20 +12,20 @@ struct PlantillaTarjetaElementoView: View {
     let subtituloCabecera: String
     let nombreElemento: String
 
-    // Pestaña 1: Historia
+
     let tituloHistoria: String
     let parrafoHistoria1: String
     let parrafoHistoria2: String
     let preguntaReflexion: String
 
-    // Pestaña 2: Significado
+ 
     let tituloSignificado: String
     let parrafoSignificado1: String
     let subtituloSignificado2: String
     let parrafoSignificado2: String
     let notaSignificado: String
 
-    // Mapa precede a Conocer más, que reúne la línea del tiempo y las fuentes.
+   
     let hitos: [HitoHistorico]
     var textoBotonCerrar: String = "Volver a la ofrenda"
 
@@ -54,7 +54,7 @@ struct PlantillaTarjetaElementoView: View {
             SheetReadingContent {
                 VStack(alignment: .leading, spacing: 16) {
                     if seccionActiva == 0 {
-                        // HISTORIA
+                    
                         Text(tituloHistoria)
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
@@ -76,7 +76,7 @@ struct PlantillaTarjetaElementoView: View {
                             .foregroundColor(colorAcento)
 
                     } else if seccionActiva == 1 {
-                        // SIGNIFICADO
+                   
                         Text(tituloSignificado)
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
@@ -105,7 +105,7 @@ struct PlantillaTarjetaElementoView: View {
                     } else if seccionActiva == 2 {
                         MapaElementoView(nombreElemento: nombreElemento)
                     } else {
-                        // CONOCER MÁS (Línea del tiempo)
+                
                         Text("Su camino hasta el altar")
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)

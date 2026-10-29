@@ -8,7 +8,7 @@
 import Foundation
 import CoreGraphics
 
-/// Mantiene el recorte dentro de la pantalla y elige el lado con más espacio para la explicación.
+
 enum GuiaDestacadoLayout {
     struct Colocacion {
         let recorte: CGRect

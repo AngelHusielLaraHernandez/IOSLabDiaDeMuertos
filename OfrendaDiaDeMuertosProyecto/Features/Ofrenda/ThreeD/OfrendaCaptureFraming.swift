@@ -8,7 +8,7 @@
 import Foundation
 import simd
 
-/// Encuadra las ocho esquinas del altar con margen, incluso en un visor horizontal.
+
 enum OfrendaCaptureFraming {
     static let orientation = simd_quatf(angle: -0.08, axis: [0, 1, 0]) * simd_quatf(angle: 0.10, axis: [1, 0, 0])
 

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Paleta compartida del prototipo de Figma.
+/// Paleta  del prototipo 
 enum AppTheme {
     static let background = Color(red: 0.11, green: 0.05, blue: 0.18)
     static let surface = Color(red: 0.21, green: 0.13, blue: 0.30)

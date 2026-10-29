@@ -15,7 +15,6 @@ struct ObjetivosGuiaPreference: PreferenceKey {
 }
 
 extension View {
-    /// El ancla sigue el control real al girar el teléfono, cambiar texto o desplazar la pantalla.
     func objetivoGuia(_ paso: PasoGuiaOfrenda, activo: Bool = true) -> some View {
         transformAnchorPreference(key: ObjetivosGuiaPreference.self, value: .bounds) { objetivos, ancla in
             if activo { objetivos[paso] = ancla }

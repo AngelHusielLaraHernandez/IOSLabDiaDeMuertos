@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Identidades de los dos retratos que ya contiene Ofrenda.usdz.
+
 enum MarcoOfrenda: String, CaseIterable, Identifiable, Codable, Sendable {
     case izquierdo = "retrato__001"
     case derecho = "retrato__002"
@@ -17,7 +17,7 @@ enum MarcoOfrenda: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var numero: String { self == .izquierdo ? "Marco 1" : "Marco 2" }
 
-    /// Proporción del hueco interior, medida sobre la malla exportada, no del borde.
+   
     nonisolated var relacionAspecto: CGFloat { 15.0 / 17.0 }
 }
 
@@ -27,13 +27,12 @@ struct FotoMarco: Identifiable {
     var esPredeterminada = false
 }
 
-/// La hoja recibe una selección concreta en su primera presentación.
 struct EditorMarcos: Identifiable {
     let id = UUID()
     let marco: MarcoOfrenda?
 }
 
-/// Elegir un marco no borra la fotografía del otro.
+
 enum CantidadMarcos: String, CaseIterable, Codable, Sendable {
     case uno, dos
     var titulo: String { self == .uno ? "Un marco" : "Dos marcos" }
@@ -43,12 +42,12 @@ struct ConfiguracionMarcos: Codable, Equatable, Sendable {
     var cantidad: CantidadMarcos = .dos
     var principal: MarcoOfrenda = .izquierdo
     var personas: [String: IdentidadRetrato] = [:]
-    /// Una configuración confirmada referencia archivos nuevos; las fotos anteriores no se sobrescriben.
+
     var archivosFotos: [String: String] = [:]
     func persona(en marco: MarcoOfrenda) -> IdentidadRetrato { personas[marco.rawValue] ?? IdentidadRetrato() }
     mutating func asignar(_ persona: IdentidadRetrato, en marco: MarcoOfrenda) { personas[marco.rawValue] = persona }
     var nombresCortos: String { visibles.map { persona(en: $0).primerNombre }.filter { !$0.isEmpty }.joined(separator: " y ") }
-    /// Valida solo la persona que se está editando, sin bloquear el primer paso por un marco pendiente.
+
     func errorIdentidad(en marco: MarcoOfrenda) -> String? {
         let persona = persona(en: marco)
         if persona.primerNombre.isEmpty { return "Escribe el nombre del \(marco.numero.lowercased())." }

@@ -15,7 +15,6 @@ enum OfrendaRenderConfiguration {
         view.environment.background = .color(UIColor(AppTheme.background))
         view.renderOptions = [.disableMotionBlur, .disableDepthOfField, .disableCameraGrain]
         #if targetEnvironment(simulator)
-        // Evita técnicas de sombras/HDR no soportadas por algunas GPU del simulador.
         view.renderOptions.formUnion([.disableHDR, .disableGroundingShadows])
         #endif
     }

@@ -175,8 +175,6 @@ struct ListaMisOfrendasView: View {
 
 }
 
-/// Mantiene el borrador y los almacenes estables mientras se editan los campos.
-/// Salir sin Guardar no modifica los perfiles que se muestran en la lista.
 private struct EditorOfrendaView: View {
     @State private var borrador: PersonalizacionOfrenda
     @State private var fotos: FotosMarcosStore

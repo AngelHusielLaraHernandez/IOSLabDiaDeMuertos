@@ -23,7 +23,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
     let onSeleccionarMarco: (MarcoOfrenda) -> Void
     let onErrorFoto: (String) -> Void
 
-    /// Si quieres que se siga viendo la pared café detrás del altar, cambia esto a `false`
+
     var ocultarParedDeFondo: Bool = true
     var configuracionMarcos = ConfiguracionMarcos()
     var seleccionElementos = ConfiguracionElementosOfrenda()
@@ -49,7 +49,6 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
         coordinator.unmount(from: host)
     }
 
-    /// Puente de un montaje SwiftUI. El motor y la escena pertenecen a la sesión compartida.
     @MainActor
     final class Coordinator {
         private let owner = UUID()
@@ -209,7 +208,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             notifyLoadState()
         }
 
-        /// Retira el altar de la escena sin destruir mallas, texturas ni el motor de RealityKit.
+
         func suspend() {
             setObscured(true)
             cancelFocus()
@@ -230,7 +229,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
 
         private func notifyLoadState() {
             guard notifiedLoadState != loadState else { return }
-            // La nueva pantalla recibe ready cuando el visor ya tiene ventana, tamaño y escena.
+          
             if loadState == .ready {
                 guard !isObscured, let view, view.window != nil,
                       view.bounds.width > 0, view.bounds.height > 0 else { return }
@@ -257,7 +256,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             camera.camera.fieldOfViewInDegrees = 47
             anchor.addChild(camera)
 
-            // Iluminación original de tu OfrendaModelView
+     
             let key = DirectionalLight()
             key.light.intensity = 1100
             key.light.color = UIColor(red: 1, green: 0.94, blue: 0.86, alpha: 1)
@@ -289,7 +288,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             view.scene.addAnchor(anchor)
             sceneAnchor = anchor
 
-            // Gestos interactivos (1 dedo girar, 2 dedos mover, pellizcar zoom, doble toque reset)
+
             let rotate = UIPanGestureRecognizer(target: self, action: #selector(rotate(_:)))
             rotate.maximumNumberOfTouches = 1
             let pan = UIPanGestureRecognizer(target: self, action: #selector(move(_:)))
@@ -456,7 +455,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             var nuevasPosiciones: [String: CGPoint] = [:]
             let centro = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
             for (nombre, nodos) in gruposAncla {
-                // Un solo rótulo por categoría, ligado a la instancia más cercana al centro.
+    
                 let candidatos = nodos.compactMap { nodo -> (Entity, CGPoint)? in
                     let worldPos = nodo.position(relativeTo: nil)
                     let cameraSpace = camera.convert(position: worldPos, from: nil)
@@ -486,12 +485,12 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
                 self?.publishViewport?(state)
             }
             pendingPublication = publication
-            // Publica fuera de layoutSubviews; el altar es estático y solo cambia con gestos/resize.
+
             DispatchQueue.main.async(execute: publication)
         }
 
         private func addCandleLights(in entity: Entity) {
-            // El simulador conserva las llamas emisivas; evita luces por píxel extra.
+
             #if !targetEnvironment(simulator)
             for name in ["llama__01", "llama__04", "llama__09"] {
                 guard let flame = entity.findEntity(named: name) else { continue }
@@ -534,7 +533,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             notifyLoadState()
         }
 
-        /// Captura solo RealityKit: ninguna etiqueta SwiftUI ni controles entran en la imagen.
+
         func capturar(id: UUID, completion: @escaping (Result<UIImage, Error>) -> Void) {
             guard capturaPendiente == nil, loadState == .ready, !isObscured, focusTask == nil,
                   let view, view.window != nil, view.bounds.width > 0, view.bounds.height > 0 else {
@@ -554,7 +553,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             )
             camera.look(at: .zero, from: [0, 0, distance], relativeTo: nil)
             tareaCaptura = Task { @MainActor [weak self, weak view] in
-                // Deja presentar el nuevo encuadre antes de solicitar el siguiente fotograma.
+
                 do { try await Task.sleep(for: .milliseconds(180)) } catch { return }
                 guard let self, let view, self.capturaPendiente?.id == id else { return }
                 view.snapshot(saveToHDR: false) { [weak self] image in
@@ -624,7 +623,7 @@ struct OfrendaInteractive3DView: UIViewRepresentable {
             }
             let finalZoom = OfrendaCameraPolicy.focusZoom(from: zoomFactor)
             let worldPoint = node.position(relativeTo: nil)
-            // Deja el objeto por encima de la hoja de media pantalla.
+    
             let verticalOffset = cameraDistance(zoom: finalZoom) * tan(Float(47) * .pi / 360) * 0.5
             let target = worldPoint - SIMD3<Float>(0, verticalOffset, 0)
             animateCamera(zoom: finalZoom, target: target, duration: 0.36) { [weak self] in
@@ -736,7 +735,7 @@ private final class OfferingInteractiveARView: ARView {
     override func didMoveToWindow() {
         super.didMoveToWindow()
         guard window != nil else { return }
-        // Se configura al montar el visor; no se renegocia en cada layout.
+
         contentScaleFactor = min(max(traitCollection.displayScale, 1), 2)
     }
 }

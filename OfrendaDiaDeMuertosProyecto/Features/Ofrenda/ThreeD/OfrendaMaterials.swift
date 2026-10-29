@@ -13,7 +13,7 @@ enum OfrendaMaterials {
     static func prepare(_ entity: Entity, ocultarPared: Bool = true, path: String = "") {
         let fullPath = path + "/" + entity.name
 
-        // Oculta el plano de fondo exportado de Blender si ocultarPared es true
+        
         if ocultarPared && entity.name.hasPrefix("fondo__") {
             entity.isEnabled = false
             return

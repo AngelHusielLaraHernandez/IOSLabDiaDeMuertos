@@ -17,7 +17,7 @@ enum TradicionesCatalog {
     static let atlixcoFuente = fuente("Ayuntamiento de Atlixco · Valle de Catrinas 2026", "https://www.atlixco.gob.mx/Pages/Noticias/Noticia?idnoti=4509")
     static let unamFuente = fuente("UNAM · Megaofrenda 2026", "https://sitios.fi-a.unam.mx/evento.php?id=65&y=2026")
 
-    // Coordenadas de referencia de las localidades, no accesos a viviendas ni rutas dentro de los recintos.
+
     static let xochimilco = LugarCultural(
         id: "xochimilco", nombre: "Xochimilco", region: "Ciudad de México", referencia: "Entorno del Convento de San Bernardino de Siena, Xochimilco",
         latitud: 19.263263, longitud: -99.102493,

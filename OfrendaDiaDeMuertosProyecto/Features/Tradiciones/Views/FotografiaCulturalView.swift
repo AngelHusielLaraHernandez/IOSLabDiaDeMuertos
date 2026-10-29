@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Imagen de contexto, con pie editorial y acceso a la atribución completa.
+
 struct FotografiaCulturalView: View {
     let lugar: LugarCultural
     var altura: CGFloat = 200

@@ -9,7 +9,7 @@ import AVFAudio
 import Combine
 import OSLog
 
-/// Un sintetizador por ficha. No encola secciones ni solicita acceso al micrófono.
+
 @MainActor
 final class LectorVozOfrenda: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     enum Estado { case inactivo, preparando, leyendo, pausado }
@@ -24,7 +24,7 @@ final class LectorVozOfrenda: NSObject, ObservableObject, AVSpeechSynthesizerDel
         if let sintetizador { return sintetizador }
         let nuevo = AVSpeechSynthesizer()
         nuevo.delegate = self
-        // Se crea al tocar Escuchar; el sistema administra su sesión y otros audios.
+
         nuevo.usesApplicationAudioSession = false
         sintetizador = nuevo
         return nuevo

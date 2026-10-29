@@ -7,9 +7,7 @@
 
 import SwiftUI
 
-/// Publicaciones consultadas el 28/10/2026. Una fecha de registro no es una fecha de origen.
 
-/// La cronología diferencia antecedentes, registros y prácticas actuales sin inventar eslabones.
 enum HistoriasDocumentadas {
     static let revision = "28 de octubre de 2026"
 

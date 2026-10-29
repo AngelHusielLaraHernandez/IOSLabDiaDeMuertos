@@ -14,7 +14,7 @@ struct PasoGuiaContextual: Identifiable {
     var objetivo: String { id.hasPrefix("ficha.seccion.") ? "ficha.secciones" : id }
 }
 
-/// Cada tipo de hoja enseña su interfaz una vez, no una vez por elemento del altar.
+
 enum GuiaContextualAmbito: String, CaseIterable {
     case ficha, azucar, literaria, marcos, recorrido, fuentes, fechas, crearOfrenda, ajusteFoto
     case guardarCalaverita, calaveritasGuardadas, misOfrendas, generador, marcosGeneral

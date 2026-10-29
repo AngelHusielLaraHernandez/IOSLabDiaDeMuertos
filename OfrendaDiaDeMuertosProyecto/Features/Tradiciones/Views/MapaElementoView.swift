@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// La referencia geográfica se monta únicamente al elegir Mapa, separada de la cronología.
+
 struct MapaElementoView: View {
     let nombreElemento: String
 

@@ -11,7 +11,7 @@ import RealityKit
 import QuartzCore
 import simd
 
-/// Un ejemplar real de la ofrenda para observarlo dentro de su tarjeta.
+
 struct Elemento3DView: View {
     let elemento: ElementoOfrenda
     let fotosMarcos: FotosMarcosStore
@@ -246,7 +246,6 @@ private struct VisorObjeto3D: UIViewRepresentable {
                     loaded = true
                     applyPose()
                     updateAnimation()
-                    // Permite publicar la escena y el indicador antes de anunciar que está lista.
                     await Task.yield()
                     try Task.checkCancellation()
                     guard generation == requestID else { return }
@@ -286,7 +285,7 @@ private struct VisorObjeto3D: UIViewRepresentable {
             guard let view, view.bounds.height > 0 else { return }
             let aspect = Float(view.bounds.width / view.bounds.height)
             let distance = Objeto3DInspectionState.distancia(radio: radius, aspecto: aspect) * state.zoom
-            // Un poco por encima del centro deja espacio para los controles de cristal.
+
             let target: SIMD3<Float> = [0, -0.16, 0]
             camera.look(at: target, from: target + [0, 0.04, distance], relativeTo: nil)
         }

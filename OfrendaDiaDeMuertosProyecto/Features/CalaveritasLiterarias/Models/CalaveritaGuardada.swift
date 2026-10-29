@@ -7,14 +7,14 @@
 
 import Foundation
 
-/// Una versión del poema, independiente de ediciones posteriores del altar.
+
 struct CalaveritaGuardada: Identifiable, Codable, Equatable {
     var id = UUID()
     let idOfrenda: UUID
     let nombrePersona: String
     let texto: String
     var fechaCreacion = Date()
-    // Opcional para leer las colecciones anteriores sin perder sus poemas.
+
     var titulo: String?
 
     init(para ofrenda: PersonalizacionOfrenda, texto: String) {
@@ -25,7 +25,7 @@ struct CalaveritaGuardada: Identifiable, Codable, Equatable {
 
     var tituloVisible: String { titulo ?? "Para \(nombrePersona)" }
 
-    /// Comparte texto legible, sin los marcadores de énfasis usados en la app.
+
     var textoPlano: String {
         var opciones = AttributedString.MarkdownParsingOptions()
         opciones.interpretedSyntax = .inlineOnlyPreservingWhitespace

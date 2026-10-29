@@ -8,7 +8,7 @@
 import SwiftUI
 import WebKit
 
-/// Puente local de la animación existente; no carga recursos de la red.
+
 struct MictlanAnimationView: UIViewRepresentable {
     let onEntrar: () -> Void
 
