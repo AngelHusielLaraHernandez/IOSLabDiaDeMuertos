@@ -81,7 +81,7 @@ struct BotonRutasView: View {
     }
 }
 
-/// Mantiene espacio para el mapa cuando Dynamic Type necesita un panel desplazable.
+
 struct PanelInformacionMapa<Contenido: View>: View {
     let alturaMaxima: CGFloat
     @ViewBuilder var contenido: Contenido

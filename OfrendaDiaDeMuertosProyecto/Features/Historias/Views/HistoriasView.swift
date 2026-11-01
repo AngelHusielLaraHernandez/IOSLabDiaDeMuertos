@@ -114,7 +114,7 @@ struct HistoriasView: View {
         }
     }
 
-    /// Retorna el subtítulo temático según el elemento
+
     private func subtituloPara(_ elemento: ElementoOfrenda) -> String {
         switch elemento.nombre {
         case "Flores", "Cempasúchil", "Velas":

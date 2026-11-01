@@ -8,7 +8,7 @@
 import UIKit
 import ImageIO
 
-/// Decodificación fuera del hilo principal y caché limitada para no competir con el altar 3D.
+
 actor FotografiasCulturalesLoader {
     static let shared = FotografiasCulturalesLoader()
     private let cache: NSCache<NSString, UIImage> = {

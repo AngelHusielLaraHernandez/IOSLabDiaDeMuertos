@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Fechas de referencia; las prácticas de cada comunidad y familia pueden variar.
+
 enum ConmemoracionMuertos: String, CaseIterable, Identifiable {
     case mascotas, infancia, adultos
     var id: String { rawValue }
@@ -36,7 +36,7 @@ enum ConmemoracionMuertos: String, CaseIterable, Identifiable {
     var fechaCorta: String { self == .mascotas ? "27 oct" : "\(dia) nov" }
 
     func cuenta(desde ahora: Date, zonaHoraria: TimeZone = .autoupdatingCurrent) -> CuentaConmemoracion {
-        // El Día de Muertos usa fechas gregorianas aunque el teléfono muestre otro calendario.
+        
         var calendario = Calendar(identifier: .gregorian)
         calendario.timeZone = zonaHoraria
         let hoy = calendario.startOfDay(for: ahora)

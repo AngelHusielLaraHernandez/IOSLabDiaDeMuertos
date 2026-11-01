@@ -34,8 +34,7 @@ enum CalaveritaGenerator {
             ? "las tardes en paz"
             : escaparMarkdown(recuerdoOriginal.lowercased())
 
-        // Cada estrofa incluye al menos un gusto personalizado.
-        // Los datos se resaltan con Markdown.
+
 
         let estrofasInicio: [String] = [
             """
@@ -188,7 +187,7 @@ enum CalaveritaGenerator {
         let e2 = estrofasMedio.randomElement() ?? estrofasMedio[0]
         let e3 = estrofasFin.randomElement() ?? estrofasFin[0]
 
-        // «Generar otra» siempre cambia al menos una estrofa de la versión visible.
+
         if "\(e1)\n\n\(e2)\n\n\(e3)" == anterior {
             e1 = iniciosConNombre.first(where: { $0 != e1 }) ?? e1
         }

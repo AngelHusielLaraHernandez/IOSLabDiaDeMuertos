@@ -127,7 +127,7 @@ extension View {
         modifier(CapaIlustraciones(activa: activa))
     }
 
-    /// Mantiene los dibujos dentro del mismo viewport que recorta el ScrollView nativo.
+
     func recortaIlustraciones() -> some View { modifier(RecorteIlustraciones()) }
 }
 
@@ -201,7 +201,6 @@ private struct IlustracionesHTML: UIViewRepresentable {
                   let json = String(data: data, encoding: .utf8), json != ultimoContenido else { return }
             ultimoContenido = json
             revision += 1
-            // Una revisión antigua de layout no puede recolocar los dibujos después de la nueva.
             view.evaluateJavaScript("window.setIcons?.(Object.assign(\(json),{revision:\(revision)}))", completionHandler: nil)
         }
 

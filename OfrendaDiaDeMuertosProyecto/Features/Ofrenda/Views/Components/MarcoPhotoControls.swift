@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Controles asociados a los dos marcos, compartidos por el altar y su vista previa.
+
 struct MarcoPhotoControls: View {
     struct Placement {
         let marco: MarcoOfrenda

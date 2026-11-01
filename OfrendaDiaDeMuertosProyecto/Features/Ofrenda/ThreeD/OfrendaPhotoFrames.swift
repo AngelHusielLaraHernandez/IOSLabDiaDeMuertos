@@ -9,7 +9,7 @@ import SwiftUI
 import RealityKit
 import simd
 
-/// Añade únicamente la superficie de foto; conserva los materiales del marco original.
+
 @MainActor
 final class OfrendaPhotoFrames {
     private struct Surface {
@@ -42,8 +42,7 @@ final class OfrendaPhotoFrames {
 
             frames[frame] = Frame(entity: entity, transform: entity.transform,
                                   center: entity.visualBounds(relativeTo: root).center)
-            // lambert2 es el panel frontal (dos triángulos) en este USDZ.
-            // Se leen sus vértices reales para heredar escala, inclinación y posición.
+
             let parts = mesh.contents.models.flatMap { Array($0.parts) }
             guard let part = parts.first(where: {
                 $0.materialIndex == 2 && $0.positions.count == 4 && $0.triangleIndices?.count == 6
@@ -122,7 +121,7 @@ final class OfrendaPhotoFrames {
         }
     }
 
-    /// Proyección compartida para los botones de foto y la reserva de espacio de las historias.
+
     func projections(in view: ARView, camera: PerspectiveCamera) -> [MarcoOfrenda: MarcoProjection] {
         var result: [MarcoOfrenda: MarcoProjection] = [:]
         for frame in MarcoOfrenda.allCases {
@@ -140,7 +139,7 @@ final class OfrendaPhotoFrames {
         return result
     }
 
-    /// Hit-test de solo dos cuadriláteros, sin generar colisiones para toda la ofrenda.
+
     func frame(at point: CGPoint, in view: ARView, camera: PerspectiveCamera) -> MarcoOfrenda? {
         let projected = projections(in: view, camera: camera)
         return MarcoOfrenda.allCases.first { frame in

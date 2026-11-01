@@ -17,6 +17,10 @@ env DEVELOPER_DIR="$desarrollador" xcrun swiftc \
   "$fuentes/Features/Tradiciones/Models/LugarCultural.swift" \
   "$fuentes/Features/Tradiciones/Models/FotografiaCultural.swift" \
   "$fuentes/Features/Tradiciones/Data/TradicionesCatalog.swift" \
+  "$fuentes/Features/Ofrenda/Data/ReferenciasOfrenda.swift" \
+  "$fuentes/Features/Ofrenda/Models/HistoriaElemento.swift" \
+  "$fuentes/Features/Ofrenda/Data/HistoriasDocumentadas.swift" \
+  "$fuentes/Features/Ofrenda/Data/CalaveritasHistoria.swift" \
   "$fuentes/Features/Tradiciones/Services/MapasCulturales.swift" \
   "$fuentes/Features/Tradiciones/Services/ProgresoRecorridoStore.swift" \
   "$raiz/Tests/TradicionesRegression.swift" \

@@ -24,7 +24,7 @@ class OfrendasManager: ObservableObject {
     }
     var idModeloPrincipal: UUID { ofrendaPrincipal?.id ?? Self.ofrendaGeneralID }
 
-    /// Los cambios de un formulario todavía abierto no habilitan la generación.
+
     var ofrendasParaCalaveritas: [PersonalizacionOfrenda] {
         ofrendasGuardadas.filter(\.estaCompleta)
     }
@@ -42,7 +42,7 @@ class OfrendasManager: ObservableObject {
         cargarSeleccionPrincipal()
     }
 
-    /// La elección solo se confirma cuando llegó al disco. nil restaura el altar didáctico.
+
     @discardableResult
     func seleccionarOfrendaPrincipal(_ id: UUID?) -> Bool {
         guard id == nil || ofrendasGuardadas.contains(where: { $0.id == id }) else {
@@ -124,7 +124,7 @@ class OfrendasManager: ObservableObject {
         guard FileManager.default.fileExists(atPath: urlSeleccion.path) else { return }
         do {
             let seleccion = try JSONDecoder().decode(SeleccionPrincipal.self, from: Data(contentsOf: urlSeleccion))
-            // Un ID eliminado o desconocido nunca sustituye el altar por una selección vacía.
+            
             if let id = seleccion.id, ofrendasGuardadas.contains(where: { $0.id == id }) {
                 idOfrendaPrincipal = id
             }

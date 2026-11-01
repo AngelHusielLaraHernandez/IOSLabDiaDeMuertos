@@ -8,7 +8,7 @@
 import SwiftUI
 import PhotosUI
 
-/// Edita las fotos que comparten el altar y su propuesta personalizada.
+
 struct MarcosFotosView: View {
     @Environment(\.dismiss) private var dismiss
     let store: FotosMarcosStore

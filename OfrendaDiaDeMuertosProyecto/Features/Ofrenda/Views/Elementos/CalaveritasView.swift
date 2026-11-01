@@ -21,19 +21,19 @@ struct CalaveritasView: View {
     private enum Contenido {
         static let significado = [
             "Dulzura con nombre propio",
-            "Elaboradas tradicionalmente con azúcar, amaranto o chocolate, las calaveritas decoradas con alfeñique de colores nos invitan a mirar la muerte con cercanía, ironía y dulzura.",
-            "Un detalle lleno de cariño",
-            "Suelen llevar escrito un nombre en la frente en papel metalizado. Se colocan en el altar para honrar a los difuntos o se regalan a personas queridas en vida como un recordatorio de nuestra propia mortalidad.",
+            "Las calaveritas de azúcar son figuras comestibles que acercan la imagen de la muerte a la vida cotidiana. Pueden colocarse en una ofrenda o regalarse: el sentido depende del contexto y de la relación entre las personas.",
+            "Un detalle que identifica",
+            "Algunas llevan un nombre en la frente y decoraciones de colores. No representan una amenaza ni exigen que el nombre sea de alguien fallecido; también pueden dedicarse con humor a una persona viva.",
         ]
         static let elaboracion = [
-            "Arte del Alfeñique",
-            "La técnica del alfeñique llegó con los españoles. Con una pasta moldeable de azúcar se forman pequeñas figuras que después se decoran. La elaboración y los detalles cambian según la región y el taller.",
-            "Variedades populares",
-            "Además del azúcar, también se encuentran calaveritas de chocolate y amaranto. Sus colores y decoraciones son parte del trabajo de cada artesano.",
+            "El oficio del alfeñique",
+            "El alfeñique es una técnica confitera de tradición hispánica que utiliza azúcar de caña. Los talleres moldean, vacían o trabajan pastas y decoraciones según su receta; no todas las figuras llamadas calaveritas se elaboran de la misma manera.",
+            "Materiales y variantes",
+            "Existen además figuras de amaranto o chocolate, que no deben confundirse con la misma técnica del azúcar. Toluca es una referencia de este oficio, pero también hay producción en otras regiones de México.",
         ]
         static let historia = [
-            "Raíces e Historia",
-            "Las calaveritas de dulce forman parte de las adaptaciones entre las tradiciones de los antiguos mexicanos y la celebración católica de los Fieles Difuntos. Hoy aparecen en ofrendas y ferias del alfeñique, como la de Toluca.",
+            "Intercambios que transforman la tradición",
+            "La calaverita dulce forma parte de la adaptación de la confitería y de las celebraciones de difuntos. La imagen del cráneo tiene antecedentes diversos, pero no basta para afirmar que una pieza de azúcar actual sea idéntica a una ofrenda antigua. Su historia es distinta de la calaverita literaria, que se escribe en versos.",
         ]
     }
 
@@ -107,7 +107,7 @@ struct CalaveritasView: View {
                             .lineSpacing(4)
 
                         Divider().padding(.vertical, 4)
-                        // La elaboración acompaña al significado en la misma sección.
+                  
                         Text(Contenido.elaboracion[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
@@ -136,7 +136,7 @@ struct CalaveritasView: View {
                             .lineSpacing(4)
 
                     } else if seccionActiva == 1 {
-                        // HISTORIA
+                 
                         Text(Contenido.historia[0])
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)

@@ -7,7 +7,7 @@
 
 import RealityKit
 
-/// Indexa una vez las piezas; cambiar un selector solo activa o desactiva esas entidades.
+
 @MainActor
 final class OfrendaElementVisibility {
     private var grupos: [GrupoElementoOfrenda: [(entity: Entity, enabled: Bool)]] = [:]

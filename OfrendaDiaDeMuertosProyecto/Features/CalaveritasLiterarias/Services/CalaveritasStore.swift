@@ -28,7 +28,7 @@ final class CalaveritasStore: ObservableObject {
         calaveritas.first { $0.idOfrenda == calaverita.idOfrenda && $0.texto == calaverita.texto }
     }
 
-    /// La interfaz confirma el guardado únicamente después de escribir el archivo completo.
+
     @discardableResult
     func guardar(_ calaverita: CalaveritaGuardada, conNombre nombre: String) -> Bool {
         guard lecturaValida else {
@@ -109,7 +109,7 @@ final class CalaveritasStore: ObservableObject {
             lecturaValida = true
             mensajeError = nil
         } catch {
-            // Un archivo ilegible nunca se reemplaza con una colección vacía.
+
             lecturaValida = false
             mensajeError = "No se pudieron leer tus calaveritas guardadas. Puedes volver a intentarlo; el archivo se conserva."
         }

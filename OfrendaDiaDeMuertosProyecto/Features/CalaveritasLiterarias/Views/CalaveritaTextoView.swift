@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Misma lectura con énfasis y pétalos, tanto al generar como al abrir un poema guardado.
+
 struct CalaveritaTextoView: View {
     let texto: String
     @State private var mostrarPetalos = false
@@ -32,7 +32,7 @@ struct CalaveritaTextoView: View {
     }
 }
 
-// MARK: - Animación de Pétalos de Cempasúchil
+
 private struct PetalosCempasuchilView: View {
     let onTerminar: () -> Void
     @State private var animar = false
@@ -89,7 +89,7 @@ private struct PetaloData: Identifiable {
     let rotacion: Double
 }
 
-// MARK: - Formateador de Texto de Calaverita
+
 private extension String {
     func formatearCalaverita(colorAcento: Color) -> AttributedString {
         var options = AttributedString.MarkdownParsingOptions()

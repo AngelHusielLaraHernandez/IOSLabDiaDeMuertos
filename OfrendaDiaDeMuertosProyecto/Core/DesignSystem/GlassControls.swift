@@ -25,7 +25,7 @@ extension View {
             .tint(AppTheme.accent)
     }
 
-    /// El contenido conserva su superficie morada; el cristal se reserva a controles.
+    
     func ofrendaSurface(cornerRadius: CGFloat = 20) -> some View {
         background(AppTheme.surface.opacity(0.72), in: .rect(cornerRadius: cornerRadius))
             .overlay {
@@ -35,7 +35,7 @@ extension View {
             }
     }
 
-    /// Deja que iOS dibuje el material y la transición de la hoja nativa.
+    
     func ofrendaSheet(detents: Set<PresentationDetent> = [.fraction(0.68), .large]) -> some View {
         presentationDetents(detents)
             .presentationDragIndicator(.visible)

@@ -8,7 +8,7 @@
 import Foundation
 import simd
 
-/// Transformaciones del ejemplar aislado; no cambia los límites del altar completo.
+
 struct Objeto3DInspectionState {
     var yaw: Float = 0
     var pitch: Float = 0.25
@@ -42,7 +42,7 @@ struct Objeto3DInspectionState {
         simd_quatf(angle: yaw, axis: [0, 1, 0]) * simd_quatf(angle: pitch, axis: [1, 0, 0])
     }
 
-    /// Ajusta una esfera que contiene la malla incluso al girarla por completo.
+ 
     static func distancia(radio: Float, aspecto: Float) -> Float {
         let mitadVertical: Float = 34 * .pi / 360
         let mitadHorizontal = atan(tan(mitadVertical) * max(0.1, aspecto))

@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Identidades estables; los textos visibles pueden cambiar sin perder la selección guardada.
+
 enum GrupoElementoOfrenda: String, CaseIterable, Identifiable, Sendable {
     case flores, retrato, velas, papel, agua, calaveritas, pan, comida, cana, frutas, incienso, cigarro, tequila
     var id: String { rawValue }
@@ -62,7 +62,7 @@ enum GrupoElementoOfrenda: String, CaseIterable, Identifiable, Sendable {
         case .tequila: "El vaso de tequila."
         }
     }
-    /// Nombres contrastados con el USDZ y el informe de exportación de Blender.
+    
     var entidades: [String] {
         func serie(_ prefix: String, _ range: ClosedRange<Int>) -> [String] {
             range.map { String(format: "%@__%03d", prefix, $0) }
@@ -103,7 +103,7 @@ enum GrupoElementoOfrenda: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Por defecto conserva todo el altar. Los identificadores desconocidos no rompen la lectura.
+
 struct ConfiguracionElementosOfrenda: Codable, Equatable, Sendable {
     private var ocultos: Set<String> = []
     var visibles: [GrupoElementoOfrenda] { GrupoElementoOfrenda.allCases.filter(muestra) }

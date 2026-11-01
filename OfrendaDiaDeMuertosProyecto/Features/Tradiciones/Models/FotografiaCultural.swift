@@ -19,7 +19,7 @@ struct FotografiaCultural: Decodable, Identifiable {
 }
 
 enum FotografiasCulturales {
-    /// El catálogo y sus imágenes viajan con la app; funcionan sin conexión.
+
     static let todas: [FotografiaCultural] = {
         guard let url = Bundle.main.url(forResource: "fotografias-creditos", withExtension: "json"),
               let datos = try? Data(contentsOf: url),

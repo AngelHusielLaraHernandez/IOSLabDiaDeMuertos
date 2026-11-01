@@ -31,7 +31,7 @@ enum TransporteCultural: String, CaseIterable, Identifiable {
 
 @MainActor
 enum MapasCulturales {
-    /// Solo entrega el destino público. La ubicación del usuario la administra Apple Maps.
+
     static func abrir(_ lugar: LugarCultural, transporte: TransporteCultural) -> Bool {
         let item = MKMapItem(location: CLLocation(latitude: lugar.latitud, longitude: lugar.longitud), address: nil)
         item.name = lugar.referencia
@@ -39,7 +39,7 @@ enum MapasCulturales {
     }
 }
 
-/// Caché breve y únicamente en memoria: no descarga mapas para uso sin conexión.
+
 @MainActor
 final class MiniaturasMapas {
     static let shared = MiniaturasMapas()

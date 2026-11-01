@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Elige la cantidad y toca directamente el retrato que se va a editar.
+
 struct ConfiguracionMarcosView: View {
     let store: FotosMarcosStore
     @Binding var marcoElegido: MarcoOfrenda

@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 
-/// Identificadores persistentes independientes de los títulos que muestra la interfaz.
 enum ElementoVisitadoID: String, CaseIterable {
     case flores, retrato, velas, papel, aguaSal, calaveritas, pan, comida, cana, frutas, incienso, cigarro, tequila
 

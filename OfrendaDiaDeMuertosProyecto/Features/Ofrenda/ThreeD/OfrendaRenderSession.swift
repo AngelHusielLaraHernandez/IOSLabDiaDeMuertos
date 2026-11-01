@@ -9,7 +9,7 @@ import UIKit
 import RealityKit
 import OSLog
 
-/// Conserva el visor y el altar preparados durante la navegación; solo cambia su contenedor.
+
 @MainActor
 final class OfrendaRenderSession {
     private let logger = Logger(subsystem: "Tenshi.OfrendaDiaDeMuertosProyecto", category: "OfrendaRenderSession")
@@ -22,7 +22,7 @@ final class OfrendaRenderSession {
     private var gestures: [(UIGestureRecognizer, Bool)] = []
     var isInspecting: Bool { detailHost != nil }
 
-    /// Cada montaje recibe una identidad: desmontar una pantalla anterior no libera la nueva.
+
     func mount(owner: UUID, host: OfrendaRenderHost,
                makeRenderer: () -> (ARView, OfrendaInteractive3DView.Renderer)) -> OfrendaInteractive3DView.Renderer {
         self.owner = owner
@@ -45,7 +45,7 @@ final class OfrendaRenderSession {
         return activeRenderer
     }
 
-    /// Usa el único motor de la sesión y permite cancelar si la pantalla deja de estar activa.
+
     func capturarOfrenda() async throws -> UIImage {
         guard owner != nil, detailHost == nil, let renderer else { throw ErrorCaptura.noDisponible }
         let id = UUID()
@@ -77,7 +77,7 @@ final class OfrendaRenderSession {
         primaryHost = nil
         renderer?.suspend()
         if detailHost == nil, view?.superview === host { view?.removeFromSuperview() }
-        // Un visor independiente (por ejemplo un Preview) no comparte esta caché de sesión.
+ 
         if discard, detailHost == nil {
             renderer?.dispose()
             if let view { OfrendaRenderConfiguration.release(view) }
@@ -98,7 +98,7 @@ final class OfrendaRenderSession {
     }
 
     func cloneElement(nombres: [String]) async throws -> Entity {
-        // Sigue disponible aunque NSCache se vacíe por presión de memoria o segundo plano.
+      
         try await OfrendaAssets.shared.cloneElement(nombres: nombres, from: altar)
     }
 

@@ -10,7 +10,6 @@ import Observation
 import UIKit
 
 
-/// Una sola fuente de fotos para la pantalla principal, la propuesta y el Canvas.
 @MainActor @Observable
 final class FotosMarcosStore {
     let idOfrenda: UUID
@@ -149,7 +148,7 @@ final class FotosMarcosStore {
     }
 }
 
-/// El acceso al disco se hace fuera del actor de la interfaz.
+
 private actor ArchivoFotosMarcos {
     let idOfrenda: UUID
     let directorio: URL?
@@ -164,7 +163,6 @@ private actor ArchivoFotosMarcos {
             return try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                         appropriateFor: nil, create: true)
                 .appendingPathComponent("FotosMarcos", isDirectory: true)
-                // AHORA SÍ creará una subcarpeta única por cada ofrenda
                 .appendingPathComponent(idOfrenda.uuidString, isDirectory: true)
         }
     }
@@ -202,7 +200,6 @@ private actor ArchivoFotosMarcos {
                 try datos.write(to: url, options: .atomic)
                 creados.append(url)
             }
-            // Este único cambio publica a la vez nombres, músicas y referencias de imágenes.
             try configuracion.write(to: carpeta.appendingPathComponent("configuracion.json"), options: .atomic)
         } catch {
             for url in creados { try? FileManager.default.removeItem(at: url) }

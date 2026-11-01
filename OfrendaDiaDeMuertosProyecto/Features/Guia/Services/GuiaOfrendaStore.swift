@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-/// Completar u omitir persiste; interrumpir la app a mitad no descarta la ayuda.
+
 @MainActor
 final class GuiaOfrendaStore: ObservableObject {
     static let claveCompletada = "ofrenda.guiaInicial.v1.completada"

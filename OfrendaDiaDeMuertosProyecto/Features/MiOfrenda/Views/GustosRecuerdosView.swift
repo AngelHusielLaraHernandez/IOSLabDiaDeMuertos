@@ -1,8 +1,15 @@
+//
+//  ListaMisOfrendasView.swift
+//  OfrendaDiaDeMuertosProyecto
+//
+//  Created by Adolfo G on 21/10/26.
+//
+
 import SwiftUI
 
 struct GustosRecuerdosView: View {
     @Binding var personalizacion: PersonalizacionOfrenda
-    let elementosStore: ElementosOfrendaStore          // NUEVO
+    let elementosStore: ElementosOfrendaStore
     let onContinuar: () -> Void
     let onVolver: () -> Void
     let onSalir: () -> Void
@@ -128,7 +135,6 @@ struct GustosRecuerdosView: View {
         }
     }
 
-    // MARK: - Sincronización
 
     private func toggleAficion(_ aficion: Aficion) {
         if personalizacion.aficiones.contains(aficion.nombre) {
@@ -149,8 +155,7 @@ struct GustosRecuerdosView: View {
         }
     }
 
-    /// Al abrir la vista por primera vez, refleja qué elementos están visibles
-    /// (compatibilidad con ofrendas guardadas antes del cambio).
+
     private func sincronizarAficionesDesdeElementos() {
         for aficion in Aficion.todas where !aficion.grupos.isEmpty {
             let todosVisibles = aficion.grupos.allSatisfy { elementosStore.configuracion.muestra($0) }

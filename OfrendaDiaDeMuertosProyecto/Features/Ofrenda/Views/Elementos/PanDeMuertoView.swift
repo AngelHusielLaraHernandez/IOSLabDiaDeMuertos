@@ -16,43 +16,15 @@ struct PanDeMuertoView: View {
             subtituloCabecera: "En el altar",
             nombreElemento: "Pan de muerto",
             tituloHistoria: "El aroma de la cocina",
-            parrafoHistoria1: "El perfume de azahar, naranja y mantequilla recién horneada anuncia que los días de recordar han llegado.",
-            parrafoHistoria2: "Colocarlo en el altar y después compartirlo en familia une el recuerdo con la convivencia cotidiana.",
+            parrafoHistoria1: "El pan que hoy conocemos es parte de una historia de intercambios y adaptaciones. La UNAM distingue las preparaciones rituales antiguas de maíz o amaranto de la panadería de trigo que se desarrolló tras la llegada europea.",
+            parrafoHistoria2: "No hay una receta única: Oaxaca conserva panes de yema y de figuras; en Mixquic se encuentran rosquillas llamadas despeinadas. El pan redondo con canillas es una variante muy difundida, pero no resume toda la tradición.",
             preguntaReflexion: "¿Prefieres el pan espolvoreado con azúcar o con ajonjolí?",
             tituloSignificado: "¿Por qué está aquí?",
-            parrafoSignificado1: "Representa el afecto y el gusto por compartir la mesa con quienes regresan a visitarnos.",
-            subtituloSignificado2: "El ciclo de la vida en su forma",
-            parrafoSignificado2: "Su forma circular evoca el ciclo de la vida y la muerte; la esfera central representa el cráneo y las cuatro canillas simbolizan los huesos y los rumbos del universo.",
-            notaSignificado: "Cada región hornea variantes propias: de yema, antropomorfos, con ajonjolí o azúcar rosa.",
-            hitos: [
-                HitoHistorico(
-                    epoca: "Antecedente mesoamericano",
-                    titulo: "Ofrendas de amaranto",
-                    descripcion: "Se elaboraban figuras rituales con semillas de amaranto tostado y miel conocidas como tzoalli.",
-                    colorPunto: .yellow,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Siglo XVI", titulo: "Panes rituales de amaranto", detalle: "Crónicas sobre la elaboración de figuras de amaranto para las festividades.", referencia: "Fray Bernardino de Sahagún")
-                    ]
-                ),
-                HitoHistorico(
-                    epoca: "Periodo virreinal",
-                    titulo: "Trigo, azúcar y azahar",
-                    descripcion: "Con la llegada del trigo y la panadería europea surgieron los panes de ánimas decorados en los hornos familiares.",
-                    colorPunto: .orange,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Siglo XVIII", titulo: "Panadería novohispana", detalle: "Adaptación de los panes de ofrenda con esencia de azahar y anís.", referencia: "Historia de la gastronomía mexicana")
-                    ]
-                ),
-                HitoHistorico(
-                    epoca: "Diversidad regional",
-                    titulo: "Cientos de formas y sabores",
-                    descripcion: "Desde las hojaldras del centro del país hasta el pan de yema oaxaqueño y los panes pintados de Michoacán.",
-                    colorPunto: .purple,
-                    fuentes: [
-                        FuenteDocumental(periodo: "Actualidad", titulo: "Atlas del pan de muerto", detalle: "Registro de las variedades regionales de pan de ofrenda en México.", referencia: "CONACULTA / Cocina Tradicional")
-                    ]
-                )
-            ],
+            parrafoSignificado1: "Ofrendar pan expresa afecto y una invitación a compartir la mesa. Su significado depende del contexto familiar y religioso; después de la conmemoración puede formar parte de la convivencia de los vivos.",
+            subtituloSignificado2: "Leer la forma sin olvidar sus variantes",
+            parrafoSignificado2: "En el pan redondo, una interpretación común asocia el círculo con el ciclo vital, las canillas con huesos o lágrimas y la esfera con el cráneo. Los panes con otras formas tienen lecturas locales distintas.",
+            notaSignificado: "Un antecedente ritual no demuestra que existiera la misma receta actual. Mixquic es un ejemplo regional, no el origen de todos los panes.",
+            hitos: HistoriasDocumentadas.hitos(para: "Pan de muerto"),
             textoBotonCerrar: textoBotonCerrar
         )
     }

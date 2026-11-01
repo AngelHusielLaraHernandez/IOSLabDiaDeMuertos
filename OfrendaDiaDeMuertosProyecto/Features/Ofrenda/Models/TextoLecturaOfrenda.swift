@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Utiliza los mismos párrafos de la ficha y conserva pausas entre versos y bloques.
+
 enum TextoLecturaOfrenda {
     static let introduccionFuentes = "Se diferencian antecedentes, contextos históricos, registros documentados y usos actuales. Las prácticas cambian entre regiones y familias."
 
@@ -36,7 +36,8 @@ enum TextoLecturaOfrenda {
             return "Sin ubicación asociada. Puedes consultar la historia y sus referencias en Conocer más."
         }
         let lugar = vinculo.lugar
-        return unir(["Tradición en México", lugar.nombre, lugar.region, vinculo.contexto,
+        return unir(["Origen y tradición", vinculo.tipo.rawValue, vinculo.origen,
+                     "Tradición en México", lugar.nombre, lugar.region, vinculo.contexto,
                      "Referencia: \(lugar.referencia). Las tradiciones también se viven en otras regiones.",
                      lugar.avisoVisita])
     }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Un único visor activo, con cambios de visibilidad en la escena existente.
+
 struct PersonalizarElementosView: View {
     let renderSession: OfrendaRenderSession
     let store: ElementosOfrendaStore

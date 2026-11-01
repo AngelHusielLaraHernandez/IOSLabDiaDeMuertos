@@ -8,25 +8,16 @@
 import SwiftUI
 
 struct PersonalizacionOfrenda: Identifiable, Codable, Equatable {
-    var id = UUID() //Es el identificador para cada ofrenda se usa UUID para el anexo automatico
-    //var foto: UIImage? = nil a ver si no lo rompo
+    var id = UUID()
     var marcoRetrato: MarcoOfrenda = .izquierdo
     var nombre: String = ""
     var retratos: ConfiguracionMarcos? = nil
     var comidaFavorita: String = ""
-    var musicaFavorita: String = "" // Único campo para música/canción favorita (Opcional)
+    var musicaFavorita: String = ""
     var aficiones: Set<String> = []
     var recuerdoCompartido: String = ""
     
-    /*
-    var estaCompleta: Bool {
-        foto != nil && !nombre.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-     */
-    
-    //Lo cambie porque ahora depende de los marcos usando esta id
-    
-    /// Son los datos obligatorios del flujo; las fotos y los demás gustos son opcionales.
+
     var estaCompleta: Bool {
         !nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !comidaFavorita.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -74,8 +65,7 @@ struct Aficion: Identifiable, Hashable {
     let icono: IlustracionOfrenda
     var id: String { nombre }
 
-    /// Grupos del modelo 3D que activa este pasatiempo.
-    /// Retrato se maneja por separado (viene de la foto elegida).
+
     var grupos: [GrupoElementoOfrenda] {
         switch nombre {
         case "Jardinería":            return [.flores]
@@ -107,10 +97,10 @@ struct Aficion: Identifiable, Hashable {
 }
 
 enum PasoPersonalizacion {
-    case retrato       // pantallas 1 y 4
-    case ajusteFoto    // pantalla 3
-    case gustos        // pantallas 5 y 6
-    case sugerencias   // pantalla 7
-    case elementos     // selección real de los objetos del modelo
-    case resultado     // pantalla 8
+    case retrato       
+    case ajusteFoto
+    case gustos
+    case sugerencias
+    case elementos
+    case resultado
 }

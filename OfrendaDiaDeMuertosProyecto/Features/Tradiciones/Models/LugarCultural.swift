@@ -13,7 +13,7 @@ struct FuenteCultural: Hashable {
     let url: URL
 }
 
-/// Un punto de referencia público; no representa el lugar de origen exclusivo de un elemento.
+
 struct LugarCultural: Identifiable, Hashable {
     let id: String
     let nombre: String
@@ -30,12 +30,23 @@ struct LugarCultural: Identifiable, Hashable {
     }
 }
 
+
+enum TipoVinculoCultural: String {
+    case cultivo = "Región productora"
+    case oficio = "Centro artesanal"
+    case practica = "Tradición regional documentada"
+    case bebida = "Historia regional de la bebida"
+}
+
 struct VinculoCultural {
     let lugar: LugarCultural
     let contexto: String
+    let tipo: TipoVinculoCultural
+    let origen: String
+    let fuentesOrigen: [FuenteCultural]
 }
 
-/// La edición se documenta por separado para no convertir un anuncio anual en una sede permanente.
+
 struct CelebracionCultural: Identifiable {
     let id: String
     let nombre: String

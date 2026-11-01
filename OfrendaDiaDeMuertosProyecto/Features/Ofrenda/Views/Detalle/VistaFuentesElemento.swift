@@ -14,7 +14,7 @@ struct VistaFuentesElemento: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ElementSheetHeader(icono: .fuentes, subtitulo: "Fuentes para la línea de tiempo", titulo: nombreElemento)
+            ElementSheetHeader(icono: .fuentes, subtitulo: "Historia, significado y contexto", titulo: nombreElemento)
             ControlLecturaView(texto: TextoLecturaOfrenda.fuentes(nombre: nombreElemento, hitos: hitos))
                 .objetivoGuiaContextual("fuentes.voz")
             ScrollView {

@@ -34,7 +34,7 @@ struct SugerenciasOfrendaView: View {
                 }
                 .padding(.horizontal, 24)
 
-                // Bloque 1: elementos básicos
+                
                 VStack(alignment: .leading, spacing: 12) {
                     Text("PARA RECIBIRLE")
                         .font(.caption.weight(.bold)).tracking(0.6)
@@ -50,7 +50,7 @@ struct SugerenciasOfrendaView: View {
                 .background(RoundedRectangle(cornerRadius: 20).fill(colorTarjeta.opacity(0.75)))
                 .padding(.horizontal, 24)
 
-                // Comida favorita
+         
                 if !personalizacion.comidaFavorita.isEmpty {
                     TarjetaSugerencia(
                         icono: .comida,
@@ -61,7 +61,7 @@ struct SugerenciasOfrendaView: View {
                     .padding(.horizontal, 24)
                 }
 
-                // Música o canción favorita
+
                 if !personalizacion.musicaResumen.isEmpty {
                     TarjetaSugerencia(
                         icono: .musica,
@@ -72,7 +72,7 @@ struct SugerenciasOfrendaView: View {
                     .padding(.horizontal, 24)
                 }
 
-                // Aficiones
+        
                 ForEach(Array(personalizacion.aficiones).sorted(), id: \.self) { aficion in
                     TarjetaSugerencia(
                         icono: iconoPara(aficion),
